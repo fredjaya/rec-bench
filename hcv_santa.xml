@@ -1,0 +1,87 @@
+<santa xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="santa.xsd">
+	<replicates>1</replicates>
+
+	<simulation>
+		<genome>
+		    <length>1680</length>
+			<sequences file = '/Users/13444841/Dropbox/Masters/03_working/1905_nextflow/data/hcv/alignment_1.fasta'>
+			</sequences>
+
+			<feature>
+				<name>E1E2</name>
+				<type>nucleotide</type>
+				<coordinates>1-1680</coordinates>
+			</feature>
+		</genome>
+
+		<population>
+		    <populationSize>100</populationSize>
+		    <inoculum>random</inoculum>
+		</population>
+
+		<fitnessFunction>
+		    <purifyingFitness>
+			    <feature>E1E2</feature>
+		        <sites>59-615,690-1680</sites>
+		        <rank>
+		        	<order>observed</order>
+		            <breakTies>random</breakTies>
+		        </rank>
+		        <fitness>
+		            <lowFitness>0.5</lowFitness>
+			        <minimumFitness>0.1</minimumFitness>
+		        </fitness>
+		    </purifyingFitness>
+		</fitnessFunction>
+
+		<mutator>
+			<nucleotideMutator>
+				<mutationRate>0.001</mutationRate>
+				<transitionBias>2.0</transitionBias>
+			</nucleotideMutator>
+		</mutator>
+
+		<replicator>
+			<recombinantReplicator>
+				<dualInfectionProbability>0.05</dualInfectionProbability>
+				<recombinationProbability>0.0001</recombinationProbability>
+			</recombinantReplicator>
+		</replicator>
+
+		<epoch>
+			<generationCount>101</generationCount>
+		</epoch>
+
+		<samplingSchedule>
+			<sampler>
+				<atFrequency>101</atFrequency>
+				<fileName>alignment_%r_O.fasta</fileName>
+				<alignment>
+					<sampleSize>50</sampleSize>
+					<format>FASTA</format>
+					<label>seq_%g_%s</label>
+				</alignment>
+			</sampler>
+
+			<sampler>
+				<atFrequency>101</atFrequency>
+				<fileName>stats_%r.csv</fileName>
+				<statistics/>
+			</sampler>
+
+			<sampler>
+				<atFrequency>101</atFrequency>
+				<fileName>tree_%r.trees</fileName>
+					<tree>
+						<sampleSize>100</sampleSize>
+						<format>NEWICK</format>
+						<label>seq_%s</label>
+					</tree>
+			</sampler>
+		</samplingSchedule>
+
+
+	</simulation>
+
+</santa>
