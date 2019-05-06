@@ -12,18 +12,35 @@ hcvSeq = file(hcvDir)
 // SANTA-SIM
 hcvXml = file("$baseDir/hcv_santa.xml")
 
-process santa {
+// Create three input .xml files, iterating over 3 mutation rates
+process paramsweep {
+
+  input:
+  file hcvXml from hcvXml
+  each mutRate from 0.01, 0.001, 0.0001
+
+  output:
+  file 'hcvXml_*.xml' into santaInput
+
+  script:
+  """
+  sed 's|'MUTRATE'|'$mutRate'|g' $hcvXml > hcvXml_${mutRate}.xml
+  """
+
+}
+
+/*process santa {
 
   publishDir 'out/1_santa'
   seqInput = hcvXml
 
   input:
-  file xml from hcvXml
+  file 'hcvXml_*' from santaInput
 
   output:
-  file('stats_1.csv')
-  file('tree_1.trees')
-  file 'alignment_1_O.fasta' into rdmInput
+  file('stats_*.csv')
+  file('tree_*.trees')
+  file 'alignment_*_O.fasta' into rdmInput
 
   script:
 
@@ -99,3 +116,4 @@ process '3seq_e' {
   $baseDir/rdm/3seq -f $hcv -d -id 3seq.out
   """
 }
+*/

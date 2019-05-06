@@ -37,7 +37,7 @@
 
 		<mutator>
 			<nucleotideMutator>
-				<mutationRate>0.001</mutationRate>
+				<mutationRate>MUTRATE</mutationRate>
 				<transitionBias>2.0</transitionBias>
 			</nucleotideMutator>
 		</mutator>
