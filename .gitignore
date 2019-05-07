@@ -1,4 +1,5 @@
 .DS_Store
 .nextflow*
 3seqPval500
-work*
+work/*
+out/*

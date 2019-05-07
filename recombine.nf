@@ -17,7 +17,7 @@ process paramsweep {
 
   input:
   file hcvXml from hcvXml
-  each mutRate from 0.01, 0.001, 0.0001
+  each mutRate from 0.001,0.0001
 
   output:
   file 'hcvXml_*.xml' into santaInput
@@ -29,18 +29,17 @@ process paramsweep {
 
 }
 
-/*process santa {
+process santa {
 
   publishDir 'out/1_santa'
-  seqInput = hcvXml
 
   input:
-  file 'hcvXml_*' from santaInput
+  file xml from santaInput
 
   output:
   file('stats_*.csv')
   file('tree_*.trees')
-  file 'alignment_*_O.fasta' into rdmInput
+  file 'alignment_*.fasta' into rdmInput
 
   script:
 
@@ -66,7 +65,7 @@ process phipack_s {
   $baseDir/rdm/Phi -f $align -o -p
   """
 }
-
+/*
 process '3seq_s' {
 
   publishDir 'out/S3_3seq'
