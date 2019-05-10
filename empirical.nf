@@ -8,12 +8,12 @@
  *
  */
 
-seq = file("$baseDir/data/hcv/alignment_m0.001_rep1_.fasta")
-tree = file("$baseDir/data/hcv/tree_m0.001_rep1.trees")
+seq = file("$baseDir/data/hcv/alignment_1.fasta")
 
-publishDir = "$baseDir/out"
 // PHIPACK //
 process phipack_e {
+
+  storeDir 'out/e/1_phipack'
 
   input:
   file seq from seq
@@ -30,6 +30,8 @@ process phipack_e {
 
 // 3SEQ //
 process '3seq_e' {
+
+  storeDir 'out/e/2_3seq'
 
   input:
   file seq from seq
@@ -48,6 +50,8 @@ process '3seq_e' {
 // Create tree to initialise ClonalFrameML
 process iqtree {
 
+  storeDir 'out/e/iqtree'
+
   input:
   file seq from seq
 
@@ -65,6 +69,8 @@ process iqtree {
 // CLONALFRAMEML //
 process clonalfml_e {
 
+  storeDir 'out/e/3_cfml'
+
   input:
   file seq from seq
   file tree from tree
@@ -74,7 +80,8 @@ process clonalfml_e {
 
   script:
   """
-  $baseDir/bin/ClonalFrameML $tree $seq cfml
+  $baseDir/bin/ClonalFrameML $tree $seq $seq
+  Rscript $baseDir/bin/cfml_results.R $seq
   """
 }
 
