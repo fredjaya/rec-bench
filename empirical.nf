@@ -13,7 +13,7 @@ seq = file("$baseDir/data/hcv/alignment_1.fasta")
 // PHIPACK //
 process phipack_e {
 
-  storeDir 'out/e/1_phipack'
+  publishDir 'out/e/1_phipack', mode: 'move'
 
   input:
   file seq from seq
@@ -31,7 +31,7 @@ process phipack_e {
 // 3SEQ //
 process '3seq_e' {
 
-  storeDir 'out/e/2_3seq'
+  publishDir 'out/e/2_3seq', mode: 'move'
 
   input:
   file seq from seq
@@ -50,7 +50,7 @@ process '3seq_e' {
 // Create tree to initialise ClonalFrameML
 process iqtree {
 
-  storeDir 'out/e/iqtree'
+  publishDir 'out/e/iqtree', mode: 'copy'
 
   input:
   file seq from seq
@@ -69,7 +69,7 @@ process iqtree {
 // CLONALFRAMEML //
 process clonalfml_e {
 
-  storeDir 'out/e/3_cfml'
+  publishDir 'out/e/3_cfml', mode: 'move'
 
   input:
   file seq from seq
@@ -83,6 +83,26 @@ process clonalfml_e {
   $baseDir/bin/ClonalFrameML $tree $seq $seq
   Rscript $baseDir/bin/cfml_results.R $seq
   """
+}
+
+process uchime_e {
+
+  publishDir 'out/e/4_uchime', mode: 'move'
+
+  input:
+  file seq from seq
+
+  output:
+  file{'*'}
+
+  script:
+  """
+  $baseDir/bin/vsearch --uchime_denovo $seq \
+                       --chimeras ${seq}.rc \
+                       --nonchimeras ${seq}.nonrc \
+                       --log ${seq}.log
+  """
+
 }
 
 /*
