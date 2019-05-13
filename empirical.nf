@@ -8,7 +8,7 @@
  *
  */
 
-seq = file("$baseDir/data/hcv/alignment_1.fasta")
+seq = file("$baseDir/data/fmdv/FMDV_Kenya_plaques_refs.fas")
 
 // PHIPACK //
 process phipack_e {

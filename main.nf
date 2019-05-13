@@ -1,13 +1,22 @@
 #!/usr/local/bin nextflow
 
- /* fmdvDir = "$baseDir/data/fmdv/*"
+/* Dependecies:
+ *  Python (biopython)
+ *  Java
+ *  OpenMPI
+ *  R - ape, phangorn
+ *
+ */
+
+ /*
+  * hcvDir = "$baseDir/data/hcv/*"
+  * hcvSeq = file(hcvDir)fmdvDir = "$baseDir/data/fmdv/*"
   * fmdvFile = file($fmdvDir)
   * fmdvXml = file('fmdv_santa.xml')
   */
 
 // Set path for empirical sequence data
-hcvDir = "$baseDir/data/hcv/*"
-hcvSeq = file(hcvDir)
+seq = file("$baseDir/data/hcv/seqment_1.fasta")
 
 // SANTA-SIM
 hcvXml = file("$baseDir/hcv_santa.xml")
@@ -31,7 +40,7 @@ process paramsweep {
 
 process santa {
 
-  publishDir 'out/1_santa'
+  publishDir 'out/santa', mode: 'copy'
 
   input:
   file xml from santaInput
@@ -39,7 +48,7 @@ process santa {
   output:
   file('stats_*.csv')
   file('tree_*.trees')
-  file ('alignment_*.fasta') into binInput
+  file ('seqment_*.fasta') into rdmInput
 
   script:
 
@@ -49,31 +58,29 @@ process santa {
 
 }
 
-/*
 // Run RDMs
 process phipack_s {
 
-  publishDir 'out/S2_phipack'
+  publishDir 'out/S1_phipack', mode: 'move'
 
   input:
-  //file align from binInput
+  file seq from rdmInput
 
   output:
   file{'*'}
 
   script:
   """
-  $baseDir/bin/Phi -f $align -o -p
+  $baseDir/bin/Phi -f $seq -o -p
   """
 }
-*/
 
 process '3seq_s' {
 
-  publishDir 'out/S3_3seq'
+  publishDir 'out/S2_3seq', mode: 'move'
 
   input:
-  file align from binInput
+  file seq from rdmInput
 
   output:
   file{'*'}
@@ -81,14 +88,14 @@ process '3seq_s' {
   script:
   """
   echo "Y" |
-  $baseDir/bin/3seq -f $align -d -id 3seq.out
+  $baseDir/bin/3seq -f $seq -d -id 3seq.out
   """
 }
 
 /*
 process phipack_e {
 
-  publishDir 'out/E2_phipack'
+  publishDir 'out/E1_phipack', mode: 'move'
 
   input:
   file hcv from hcvSeq
@@ -104,7 +111,7 @@ process phipack_e {
 
 process '3seq_e' {
 
-  publishDir 'out/E3_3seq'
+  publishDir 'out/E2_3seq', mode: 'move'
 
   input:
   file hcv from hcvSeq
