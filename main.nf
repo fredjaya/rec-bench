@@ -16,7 +16,7 @@
   */
 
 // Set path for empirical sequence data
-seq = file("$baseDir/data/hcv/seqment_1.fasta")
+seq = file("$baseDir/data/hcv/alignment_1n.fasta")
 
 // SANTA-SIM
 hcvXml = file("$baseDir/hcv_santa.xml")
@@ -46,12 +46,11 @@ process santa {
   file xml from santaInput
 
   output:
-  file('stats_*.csv')
-  file('tree_*.trees')
-  file ('seqment_*.fasta') into rdmInput
+  file 'stats_*.csv'
+  file 'tree_*.trees'
+  file 'alignment_*.fasta' into rdmInput1, rdmInput2
 
   script:
-
   """
   java -jar $baseDir/bin/santa-ba8733a.jar $xml
   """
@@ -64,7 +63,7 @@ process phipack_s {
   publishDir 'out/S1_phipack', mode: 'move'
 
   input:
-  file seq from rdmInput
+  file seq from rdmInput1
 
   output:
   file{'*'}
@@ -75,12 +74,13 @@ process phipack_s {
   """
 }
 
+
 process '3seq_s' {
 
   publishDir 'out/S2_3seq', mode: 'move'
 
   input:
-  file seq from rdmInput
+  file seq from rdmInput2
 
   output:
   file{'*'}
