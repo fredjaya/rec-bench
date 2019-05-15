@@ -1,2 +1,5 @@
 .DS_Store
-.nextflow.log*
+.nextflow*
+3seqPval500
+work/*
+out/*
