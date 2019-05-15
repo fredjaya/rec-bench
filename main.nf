@@ -73,7 +73,7 @@ process santa {
   """
 
 }
-
+/*
 // Run RDMs
 process phipack_s {
 
@@ -83,7 +83,7 @@ process phipack_s {
   file seq from rdmInput1
 
   output:
-  file{'*'}
+  file '${seq}_${*}'
 
   script:
   """
@@ -91,12 +91,13 @@ process phipack_s {
   """
 }
 
+*/
 process '3seq_s' {
 
   publishDir 'out/S2_3seq', mode: 'move'
 
   input:
-  file seq from rdmInput2
+  file seq from rdmInput2.flatten()
 
   output:
   file{'*'}
@@ -104,7 +105,7 @@ process '3seq_s' {
   script:
   """
   echo "Y" |
-  $baseDir/bin/3seq -f $seq -d -id 3seq.out
+  $baseDir/bin/3seq -f $seq -d -id ${seq}
   """
 }
 
