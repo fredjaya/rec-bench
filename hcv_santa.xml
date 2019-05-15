@@ -5,7 +5,7 @@
 	<simulation>
 		<genome>
 		    <length>1680</length>
-			<sequences file = '/Users/13444841/Dropbox/Masters/03_working/1905_nextflow/data/hcv/alignment_1.fasta'>
+			<sequences file = 'SEQPATH'>
 			</sequences>
 
 			<feature>

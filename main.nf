@@ -16,29 +16,46 @@
   */
 
 // Set path for empirical sequence data
-seq = file("$baseDir/data/hcv/alignment_1n.fasta")
+seqPath = "$baseDir/data/hcv/alignment_1n.fasta"
+seq = file(seqPath)
 
 // SANTA-SIM
-hcvXml = file("$baseDir/hcv_santa.xml")
+hcvXml1 = file("$baseDir/hcv_santa.xml")
 
-// Create three input .xml files, iterating over 3 mutation rates
+process xmlPath {
+
+  input:
+  file hcvXml from hcvXml1
+  val seqPath
+
+  output:
+  file 'hcv_santa2.xml' into hcvXml2
+
+  script:
+  """
+  sed 's|'SEQPATH'|'$seqPath'|g' $hcvXml > hcv_santa2.xml
+  """
+}
+
+// Create three input with 2 reps .xml files, iterating over 3 mutation rates
 process paramsweep {
 
   input:
-  file hcvXml from hcvXml
-  each mutRate from 0.001,0.0001
+  file hcvXml from hcvXml2
+  each mutRate from 0.01,0.001,0.0001
 
   output:
   file 'hcvXml_*.xml' into santaInput
 
   script:
   """
-  sed 's|'MUTRATE'|'$mutRate'|g' $hcvXml > hcvXml_${mutRate}.xml
+  sed 's|'MUTRATE'|'$mutRate'|g' $hcvXml > hcvXml_m${mutRate}.xml
   """
 
 }
 
 process santa {
+  errorStrategy 'ignore' //non-viable population
 
   publishDir 'out/santa', mode: 'copy'
 
@@ -73,7 +90,6 @@ process phipack_s {
   $baseDir/bin/Phi -f $seq -o -p
   """
 }
-
 
 process '3seq_s' {
 
