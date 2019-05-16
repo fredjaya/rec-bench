@@ -42,14 +42,15 @@ process paramsweep {
 
   input:
   file hcvXml from hcvXml2
-  each mutRate from 0.01,0.001,0.0001
+  each mutRate from 10e-5, 10e-4, 10e-3
+  each recRate from 10e-8, 10e-7
 
   output:
   file 'hcvXml_*.xml' into santaInput
 
   script:
   """
-  sed 's|'MUTRATE'|'$mutRate'|g' $hcvXml > hcvXml_m${mutRate}.xml
+  sed 's|'MUTRATE'|'$mutRate'|g; s|'RECRATE'|'$recRate'|g' $hcvXml > hcvXml_m${mutRate}_r${recRate}.xml
   """
 
 }

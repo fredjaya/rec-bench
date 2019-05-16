@@ -45,7 +45,7 @@
 		<replicator>
 			<recombinantReplicator>
 				<dualInfectionProbability>0.05</dualInfectionProbability>
-				<recombinationProbability>0.0001</recombinationProbability>
+				<recombinationProbability>RECRATE</recombinationProbability>
 			</recombinantReplicator>
 		</replicator>
 
@@ -56,7 +56,7 @@
 		<samplingSchedule>
 			<sampler>
 				<atFrequency>101</atFrequency>
-				<fileName>msa_mMUTRATE_rep%r_.fasta</fileName>
+				<fileName>msa_mMUTRATE_rcRECRATE_rep%r_.fasta</fileName>
 				<alignment>
 					<sampleSize>50</sampleSize>
 					<format>FASTA</format>
@@ -66,13 +66,13 @@
 
 			<sampler>
 				<atFrequency>101</atFrequency>
-				<fileName>stats_mMUTRATE_rep%r.csv</fileName>
+				<fileName>stats_mMUTRATE_rcRECRATE_rep%r.csv</fileName>
 				<statistics/>
 			</sampler>
 
 			<sampler>
 				<atFrequency>101</atFrequency>
-				<fileName>tree_mMUTRATE_rep%r.trees</fileName>
+				<fileName>tree_mMUTRATE_rcRECRATE_rep%r.trees</fileName>
 					<tree>
 						<sampleSize>100</sampleSize>
 						<format>NEWICK</format>
