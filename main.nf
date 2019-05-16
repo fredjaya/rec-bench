@@ -65,7 +65,7 @@ process santa {
   output:
   file 'stats_*.csv'
   file 'tree_*.trees'
-  file 'alignment_*.fasta' into rdmInput1, rdmInput2
+  file 'alignment_*.fasta' into rdmInput1e,rdmInput1s,rdmInput2e,rdmInput2s
 
   script:
   """
@@ -73,17 +73,20 @@ process santa {
   """
 
 }
-/*
+
 // Run RDMs
 process phipack_s {
 
-  publishDir 'out/S1_phipack', mode: 'move'
-
+  publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
+  //errorStrategy 'ignore' //Too few informative sites to test significance.
   input:
-  file seq from rdmInput1
+  file seq from rdmInput1s.flatten()
 
   output:
-  file '${seq}_${*}'
+  file 'Phi.inf.list'
+  file 'Phi.inf.sites'
+  file 'Phi.log'
+  file 'Phi.poly.unambig.sites'
 
   script:
   """
@@ -91,13 +94,13 @@ process phipack_s {
   """
 }
 
-*/
+
 process '3seq_s' {
 
   publishDir 'out/S2_3seq', mode: 'move'
 
   input:
-  file seq from rdmInput2.flatten()
+  file seq from rdmInput2s.flatten()
 
   output:
   file{'*'}
@@ -125,13 +128,14 @@ process phipack_e {
   $baseDir/bin/Phi -f $hcv -o -p
   """
 }
+*/
 
 process '3seq_e' {
 
   publishDir 'out/E2_3seq', mode: 'move'
 
   input:
-  file hcv from hcvSeq
+  file seq from rdmInput2e.flatten()
 
   output:
   file{'*'}
@@ -139,7 +143,6 @@ process '3seq_e' {
   script:
   """
   echo "Y" |
-  $baseDir/bin/3seq -f $hcv -d -id 3seq.out
+  $baseDir/bin/3seq -f $seq -d -id ${seq}
   """
 }
-*/
