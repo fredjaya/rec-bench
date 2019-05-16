@@ -19,7 +19,10 @@
 seqPath = "$baseDir/data/hcv/alignment_1n.fasta"
 seq = file(seqPath)
 
-// SANTA-SIM
+//===================//
+// S A N T A - S I M //
+//===================//
+
 hcvXml1 = file("$baseDir/hcv_santa.xml")
 
 process xmlPath {
@@ -35,9 +38,9 @@ process xmlPath {
   """
   sed 's|'SEQPATH'|'$seqPath'|g' $hcvXml > hcv_santa2.xml
   """
+
 }
 
-// Create three input with 2 reps .xml files, iterating over 3 mutation rates
 process paramsweep {
 
   input:
@@ -65,8 +68,8 @@ process santa {
 
   output:
   file 'stats_*.csv'
-  file 'tree_*.trees'
-  file 'msa_*.fasta' into rdmInputS1,rdmInputS2
+  file 'tree_*.trees' //into treeInput
+  file 'msa_*.fasta' into rdmInputS1, rdmInputS2
 
   script:
   """
@@ -75,7 +78,10 @@ process santa {
 
 }
 
-// Run RDMs
+//===================//
+// S I M U L A T E D //
+//===================//
+
 process phipack_s {
 
   publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
@@ -118,6 +124,10 @@ process '3seq_s' {
   $baseDir/bin/3seq -f $seq -d -id ${seq}
   """
 }
+
+//===================//
+// E M P I R I C A L //
+//===================//
 
 process phipack_e {
 
