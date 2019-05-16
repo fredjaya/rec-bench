@@ -16,29 +16,50 @@
   */
 
 // Set path for empirical sequence data
-seq = file("$baseDir/data/hcv/alignment_1n.fasta")
+seqPath = "$baseDir/data/hcv/alignment_1n.fasta"
+seq = file(seqPath)
 
-// SANTA-SIM
-hcvXml = file("$baseDir/hcv_santa.xml")
+//===================//
+// S A N T A - S I M //
+//===================//
 
-// Create three input .xml files, iterating over 3 mutation rates
+hcvXml1 = file("$baseDir/hcv_santa.xml")
+
+process xmlPath {
+
+  input:
+  file hcvXml from hcvXml1
+  val seqPath
+
+  output:
+  file 'hcv_santa2.xml' into hcvXml2
+
+  script:
+  """
+  sed 's|'SEQPATH'|'$seqPath'|g' $hcvXml > hcv_santa2.xml
+  """
+
+}
+
 process paramsweep {
 
   input:
-  file hcvXml from hcvXml
-  each mutRate from 0.001,0.0001
+  file hcvXml from hcvXml2
+  each mutRate from 10e-5, 10e-4, 10e-3
+  each recRate from 10e-8, 10e-7
 
   output:
   file 'hcvXml_*.xml' into santaInput
 
   script:
   """
-  sed 's|'MUTRATE'|'$mutRate'|g' $hcvXml > hcvXml_${mutRate}.xml
+  sed 's|'MUTRATE'|'$mutRate'|g; s|'RECRATE'|'$recRate'|g' $hcvXml > hcvXml_m${mutRate}_r${recRate}.xml
   """
 
 }
 
 process santa {
+  errorStrategy 'ignore' //non-viable population
 
   publishDir 'out/santa', mode: 'copy'
 
@@ -47,8 +68,8 @@ process santa {
 
   output:
   file 'stats_*.csv'
-  file 'tree_*.trees'
-  file 'alignment_*.fasta' into rdmInput1, rdmInput2
+  file 'tree_*.trees' //into treeInput
+  file 'msa_*.fasta' into rdmInputS1, rdmInputS2
 
   script:
   """
@@ -57,16 +78,25 @@ process santa {
 
 }
 
-// Run RDMs
+//===================//
+// S I M U L A T E D //
+//===================//
+
 process phipack_s {
 
-  publishDir 'out/S1_phipack', mode: 'move'
+  publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
+  //errorStrategy 'ignore' //Too few informative sites to test significance.
+  errorStrategy 'retry'
+  maxRetries 3
 
   input:
-  file seq from rdmInput1
+  file seq from rdmInputS1.flatten()
 
   output:
-  file{'*'}
+  file 'Phi.inf.list'
+  file 'Phi.inf.sites'
+  file 'Phi.log'
+  file 'Phi.poly.unambig.sites'
 
   script:
   """
@@ -80,32 +110,42 @@ process '3seq_s' {
   publishDir 'out/S2_3seq', mode: 'move'
 
   input:
-  file seq from rdmInput2
+  file seq from rdmInputS2.flatten()
 
   output:
-  file{'*'}
+  file '*3s.log'
+  file '*3s.pvalHist'
+  file '*s.rec'
+  file '*3s.longRec' optional true
 
   script:
   """
   echo "Y" |
-  $baseDir/bin/3seq -f $seq -d -id 3seq.out
+  $baseDir/bin/3seq -f $seq -d -id ${seq}
   """
 }
 
-/*
+//===================//
+// E M P I R I C A L //
+//===================//
+
 process phipack_e {
 
-  publishDir 'out/E1_phipack', mode: 'move'
+  publishDir 'out/E1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
+  //errorStrategy 'ignore' //Too few informative sites to test significance.
 
   input:
-  file hcv from hcvSeq
+  file seq from seq
 
   output:
-  file{'*'}
+  file 'Phi.inf.list'
+  file 'Phi.inf.sites'
+  file 'Phi.log'
+  file 'Phi.poly.unambig.sites'
 
   script:
   """
-  $baseDir/bin/Phi -f $hcv -o -p
+  $baseDir/bin/Phi -f $seq -o -p
   """
 }
 
@@ -114,15 +154,17 @@ process '3seq_e' {
   publishDir 'out/E2_3seq', mode: 'move'
 
   input:
-  file hcv from hcvSeq
+  file seq from seq
 
   output:
-  file{'*'}
+  file '*3s.log'
+  file '*3s.pvalHist'
+  file '*s.rec'
+  file '*3s.longRec' optional true
 
   script:
   """
   echo "Y" |
-  $baseDir/bin/3seq -f $hcv -d -id 3seq.out
+  $baseDir/bin/3seq -f $seq -d -id ${seq}
   """
 }
-*/
