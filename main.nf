@@ -150,6 +150,7 @@ process phipack_e {
   """
   $baseDir/bin/Phi -f $seq -o -p
   """
+
 }
 
 process '3seq_e' {
@@ -170,4 +171,53 @@ process '3seq_e' {
   echo "Y" |
   $baseDir/bin/3seq -f $seq -d -id ${seq}
   """
+
+}
+
+process iqtree {
+
+  publishDir 'out/iqtree', mode: 'copy'
+
+  input:
+  file seq from seq
+
+  output:
+  file '*.bionj'
+  file '*.ckp.gz'
+  file '*.iqtree'
+  file '*.log'
+  file '*.mldist'
+  file '*.uniqueseq.phy'
+  file '*.treefile' into treeE
+
+  script:
+  """
+  $baseDir/bin/iqtree -s $seq -m GTR+I+G -nt AUTO
+  """
+  //$baseDir/bin/iqtree -s $seq -m GTR+I+G -alrt 1000 -bb 1000 -nt AUTO
+}
+
+process clonalfml_e {
+
+  publishDir 'out/E3_cfml', mode: 'move'
+
+  input:
+  file seq from seq
+  file tree from treeE
+
+  output:
+  file '*.cfml.pdf'
+  file '*.em.txt'
+  file '*.importation_status.txt'
+  file '*labelled_tree.newick'
+  file '*.ML_sequence.fasta'
+  file '*.position_cross_reference.txt'
+//file '*.emsim.txt' optional true
+
+  script:
+  """
+  $baseDir/bin/ClonalFrameML $tree $seq $seq
+  Rscript $baseDir/bin/cfml_results.R $seq
+  """
+
 }

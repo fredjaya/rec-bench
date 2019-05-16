@@ -104,35 +104,3 @@ process uchime_e {
   """
 
 }
-
-/*
-process fas2phy {
-
-  input:
-  file seq from seq
-
-  output:
-  file '*.phy' into phylip
-
-  script:
-  """
-  python3 $baseDir/bin/fasta2phylip.py -i $seq -o ${seq}.phy
-  """
-
-}
-
-process dualbro {
-// Putative recombination must be the last sequence, hence requires prior detction
-
-  input:
-  file phylip from phylip
-
-  output:
-  file{'*'}
-
-  script:
-  """
-  java $baseDir/bin/DualBrothers-1.1.jar 12345
-  """
-}
-*/
