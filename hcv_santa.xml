@@ -56,7 +56,7 @@
 		<samplingSchedule>
 			<sampler>
 				<atFrequency>101</atFrequency>
-				<fileName>alignment_mMUTRATE_rep%r_.fasta</fileName>
+				<fileName>msa_mMUTRATE_rep%r_.fasta</fileName>
 				<alignment>
 					<sampleSize>50</sampleSize>
 					<format>FASTA</format>

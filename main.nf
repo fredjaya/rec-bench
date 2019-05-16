@@ -65,7 +65,7 @@ process santa {
   output:
   file 'stats_*.csv'
   file 'tree_*.trees'
-  file 'alignment_*.fasta' into rdmInput1e,rdmInput1s,rdmInput2e,rdmInput2s
+  file 'msa_*.fasta' into rdmInputS1,rdmInputS2
 
   script:
   """
@@ -79,8 +79,9 @@ process phipack_s {
 
   publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
   //errorStrategy 'ignore' //Too few informative sites to test significance.
+
   input:
-  file seq from rdmInput1s.flatten()
+  file seq from rdmInputS1.flatten()
 
   output:
   file 'Phi.inf.list'
@@ -100,7 +101,7 @@ process '3seq_s' {
   publishDir 'out/S2_3seq', mode: 'move'
 
   input:
-  file seq from rdmInput2s.flatten()
+  file seq from rdmInputS2.flatten()
 
   output:
   file{'*'}
@@ -112,30 +113,32 @@ process '3seq_s' {
   """
 }
 
-/*
 process phipack_e {
 
-  publishDir 'out/E1_phipack', mode: 'move'
+  publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
+  //errorStrategy 'ignore' //Too few informative sites to test significance.
 
   input:
-  file hcv from hcvSeq
+  file seq from seq
 
   output:
-  file{'*'}
+  file 'Phi.inf.list'
+  file 'Phi.inf.sites'
+  file 'Phi.log'
+  file 'Phi.poly.unambig.sites'
 
   script:
   """
-  $baseDir/bin/Phi -f $hcv -o -p
+  $baseDir/bin/Phi -f $seq -o -p
   """
 }
-*/
 
 process '3seq_e' {
 
   publishDir 'out/E2_3seq', mode: 'move'
 
   input:
-  file seq from rdmInput2e.flatten()
+  file seq from seq
 
   output:
   file{'*'}
