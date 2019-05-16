@@ -79,6 +79,8 @@ process phipack_s {
 
   publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
   //errorStrategy 'ignore' //Too few informative sites to test significance.
+  errorStrategy 'retry'
+  maxRetries 3
 
   input:
   file seq from rdmInputS1.flatten()
@@ -104,7 +106,10 @@ process '3seq_s' {
   file seq from rdmInputS2.flatten()
 
   output:
-  file{'*'}
+  file '*3s.log'
+  file '*3s.pvalHist'
+  file '*s.rec'
+  file '*3s.longRec' optional true
 
   script:
   """
@@ -115,7 +120,7 @@ process '3seq_s' {
 
 process phipack_e {
 
-  publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
+  publishDir 'out/E1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
   //errorStrategy 'ignore' //Too few informative sites to test significance.
 
   input:
@@ -141,7 +146,10 @@ process '3seq_e' {
   file seq from seq
 
   output:
-  file{'*'}
+  file '*3s.log'
+  file '*3s.pvalHist'
+  file '*s.rec'
+  file '*3s.longRec' optional true
 
   script:
   """
