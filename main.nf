@@ -19,6 +19,10 @@
 seqPath = "$baseDir/data/hcv/alignment_1n.fasta"
 seq = file(seqPath)
 
+// Set channels for parameter values
+mutRate = Channel.from(10e-5, 10e-4, 10e-3)
+recRate = Channel.from(10e-8, 10e-7)
+
 //===================//
 // S A N T A - S I M //
 //===================//
@@ -45,8 +49,8 @@ process paramsweep {
 
   input:
   file hcvXml from hcvXml2
-  each mutRate from 10e-5, 10e-4, 10e-3
-  each recRate from 10e-8, 10e-7
+  each mutRate from mutRate
+  each recRate from recRate
 
   output:
   file 'hcvXml_*.xml' into santaInput
@@ -103,7 +107,6 @@ process phipack_s {
   $baseDir/bin/Phi -f $seq -o -p
   """
 }
-
 
 process '3seq_s' {
 
