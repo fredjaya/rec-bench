@@ -19,9 +19,13 @@
 seqPath = "$baseDir/data/hcv/alignment_1n.fasta"
 seq = file(seqPath)
 
-// Set channels for parameter values
+//===================//
+//  C H A N N E L S  //
+//===================//
 mutRate = Channel.from(10e-5, 10e-4, 10e-3)
 recRate = Channel.from(10e-8, 10e-7)
+
+
 
 //===================//
 // S A N T A - S I M //
@@ -72,8 +76,8 @@ process santa {
 
   output:
   file 'stats_*.csv'
-  file 'tree_*.trees' //into treeInput
-  file 'msa_*.fasta' into rdmInputS1, rdmInputS2
+  file 'tree_*.trees' into //treeS3
+  file 'msa_*.fasta' into rdmInputS1, rdmInputS2//, rdmInputS3
 
   script:
   """
@@ -106,6 +110,7 @@ process phipack_s {
   """
   $baseDir/bin/Phi -f $seq -o -p
   """
+
 }
 
 process '3seq_s' {
@@ -126,8 +131,34 @@ process '3seq_s' {
   echo "Y" |
   $baseDir/bin/3seq -f $seq -d -id ${seq}
   """
-}
 
+}
+/*
+process cfml_s {
+
+  publishDir 'out/S3_cfml', mode: 'move'
+
+  input:
+  file seq from rdmInputS3
+  file tree from treeS3
+
+  output:
+  file '*.cfml.pdf'
+  file '*.em.txt'
+  file '*.importation_status.txt'
+  file '*labelled_tree.newick'
+  file '*.ML_sequence.fasta'
+  file '*.position_cross_reference.txt'
+  //file '*.emsim.txt' optional true
+
+  script:
+  """
+  $baseDir/bin/ClonalFrameML $tree $seq $seq
+  Rscript $baseDir/bin/cfml_results.R $seq
+  """
+
+}
+*/
 //===================//
 // E M P I R I C A L //
 //===================//
@@ -188,22 +219,23 @@ process iqtree {
   file '*.log'
   file '*.mldist'
   file '*.uniqueseq.phy'
-  file '*.treefile' into treeE
+  file '*.treefile' into treeE3
 
   script:
   """
   $baseDir/bin/iqtree -s $seq -m GTR+I+G -nt AUTO
   """
   //$baseDir/bin/iqtree -s $seq -m GTR+I+G -alrt 1000 -bb 1000 -nt AUTO
+
 }
 
-process clonalfml_e {
+process cfml_e {
 
   publishDir 'out/E3_cfml', mode: 'move'
 
   input:
   file seq from seq
-  file tree from treeE
+  file tree from treeE3
 
   output:
   file '*.cfml.pdf'
@@ -212,7 +244,7 @@ process clonalfml_e {
   file '*labelled_tree.newick'
   file '*.ML_sequence.fasta'
   file '*.position_cross_reference.txt'
-//file '*.emsim.txt' optional true
+  //file '*.emsim.txt' optional true
 
   script:
   """
