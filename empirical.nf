@@ -8,9 +8,13 @@
  *
  */
 
-seq = file("$baseDir/data/fmdv/FMDV_Kenya_plaques_refs.fas")
+seq = file("$baseDir/data/hcv/alignment_1n.fasta")
+//seq = file("$baseDir/data/fmdv/FMDV_Kenya_plaques_refs.fas")
 
-// PHIPACK //
+//===================//
+// E M P I R I C A L //
+//===================//
+
 process phipack_e {
 
   publishDir 'out/e/1_phipack', mode: 'move'
@@ -19,7 +23,10 @@ process phipack_e {
   file seq from seq
 
   output:
-  file{'*'}
+  file 'Phi.inf.list'
+  file 'Phi.inf.sites'
+  file 'Phi.log'
+  file 'Phi.poly.unambig.sites'
 
   script:
   """
@@ -28,7 +35,6 @@ process phipack_e {
 
 }
 
-// 3SEQ //
 process '3seq_e' {
 
   publishDir 'out/e/2_3seq', mode: 'move'
@@ -37,12 +43,15 @@ process '3seq_e' {
   file seq from seq
 
   output:
-  file{'*'}
+  file '*3s.log'
+  file '*3s.pvalHist'
+  file '*s.rec'
+  file '*3s.longRec' optional true
 
   script:
   """
   echo "Y" |
-  $baseDir/bin/3seq -f $seq -d -id 3seq.out
+  $baseDir/bin/3seq -f $seq -d -id ${seq}
   """
 
 }
@@ -56,7 +65,12 @@ process iqtree {
   file seq from seq
 
   output:
-  file{'*'}
+  file '*.bionj'
+  file '*.ckp.gz'
+  file '*.iqtree'
+  file '*.log'
+  file '*.mldist'
+  file '*.uniqueseq.phy'
   file '*.treefile' into tree
 
   script:
@@ -66,7 +80,6 @@ process iqtree {
 //$baseDir/bin/iqtree -s $seq -m GTR+I+G -alrt 1000 -bb 1000 -nt AUTO
 }
 
-// CLONALFRAMEML //
 process clonalfml_e {
 
   publishDir 'out/e/3_cfml', mode: 'move'
@@ -76,7 +89,13 @@ process clonalfml_e {
   file tree from tree
 
   output:
-  file{'*'}
+  file '*.cfml.pdf'
+  file '*.em.txt'
+  file '*.importation_status.txt'
+  file '*labelled_tree.newick'
+  file '*.ML_sequence.fasta'
+  file '*.position_cross_reference.txt'
+  //file '*.emsim.txt' optional true
 
   script:
   """
@@ -93,14 +112,18 @@ process uchime_e {
   file seq from seq
 
   output:
-  file{'*'}
+  file '*_m'
+  file '*.rc'
+  file '*.nonrc'
+  file '*.log'
 
   script:
   """
-  $baseDir/bin/vsearch --uchime_denovo $seq \
-                       --chimeras ${seq}.rc \
-                       --nonchimeras ${seq}.nonrc \
-                       --log ${seq}.log
+  sed 's|'-'|''|g' $seq > ${seq}_m
+  $baseDir/bin/vsearch --uchime_denovo ${seq}_m \
+                       --chimeras ${seq}_m.rc \
+                       --nonchimeras ${seq}_m.nonrc \
+                       --log ${seq}_m.log
   """
 
 }
