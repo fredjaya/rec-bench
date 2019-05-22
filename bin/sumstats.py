@@ -2,29 +2,25 @@
 
 import csv
 import re
+import glob
 
 # Set regex patterns
 regex_name = re.compile('[a-z]+')
-regex_pval = re.compile('\d+\.\d+[e][+|-]\d+')
+regex_pval = re.compile(r'\d+\.\d+[e][+|-]\d+|(?<=\s)--(?=\n)')
+# Need to account for '--' in tests other than Phi (Normal)
+# Append log files to list
+files = []
+for file in glob.glob("out/S1_phipack/*.log"):
+    files.append(file)
 
-# Input text
-name = "msa_m0.0010_rc0.0000010_rep1_.fasta_Phi.log"
-pvals = """NSS:                 1.00e+00  (1000 permutations)
-Max Chi^2:           1.19e-01  (1000 permutations)
-PHI (Permutation):   8.26e-01  (1000 permutations)
-PHI (Normal):        3.27e-01
-"""
-
-# Split input file name
-name = re.sub(regex_name, '', name)
-name = name.split("_")
-name = name[1:4]
-
-# Match pvalues
-pvals = re.findall(regex_pval, pvals)
-
-with open('/out/sumstats.csv', 'w') as csvfile:
+# Loop through output files to parse parameters and p-values
+with open('sumstats.csv', 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter = ',')
     writer.writerow(['theta', 'rho', 'rep', 'NSS', 'MaxChi', 'PhiPerm', 'PhiNorm'])
-    writer.writerow(name + pvals)
-    # add seqlength
+    for file in files:
+        phi = open(file, 'r').read()
+        name = re.sub(regex_name, '', file)
+        name = name.split("_")
+        name = name[2:5]
+        pvals = re.findall(regex_pval, phi)
+        writer.writerow(name + pvals)
