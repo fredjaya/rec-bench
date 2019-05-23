@@ -8,8 +8,8 @@
  *
  */
 
-seq = file("$baseDir/data/hcv/alignment_1n.fasta")
-//seq = file("$baseDir/data/fmdv/FMDV_Kenya_plaques_refs.fas")
+//seq = file("$baseDir/data/hcv/alignment_1n.fasta")
+seq = file("$baseDir/data/fmdv/FMDV_Kenya_4refs_alg_m.fasta")
 
 //===================//
 // E M P I R I C A L //
@@ -31,6 +31,24 @@ process phipack_e {
   script:
   """
   $baseDir/bin/Phi -f $seq -o -p
+  """
+
+}
+
+process phipack_profile_e {
+
+  publishDir 'out/e/1_phipack', mode: 'move'
+
+  input:
+  file seq from seq
+
+  output:
+  file 'Profile.csv'
+
+  script:
+  """
+  $baseDir/bin/Profile -f $seq
+  Rscript $baseDir/bin/phi_profile.R
   """
 
 }
@@ -94,6 +112,7 @@ process clonalfml_e {
   file '*.importation_status.txt'
   file '*labelled_tree.newick'
   file '*.ML_sequence.fasta'
+
   file '*.position_cross_reference.txt'
   //file '*.emsim.txt' optional true
 
