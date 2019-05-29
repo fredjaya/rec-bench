@@ -18,6 +18,7 @@ names(df) <- c('mid_bp', 'pvalue')
 pdf(paste(path, 'Profile.pdf', sep = ''))
 ggplot(df, aes(mid_bp, pvalue)) +
   geom_line() +
+  scale_y_reverse() +
   geom_hline(yintercept = 0.05, color = 'red') +
   theme_minimal()
 dev.off()
