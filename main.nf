@@ -77,7 +77,7 @@ process santa {
   output:
   file 'stats_*.csv'
   file 'tree_*.trees' into //treeS3
-  file 'msa_*.fasta' into rdmInputS1, rdmInputS2//, rdmInputS3
+  file 'msa_*.fasta' into rdmInputS1, rdmInputS2, rdmInputS4//, rdmInputS3
 
   script:
   """
@@ -93,9 +93,9 @@ process santa {
 process phipack_s {
 
   publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
-  //errorStrategy 'ignore' //Too few informative sites to test significance.
-  errorStrategy 'retry'
-  maxRetries 3
+  errorStrategy 'ignore' //Too few informative sites to test significance.
+  //errorStrategy 'retry'
+  //maxRetries 3
 
   input:
   file seq from rdmInputS1.flatten()
@@ -159,6 +159,30 @@ process cfml_s {
 
 }
 */
+
+process uchime_s {
+
+  publishDir 'out/S4_uchime', mode: 'move'
+
+  input:
+  file seq from rdmInputS4.flatten()
+
+  output:
+  file '*_m'
+  file '*.rc'
+  file '*.nonrc'
+  file '*.log'
+
+  script:
+  """
+  sed 's|'-'|''|g' $seq > ${seq}_m
+  $baseDir/bin/vsearch --uchime_denovo ${seq}_m \
+                       --chimeras ${seq}_m.rc \
+                       --nonchimeras ${seq}_m.nonrc \
+                       --log ${seq}_m.log
+  """
+}
+
 //===================//
 // E M P I R I C A L //
 //===================//
@@ -252,4 +276,27 @@ process cfml_e {
   Rscript $baseDir/bin/cfml_results.R $seq
   """
 
+}
+
+process uchime_e {
+
+  publishDir 'out/E4_uchime', mode: 'move'
+
+  input:
+  file seq from seq
+
+  output:
+  file '*_m'
+  file '*.rc'
+  file '*.nonrc'
+  file '*.log'
+
+  script:
+  """
+  sed 's|'-'|''|g' $seq > ${seq}_m
+  $baseDir/bin/vsearch --uchime_denovo ${seq}_m \
+                       --chimeras ${seq}_m.rc \
+                       --nonchimeras ${seq}_m.nonrc \
+                       --log ${seq}_m.log
+  """
 }
