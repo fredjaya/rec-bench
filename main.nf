@@ -67,7 +67,6 @@ process paramsweep {
 }
 
 process santa {
-
   errorStrategy 'ignore' //non-viable population
 
   publishDir 'out/santa', mode: 'copy'
@@ -77,8 +76,8 @@ process santa {
 
   output:
   file 'stats_*.csv'
-  file 'msa_*.fasta' into rdmInputS1, rdmInputS2, rdmInputS4
-  set file('tree_*_rep1.trees'), file('msa_*_rep1.fasta') into rdmInputS3
+  file 'tree_*.trees' into //treeS3
+  file 'msa_*.fasta' into rdmInputS1, rdmInputS2, rdmInputS4//, rdmInputS3
 
   script:
   """
@@ -134,7 +133,7 @@ process '3seq_s' {
   """
 
 }
-
+/*
 process cfml_s {
 
   publishDir 'out/S3_cfml', mode: 'move'
@@ -154,10 +153,11 @@ process cfml_s {
   script:
   """
   $baseDir/bin/ClonalFrameML $tree $seq $seq
+  Rscript $baseDir/bin/cfml_results.R $seq
   """
-//Rscript $baseDir/bin/cfml_results.R $seq
-}
 
+}
+*/
 
 process uchime_s {
 

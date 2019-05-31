@@ -60,7 +60,7 @@
 				<alignment>
 					<sampleSize>50</sampleSize>
 					<format>FASTA</format>
-					<label>seq_%s</label>
+					<label>seq_%g_%s</label>
 				</alignment>
 			</sampler>
 
@@ -74,7 +74,7 @@
 				<atFrequency>101</atFrequency>
 				<fileName>tree_mMUTRATE_rcRECRATE_rep%r.trees</fileName>
 					<tree>
-						<sampleSize>50</sampleSize>
+						<sampleSize>100</sampleSize>
 						<format>NEWICK</format>
 						<label>seq_%s</label>
 					</tree>
