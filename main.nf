@@ -140,8 +140,7 @@ process cfml_s {
   publishDir 'out/S3_cfml', mode: 'move'
 
   input:
-  file seq from rdmInputS3
-  file tree from treeS3
+  set file(tree), file(seq) from rdmInputS3
 
   output:
   file '*.cfml.pdf'
