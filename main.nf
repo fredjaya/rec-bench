@@ -76,9 +76,8 @@ process santa {
 
   output:
   file 'stats_*.csv'
-  file 'tree_*.trees' into //treeS3
-  file 'msa_*.fasta' into rdmInputS1, rdmInputS2, rdmInputS4//, rdmInputS3
-
+  file 'msa_*.fasta' into rdmInputS1, rdmInputS2, rdmInputS4
+  set file('tree_*_rep1.trees'), file('msa_*_rep1.fasta') into rdmInputS3
   script:
   """
   java -jar $baseDir/bin/santa-ba8733a.jar $xml
@@ -133,14 +132,13 @@ process '3seq_s' {
   """
 
 }
-/*
+
 process cfml_s {
 
   publishDir 'out/S3_cfml', mode: 'move'
 
   input:
-  file seq from rdmInputS3
-  file tree from treeS3
+  set file(tree), file(seq) from rdmInputS3
 
   output:
   file '*.cfml.pdf'
@@ -158,7 +156,7 @@ process cfml_s {
   """
 
 }
-*/
+
 
 process uchime_s {
 
