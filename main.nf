@@ -8,43 +8,41 @@
  *
  */
 
- /*
-  * hcvDir = "$baseDir/data/hcv/*"
-  * hcvSeq = file(hcvDir)fmdvDir = "$baseDir/data/fmdv/*"
-  * fmdvFile = file($fmdvDir)
-  * fmdvXml = file('fmdv_santa.xml')
-  */
-
 // Set path for empirical sequence data
-seqPath = "$baseDir/data/hcv/alignment_1n.fasta"
-seq = file(seqPath)
+  // _m: characters in fasta names [m]odified for cfml
+  // _n: [n]o gaps ('-') in sequences for santa and uchime
+
+seqPath_m = "$baseDir/data/fmdv/FMDV_Kenya_4refs_alg_m.fasta"
+seqPath_n = "$baseDir/data/fmdv/FMDV_Kenya_4refs_alg_n2.fasta"
+seq = file(seqPath_m)
+seq_n = file(seqPath_n)
 
 //===================//
 //  C H A N N E L S  //
 //===================//
 mutRate = Channel.from(10e-5, 10e-4, 10e-3)
-recRate = Channel.from(10e-8, 10e-7)
-
-
+recRate = Channel.from(10e-5, 10e-3)
 
 //===================//
 // S A N T A - S I M //
 //===================//
 
-hcvXml1 = file("$baseDir/hcv_santa.xml")
+//xml1 = file("$baseDir/hcv_santa.xml")
+xml1 = file("$baseDir/fmdv_kenya_n.xml")
 
 process xmlPath {
 
   input:
-  file hcvXml from hcvXml1
-  val seqPath
+  file xml from xml1
+  val seqPath_n
 
   output:
-  file 'hcv_santa2.xml' into hcvXml2
+  //file 'hcv_santa2.xml' into xml2
+  file '*2.xml' into xml2
 
   script:
   """
-  sed 's|'SEQPATH'|'$seqPath'|g' $hcvXml > hcv_santa2.xml
+  sed 's|'SEQPATH'|'$seqPath_n'|g' $xml > ${xml}2.xml
   """
 
 }
@@ -52,22 +50,22 @@ process xmlPath {
 process paramsweep {
 
   input:
-  file hcvXml from hcvXml2
+  file xml from xml2
   each mutRate from mutRate
   each recRate from recRate
 
   output:
-  file 'hcvXml_*.xml' into santaInput
+  file '*.xml' into santaInput
 
   script:
   """
-  sed 's|'MUTRATE'|'$mutRate'|g; s|'RECRATE'|'$recRate'|g' $hcvXml > hcvXml_m${mutRate}_r${recRate}.xml
+  sed 's|'MUTRATE'|'$mutRate'|g; s|'RECRATE'|'$recRate'|g' $xml > xml_m${mutRate}_r${recRate}.xml
   """
 
 }
 
 process santa {
-  errorStrategy 'ignore' //non-viable population
+  //errorStrategy 'ignore' //non-viable population
 
   publishDir 'out/santa', mode: 'copy'
 
@@ -76,12 +74,64 @@ process santa {
 
   output:
   file 'stats_*.csv'
-  file 'msa_*.fasta' into rdmInputS1, rdmInputS2, rdmInputS4
-  set file('tree_*_rep1.trees'), file('msa_*_rep1.fasta') into rdmInputS3
+  //file 'tree_*.trees'
+  file 'msa_*.fasta' into rdmInputS1, rdmInputS2, rdmInputS4 //rdmInputS3,
+  set file('tree_*.trees'), file('msa_*.fasta') into rdmInputS3
+
   script:
   """
   java -jar $baseDir/bin/santa-ba8733a.jar $xml
   """
+
+}
+
+/*
+process iqtree_s {
+
+  publishDir 'out/iqtree_S', mode: 'copy'
+
+  input:
+  file seq from seq_n
+
+  output:
+  file '*.bionj'
+  file '*.ckp.gz'
+  file '*.iqtree'
+  file '*.log'
+  file '*.mldist'
+  file '*.uniqueseq.phy'
+  file '*.treefile' into treeS3
+
+  script:
+  """
+  $baseDir/bin/iqtree -s $seq -m GTR+I+G -nt AUTO
+  """
+  //$baseDir/bin/iqtree -s $seq -m GTR+I+G -alrt 1000 -bb 1000 -nt AUTO
+
+}
+*/
+
+process iqtree_e {
+
+  publishDir 'out/iqtree_E', mode: 'copy'
+
+  input:
+  file seq from seq
+
+  output:
+  file '*.bionj'
+  file '*.ckp.gz'
+  file '*.iqtree'
+  file '*.log'
+  file '*.mldist'
+  file '*.uniqueseq.phy'
+  file '*.treefile' into treeE3
+
+  script:
+  """
+  $baseDir/bin/iqtree -s $seq -m GTR+I+G -nt AUTO
+  """
+  //$baseDir/bin/iqtree -s $seq -m GTR+I+G -alrt 1000 -bb 1000 -nt AUTO
 
 }
 
@@ -112,6 +162,24 @@ process phipack_s {
 
 }
 
+process phipack_profile_s {
+
+  publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
+
+  input:
+  file seq from seq
+
+  output:
+  file 'Profile.csv'
+
+  script:
+  """
+  $baseDir/bin/Profile -f $seq
+  """
+  //Rscript $baseDir/bin/phi_profile.R
+
+}
+
 process '3seq_s' {
 
   publishDir 'out/S2_3seq', mode: 'move'
@@ -135,10 +203,14 @@ process '3seq_s' {
 
 process cfml_s {
 
+  errorStrategy 'ignore' //
+
   publishDir 'out/S3_cfml', mode: 'move'
 
   input:
-  set file(tree), file(seq) from rdmInputS3
+  //file seq from rdmInputS3.flatten()
+  //file tree from treeS3
+  set file(tree), file(seq) from rdmInputS3.flatten()
 
   output:
   file '*.cfml.pdf'
@@ -156,7 +228,6 @@ process cfml_s {
   """
 
 }
-
 
 process uchime_s {
 
@@ -206,6 +277,22 @@ process phipack_e {
 
 }
 
+process phipack_profile_e {
+
+  publishDir 'out/E1_phipack', mode: 'move'
+
+  input:
+  file seq from seq
+
+  output:
+  file 'Profile.csv'
+
+  script:
+  """
+  $baseDir/bin/Profile -f $seq
+  """
+    //Rscript $baseDir/bin/phi_profile.R
+}
 process '3seq_e' {
 
   publishDir 'out/E2_3seq', mode: 'move'
@@ -224,30 +311,6 @@ process '3seq_e' {
   echo "Y" |
   $baseDir/bin/3seq -f $seq -d -id ${seq}
   """
-
-}
-
-process iqtree {
-
-  publishDir 'out/iqtree', mode: 'copy'
-
-  input:
-  file seq from seq
-
-  output:
-  file '*.bionj'
-  file '*.ckp.gz'
-  file '*.iqtree'
-  file '*.log'
-  file '*.mldist'
-  file '*.uniqueseq.phy'
-  file '*.treefile' into treeE3
-
-  script:
-  """
-  $baseDir/bin/iqtree -s $seq -m GTR+I+G -nt AUTO
-  """
-  //$baseDir/bin/iqtree -s $seq -m GTR+I+G -alrt 1000 -bb 1000 -nt AUTO
 
 }
 

@@ -8,7 +8,7 @@ help = paste(
   "Usage: Rscript phi_profile.R",
   sep="\n")
 
-path = "out/e/1_phipack/"
+path = "out/E1_phipack/"
 
 # Read Profile.csv
 df <- read.csv(paste(path, 'Profile.csv', sep = ''), header = F)
