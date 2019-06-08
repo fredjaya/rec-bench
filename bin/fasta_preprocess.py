@@ -1,11 +1,14 @@
+# This script prepares .fasta files for analysis in santa-sim
+# by filtering for sequences with the longest length.
+# Both these programs cannot process sequences containing "-".
+
 #!/usr/bin/env python3
 
 import sys
 import re
-from collections import Counter
 from matplotlib import pyplot as plt
 
-# Check argument
+## Check argument ##
 if len(sys.argv) < 2:
     print("Please specify a .fasta file!")
     exit()
@@ -17,8 +20,9 @@ if len(sys.argv) == 2:
     print("||\n"
           "||  Reading", data, "...")
 
-# Define functions
+## Define functions and preliminary variables ##
 def seqLenHist( seqLength, maxseq, minseq, x ):
+    # Plot freq hist of sequence length based on range
     if (maxseq - minseq) <= 1:
         print("||  All sequences are", maxseq, "bp\n||")
     if (maxseq - minseq) > 1:
@@ -36,6 +40,7 @@ data_n = data + "_n" # [n]o gaps in sequences
 seqLengthA = []
 seqLengthB = []
 
+## Inspect and modify .fasta files ##
 with open(data, "r") as f_in:
     # Replace characters in header with '_' for downstream analyses
     f_out_m = open(data_m, "w")
@@ -52,6 +57,9 @@ with open(data_m) as f_out_m:
         if not line.startswith('>'):
             seqLengthA.append(len(line))
             f_out_n.write(re.sub('-', '', line))
+
+seqNum = len(seqLengthA)
+print("||  Total of " + str(seqNum) + " sequences")
 
 with open(data_n) as f_out_n:
     # Find the max sequence length of gapless alignment
@@ -71,13 +79,66 @@ maxseqB = max(seqLengthB)-1
 minseqB = min(seqLengthB)-1
 seqLenHist(seqLengthB, maxseqB, minseqB, "B" )
 
-#print(maxseqB - max0seqB)
-# Attempting to remove all files with -
-"""
-f_out_n2 = open("data/fmdv/FMDV_Kenya_4refs_alg_n2.fasta", "w")
-re_max = r">.+\n\w{" + str(maxseq) + r"}\n"
+# Remove sequences that =/= max(seqLength) and create filtered .fa files
+# From: https://www.biostars.org/p/352679/
+seq = {}
+longSeq = []
+shortSeq = []
 
-with open("data/fmdv/FMDV_Kenya_4refs_alg_n.fasta", "r") as f_out_n:
-    f_out_n = f_out_n.read()
-    f_out_n2.write(re.findall(re_max, f_out_n))
-"""
+with open(data_n, "r") as f_out_n:
+    for line in f_out_n:
+        line = line.rstrip()
+        if (line[0] == '>'):
+            header = line
+            seq[header] = ""
+        else:
+            seqInd = line
+            seq[header] += seqInd
+
+# Test
+if (len(seq) != seqNum):
+    print("*** Sequence numbers don't add up! ***")
+    exit()
+
+# Append sequences based on seq length
+for header in seq.keys():
+    if (len(seq[header]) < maxseqA):
+        longSeq.append(header)
+    else:
+        shortSeq.append(header)
+
+data_n_f = data_n + "_filtered"
+data_n_r = data_n + "_removed"
+
+# Write good sequences
+with open(data_n_f, "w") as good_out:
+    for header in longSeq:
+        good_out.write("{}\n{}\n"
+                       .format(header, seq[header]))
+
+# Write bad sequences
+with open(data_n_r, "w") as bad_out:
+    for header in shortSeq:
+        bad_out.write("{}\n{}\n"
+                       .format(header, seq[header]))
+
+longSeqNum = len(longSeq)
+shortSeqNum = len(shortSeq)
+longSeqPerc = (longSeqNum/seqNum)*100
+
+# Test
+if (longSeqNum + shortSeqNum != seqNum):
+    print("*** Sequence numbers don't add up! ***")
+    exit()
+
+print("||  A total of " + str(longSeqNum) + " (" + str(longSeqPerc) + "%) are " +
+      str(maxseqB) + "bp long.\n" +
+      "||  Writing sequences with  "  + str(maxseqB) + "bp to: " + data_n + "_filtered\n" +
+      "||  Writing sequences under " + str(maxseqB) + "bp to: " + data_n + "_removed\n||")
+
+# Tests
+
+
+# Printing entire log to txt?
+
+# print("||  Done! - " + ) # Print how many sequences and % will remain
