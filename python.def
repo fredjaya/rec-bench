@@ -18,8 +18,7 @@ Include: apt
       	apt-get -y install libreadline-gplv2-dev libncursesw5-dev libssl-dev
         apt-get -y install python3
         apt-get -y install python-pip
-        echo "Verifiying pip install"
-        pip -V
+        pip install --upgrade pip
         pip install matplotlib
         pip install sys
         pip install re
