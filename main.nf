@@ -1,7 +1,7 @@
 #!/usr/local/bin nextflow
 
 /* Dependecies:
- *  Python (biopython)
+ *  Python (biopython) sys, re, matplotlib
  *  Java
  *  OpenMPI
  *  R - ape, phangorn

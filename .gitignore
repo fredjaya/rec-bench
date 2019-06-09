@@ -4,3 +4,5 @@
 work/*
 out/*
 chart*
+.RData
+.Rhistory

@@ -1,6 +1,6 @@
 <santa xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:noNamespaceSchemaLocation="santa.xsd">
-	<replicates>2</replicates>
+	<replicates>3</replicates>
 
 	<simulation>
 		<genome>
@@ -9,6 +9,7 @@
 			</sequences>
 
 			<feature>
+        <!-- Envelope coding sequence from Ho et al. (2017) -->
 				<name>E1E2</name>
 				<type>nucleotide</type>
 				<coordinates>1-1680</coordinates>
@@ -16,7 +17,9 @@
 		</genome>
 
 		<population>
-		    <populationSize>100</populationSize>
+        <!-- Assuming constant population size during "plateau" (Ribeiro, 2012) -->
+        <!-- ~100 (virions/cell??) * 10e+11 (hepatocytes/liver) * 0.021 (mean infected heps) -->
+		    <populationSize>10000</populationSize>
 		    <inoculum>random</inoculum>
 		</population>
 
@@ -38,7 +41,8 @@
 		<mutator>
 			<nucleotideMutator>
 				<mutationRate>MUTRATE</mutationRate>
-				<transitionBias>2.0</transitionBias>
+        <!-- 75-fold difference in frequency (Powdrill et al., 2011)-->
+				<transitionBias>75.0</transitionBias>
 			</nucleotideMutator>
 		</mutator>
 
@@ -50,31 +54,32 @@
 		</replicator>
 
 		<epoch>
-			<generationCount>101</generationCount>
+      <!-- Approximate replications for plateau perdiod (Ribeiro, 2012)-->
+			<generationCount>213</generationCount>
 		</epoch>
 
 		<samplingSchedule>
 			<sampler>
-				<atFrequency>101</atFrequency>
-				<fileName>msa_mMUTRATE_rcRECRATE_rep%r.fasta</fileName>
+				<atFrequency>213</atFrequency>
+				<fileName>msa_mMUTRATE_rcRECRATE_nSEQNUMrep%r.fasta</fileName>
 				<alignment>
-					<sampleSize>50</sampleSize>
+					<sampleSize>SEQNUM</sampleSize>
 					<format>FASTA</format>
 					<label>seq_%s</label>
 				</alignment>
 			</sampler>
 
 			<sampler>
-				<atFrequency>101</atFrequency>
-				<fileName>stats_mMUTRATE_rcRECRATE_rep%r.csv</fileName>
+				<atFrequency>213</atFrequency>
+				<fileName>stats_mMUTRATE_rcRECRATE_nSEQNUMrep%r.csv</fileName>
 				<statistics/>
 			</sampler>
 
 			<sampler>
-				<atFrequency>101</atFrequency>
-				<fileName>tree_mMUTRATE_rcRECRATE_rep%r.trees</fileName>
+				<atFrequency>213</atFrequency>
+				<fileName>tree_mMUTRATE_rcRECRATE_nSEQNUM_rep%r.trees</fileName>
 					<tree>
-						<sampleSize>100</sampleSize>
+						<sampleSize>SEQNUM</sampleSize>
 						<format>NEWICK</format>
 						<label>seq_%s</label>
 					</tree>

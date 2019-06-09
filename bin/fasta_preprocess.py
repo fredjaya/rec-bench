@@ -1,5 +1,4 @@
-# This script prepares .fasta files for analysis in santa-sim
-# by filtering for sequences with the longest length.
+# This script prepares .fasta files for analysis in santa-sim and UCHIME.
 # Both these programs cannot process sequences containing "-".
 
 #!/usr/bin/env python3
@@ -17,6 +16,7 @@ if len(sys.argv) > 2:
     exit()
 if len(sys.argv) == 2:
     data = sys.argv[1]
+    sys.stdout = open(data + '_log.txt','wt')
     print("||\n"
           "||  Reading", data, "...")
 
@@ -102,7 +102,7 @@ if (len(seq) != seqNum):
 
 # Append sequences based on seq length
 for header in seq.keys():
-    if (len(seq[header]) < maxseqA):
+    if (len(seq[header]) == maxseqB):
         longSeq.append(header)
     else:
         shortSeq.append(header)
