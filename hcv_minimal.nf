@@ -157,7 +157,7 @@ process iqtree_e {
   //$baseDir/bin/iqtree -s $seq -m GTR+I+G -alrt 1000 -bb 1000 -nt AUTO
 
 }
-
+*/
 //===================//
 // S I M U L A T E D //
 //===================//
@@ -165,7 +165,7 @@ process iqtree_e {
 process phipack_s {
 
   publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
-  errorStrategy 'ignore' //Too few informative sites to test significance.
+  //errorStrategy 'ignore' //Too few informative sites to test significance.
   //errorStrategy 'retry'
   //maxRetries 3
 
@@ -185,6 +185,7 @@ process phipack_s {
 
 }
 
+/*
 process phipack_profile_s {
 
   publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
@@ -274,7 +275,7 @@ process uchime_s {
                        --log ${seq}_m.log
   """
 }
-
+*/
 //===================//
 // E M P I R I C A L //
 //===================//
@@ -285,7 +286,7 @@ process phipack_e {
   //errorStrategy 'ignore' //Too few informative sites to test significance.
 
   input:
-  file seq from seq
+  file seq from seqFile
 
   output:
   file 'Phi.inf.list'
@@ -300,8 +301,10 @@ process phipack_e {
 
 }
 
+/*
 process phipack_profile_e {
 
+  saveAs: { filename -> "${seq}_$filename" }
   publishDir 'out/E1_phipack', mode: 'move'
 
   input:
