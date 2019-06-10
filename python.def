@@ -1,39 +1,27 @@
-# From: https://github.com/tbrunetti/python_container/blob/master/python_env_v0.1_recipe.txt
+# https://public.confluence.arizona.edu/display/UAHPC/Singularity+Tutorials#SingularityTutorials-CentOSwithTensorflowExample
 
-Bootstrap: debootstrap
-OSVersion: xenial
-MirrorURL: http://us.archive.ubuntu.com/ubuntu/
-Include: apt
+BootStrap: yum
+OSVersion: 7
+MirrorURL: http://mirror.centos.org/centos-%{OSVERSION}/%{OSVERSION}/os/$basearch/
+Include: yum wget
 
 %post
-        echo "Installing python and dependencies!"
-        apt-get -y update
-      	apt-get -y install software-properties-common
-      	apt-add-repository universe
-      	apt-get -y update
-      	apt-get -y install zlib1g-dev
-      	apt-get -y install liblzo2-dev
-      	apt-get -y install libnetcdf-dev netcdf-bin
-      	apt-get -y install build-essential checkinstall
-      	apt-get -y install libreadline-gplv2-dev libncursesw5-dev libssl-dev
-        apt-get -y install python3
-        apt-get -y install python-pip
-        pip install --upgrade --user pip
-        hash -r pip
-        pip install matplotlib
-        pip install sys
-        pip install re
-        apt-get clean
-
-%environment
-        export PYTHONPATH="${PYTHONPATH}:/mnt/"
-	      export PATH="${PATH}:/mnt/"
-	      export PATH="${PATH}:/usr/local/bin/"
-	      export PYTHONPATH="${PYTHONPATH}:/usr/local/bin/"
-
-%runscript
-        exec "$@"
-
-%test
-        python3 -V
-        pip -V
+    # commands to be executed inside container during bootstrap
+    # add python and install some packages
+    yum -y install vim wget python3 epel-release
+    yum -y install python-pip
+     # install dependencies
+    pip install --upgrade pip
+    pip install matplotlib re sys
+     # create bind points for storage.
+     mkdir /extra
+     mkdir /xdisk
+     exit 0
+ %runscript
+   # commands to be executed when the container runs
+   echo "Arguments received: $*"
+   exec /usr/bin/python3 "$@"
+ %test
+   # commands to be executed within container at close of bootstrap process
+   python -V
+   pip -V
