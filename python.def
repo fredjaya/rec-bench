@@ -10,7 +10,7 @@ Include: yum wget
 %post
     # commands to be executed inside container during bootstrap
     # add python and install some packages
-    yum -y install gcc openssl-devel bzip2-devel libffi-devel epel-release tar.x86_64
+    yum -y install gcc openssl-devel bzip2-devel libffi-devel epel-release tar.x86_64 gzip
     cd /usr/src
     wget https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tgz
     tar xzf Python-3.7.3.tgz
