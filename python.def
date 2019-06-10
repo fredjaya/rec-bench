@@ -19,12 +19,12 @@ Include: yum wget
     rm /usr/src/Python-3.7.3.tgz
     # Add dependencies
     python3.7 -m pip install matplotlib
-    
+
 %setup
     # Bind-mount the hosts directories
     mkdir -p ${SINGULARITY_ROOTFS}/opt
     mkdir -p ${SINGULARITY_ROOTFS}/scratch
     mkdir -p ${SINGULARITY_ROOTFS}/shared
 
- %test
+%test
     python3.7 -V
