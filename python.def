@@ -18,7 +18,7 @@ Include: yum wget
     ./configure --enable-optimizations
     make altinstall
     rm /usr/src/Python-3.7.3.tgz
-    python3.7 -m pip matplotlib
+    python3.7 -m pip install matplotlib
      # install dependencies
     #pip install --upgrade pip
      # create bind points for storage.
