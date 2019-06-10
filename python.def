@@ -1,5 +1,6 @@
 # https://public.confluence.arizona.edu/display/UAHPC/Singularity+Tutorials#SingularityTutorials-CentOSwithTensorflowExample
 # https://tecadmin.net/install-python-3-7-on-centos/
+# https://linuxize.com/post/how-to-install-pip-on-centos-7/#2-install-pip
 
 BootStrap: yum
 OSVersion: 7
@@ -9,7 +10,7 @@ Include: yum wget
 %post
     # commands to be executed inside container during bootstrap
     # add python and install some packages
-    yum -y install gcc openssl-devel bzip2-devel libffi-devel epel-release
+    yum -y install gcc openssl-devel bzip2-devel libffi-devel epel-release tar.x86_64
     cd /usr/src
     wget https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tgz
     tar xzf Python-3.7.3.tgz
