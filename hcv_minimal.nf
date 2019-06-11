@@ -35,7 +35,7 @@ process prepro {
   file 'seqLength*.png' optional true
   file '*_m' //into rdmInput*
   file '*_n' //into seqUchime
-  file '*_filtered'
+  file '*_n_filtered' into seqPath
   file '*_removed'
   file '*_log.txt'
 
@@ -45,14 +45,12 @@ process prepro {
   """
 }
 
-/*
 //===================//
 // S A N T A - S I M //
 //===================//
 
 //xml1 = file("$baseDir/hcv_santa.xml")
 xml1 = file("$baseDir/hcv_santa.xml")
-Channel.fromPath('out/fasta/*_n_filtered').set{ seqPath }
 
 process xmlPath {
 
@@ -159,7 +157,7 @@ process iqtree_e {
   //$baseDir/bin/iqtree -s $seq -m GTR+I+G -alrt 1000 -bb 1000 -nt AUTO
 
 }
-
+*/
 //===================//
 // S I M U L A T E D //
 //===================//
@@ -187,7 +185,7 @@ process phipack_s {
 
 }
 
-
+/*
 process phipack_profile_s {
 
   publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
@@ -281,7 +279,7 @@ process uchime_s {
 //===================//
 // E M P I R I C A L //
 //===================//
-
+*/
 process phipack_e {
 
   publishDir 'out/E1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
