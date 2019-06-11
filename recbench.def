@@ -9,16 +9,26 @@ Include: yum wget
 %post
     # Add OS packages
     yum -y install gcc openssl-devel bzip2-devel libffi-devel epel-release tar.x86_64 gzip make
-    cd /usr/src
+
     # Add python 3.7.3
+    cd /usr/src
     wget https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tgz
     tar xzf Python-3.7.3.tgz
     cd Python-3.7.3
     ./configure --enable-optimizations
     make altinstall
     rm /usr/src/Python-3.7.3.tgz
-    # Add dependencies
+
+    # Add python dependencies
     python3.7 -m pip install matplotlib
+
+    # Add phipack
+    cd /usr/src
+    wget https://www.maths.otago.ac.nz/~dbryant/software/PhiPack.tar.gz
+    tar xzf PhiPack.tar.gz
+    cd PhiPack/src
+    make
+    export /usr/src/PhiPack:$PATH
 
 %setup
     # Bind-mount the hosts directories
