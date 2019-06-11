@@ -28,7 +28,7 @@ Include: yum wget
     tar xzf PhiPack.tar.gz
     cd PhiPack/src
     make
-    export /usr/src/PhiPack:$PATH
+    export PATH=/usr/src/PhiPack:$PATH
 
 %setup
     # Bind-mount the hosts directories
