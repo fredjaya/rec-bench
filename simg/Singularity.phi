@@ -18,10 +18,3 @@ From: shub://fredjaya/rec-bench:base@digest
     else
     echo "Phi installed correctly."
     fi
-
-    Profile
-    if [ $? -eq 127 ]; then
-    echo "Profile not found."
-    else
-    echo "Profile installed correctly."
-    fi
