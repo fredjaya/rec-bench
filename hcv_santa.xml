@@ -61,7 +61,7 @@
 		<samplingSchedule>
 			<sampler>
 				<atFrequency>213</atFrequency>
-				<fileName>msa_mMUTRATE_rcRECRATE_nSEQNUMrep%r.fasta</fileName>
+				<fileName>msa_mMUTRATE_rcRECRATE_nSEQNUM_rep%r.fasta</fileName>
 				<alignment>
 					<sampleSize>SEQNUM</sampleSize>
 					<format>FASTA</format>
@@ -71,7 +71,7 @@
 
 			<sampler>
 				<atFrequency>213</atFrequency>
-				<fileName>stats_mMUTRATE_rcRECRATE_nSEQNUMrep%r.csv</fileName>
+				<fileName>stats_mMUTRATE_rcRECRATE_nSEQNUM_rep%r.csv</fileName>
 				<statistics/>
 			</sampler>
 

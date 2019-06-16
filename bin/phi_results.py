@@ -14,7 +14,7 @@ for logFile in glob.glob("out/S1_phipack/*.log"):
     simLogs.append(logFile)
 
 # Loop through output files to parse parameters and p-values
-with open('sumstats.csv', 'w') as csvfile:
+with open('phipack_s_stats.csv', 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter = ',')
     writer.writerow(['theta', 'rho', 'rep', 'NSS', 'MaxChi', 'PhiPerm', 'PhiNorm'])
     for logFile in simLogs:
