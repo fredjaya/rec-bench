@@ -18,4 +18,3 @@ From: shub://fredjaya/rec-bench:base@digest
 
 %test
     python3.7 -V
-    pip -V
