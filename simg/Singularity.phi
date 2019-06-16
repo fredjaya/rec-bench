@@ -9,7 +9,6 @@ From: shub://fredjaya/rec-bench:base@digest
     tar xzf PhiPack.tar.gz
     cd PhiPack/src
     make
-    echo $PATH
-    export PATH="/usr/src/PhiPack/Phi:/usr/src/PhiPack/Profile:$PATH"
-    echo $PATH
-    ls
+
+%environment
+    export PATH=/usr/src/PhiPack/:$PATH
