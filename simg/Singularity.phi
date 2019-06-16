@@ -9,7 +9,7 @@ From: shub://fredjaya/rec-bench:base@digest
     tar xzf PhiPack.tar.gz
     cd PhiPack/src
     make
-    export PATH=/usr/src/PhiPack/Phi:/usr/src/PhiPack/Profile:$PATH
+    export PATH="/usr/src/PhiPack/Phi:/usr/src/PhiPack/Profile:$PATH"
 
 %test
     Phi
