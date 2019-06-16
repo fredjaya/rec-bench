@@ -12,9 +12,3 @@ From: shub://fredjaya/rec-bench:base@digest
 
 %environment
     export PATH=/usr/src/PhiPack/:$PATH
-
-%test
-    Phi
-    if [ $? -eq 127 ]; then
-      echo "Phi not installed correctly!"
-    fi

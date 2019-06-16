@@ -41,7 +41,7 @@ process prepro {
 
   script:
   """
-  python3 $baseDir/bin/fasta_preprocess.py $seq
+  python3.7 $baseDir/bin/fasta_preprocess.py $seq
   """
 }
 
