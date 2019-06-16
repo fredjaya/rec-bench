@@ -1,5 +1,6 @@
 .DS_Store
-.nextflow*
+.nextflow.log*
+.nextflow/*
 3seqPval500
 work/*
 out/*
