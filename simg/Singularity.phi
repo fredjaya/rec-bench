@@ -10,11 +10,3 @@ From: shub://fredjaya/rec-bench:base@digest
     cd PhiPack/src
     make
     export PATH="/usr/src/PhiPack/Phi:/usr/src/PhiPack/Profile:$PATH"
-
-%test
-    Phi
-    if [ $? -eq 127 ]; then
-    echo "Phi not found."
-    else
-    echo "Phi installed correctly."
-    fi
