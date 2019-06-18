@@ -2,5 +2,5 @@
 
 rm -rf work
 rm -rf .nextflow*
-rm -rf chart*
+rm -rf *.html
 rm -rf out
