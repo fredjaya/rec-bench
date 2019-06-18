@@ -1,0 +1,14 @@
+
+BootStrap: shub
+From: shub://fredjaya/rec-bench:base@digest
+
+%post
+    # Add phipack
+    cd /usr/src
+    wget https://www.maths.otago.ac.nz/~dbryant/software/PhiPack.tar.gz
+    tar xzf PhiPack.tar.gz
+    cd PhiPack/src
+    make
+
+%environment
+    export PATH=/usr/src/PhiPack/:$PATH

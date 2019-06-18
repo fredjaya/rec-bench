@@ -1,0 +1,87 @@
+<santa xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="santa.xsd">
+	<replicates>2</replicates>
+
+	<simulation>
+		<genome>
+		    <length>7020</length>
+			<sequences file = 'SEQPATH'>
+			</sequences>
+
+			<feature>
+				<name>FMDV_Kenya_n</name>
+				<type>nucleotide</type>
+				<coordinates>1-7020</coordinates>
+			</feature>
+		</genome>
+
+		<population>
+		    <populationSize>100</populationSize>
+		    <inoculum>random</inoculum>
+		</population>
+
+    <fitnessFunction>
+		    <purifyingFitness>
+			    <feature>FMDV_Kenya_n</feature>
+		        <sites>2176-2805</sites>
+		        <rank>
+		        	<order>observed</order>
+		            <breakTies>random</breakTies>
+		        </rank>
+		        <fitness>
+		            <lowFitness>0.5</lowFitness>
+			        <minimumFitness>0.1</minimumFitness>
+		        </fitness>
+		    </purifyingFitness>
+		</fitnessFunction>
+
+		<mutator>
+			<nucleotideMutator>
+				<mutationRate>MUTRATE</mutationRate>
+				<transitionBias>2.0</transitionBias>
+			</nucleotideMutator>
+		</mutator>
+
+		<replicator>
+			<recombinantReplicator>
+				<dualInfectionProbability>0.05</dualInfectionProbability>
+				<recombinationProbability>RECRATE</recombinationProbability>
+			</recombinantReplicator>
+		</replicator>
+
+		<epoch>
+			<generationCount>101</generationCount>
+		</epoch>
+
+		<samplingSchedule>
+			<sampler>
+				<atFrequency>101</atFrequency>
+				<fileName>msa_mMUTRATE_rcRECRATE_rep%r.fasta</fileName>
+				<alignment>
+					<sampleSize>50</sampleSize>
+					<format>FASTA</format>
+					<label>seq_%s</label>
+				</alignment>
+			</sampler>
+
+			<sampler>
+				<atFrequency>101</atFrequency>
+				<fileName>stats_mMUTRATE_rcRECRATE_rep%r.csv</fileName>
+				<statistics/>
+			</sampler>
+
+			<sampler>
+				<atFrequency>101</atFrequency>
+				<fileName>tree_mMUTRATE_rcRECRATE_rep%r.trees</fileName>
+					<tree>
+						<sampleSize>50</sampleSize>
+						<format>NEWICK</format>
+						<label>seq_%s</label>
+					</tree>
+			</sampler>
+		</samplingSchedule>
+
+
+	</simulation>
+
+</santa>
