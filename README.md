@@ -12,6 +12,10 @@ automated benchmarking of recombination detection methods
 * Runs on the HPC using Singularity containers
 * Currently runs Phi with full empirical and simulated data
 
+#### empirical.nf
+* OSX only
+* Runs RDMs only on empirical datasets
+
 #### other .nf files
 * Runs on OSX with local binaries
 * For initial testing and proof of concept
