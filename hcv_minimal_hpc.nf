@@ -164,6 +164,10 @@ process iqtree_e {
 
 process phipack_s {
 
+  //smallq
+  cpus 4
+  memory '32gb'
+
   publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
   //errorStrategy 'ignore' //Too few informative sites to test significance.
   //errorStrategy 'retry'
@@ -281,6 +285,10 @@ process uchime_s {
 //===================//
 */
 process phipack_e {
+
+  //smallq
+  cpus 4
+  memory '32gb'
 
   publishDir 'out/E1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
   //errorStrategy 'ignore' //Too few informative sites to test significance.
