@@ -4,6 +4,6 @@
 3seqPval500
 work/*
 out/*
-chart*
+*html
 .RData
 .Rhistory
