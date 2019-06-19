@@ -12,7 +12,6 @@ From: shub://fredjaya/rec-bench:base@digest
     cd Python-3.7.3
     ./configure --enable-optimizations
     make altinstall
-    rm /usr/src/Python-3.7.3.tgz
 
     # Add python dependencies
     python3.7 -m pip install matplotlib
