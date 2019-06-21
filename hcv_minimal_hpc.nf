@@ -166,7 +166,7 @@ process phipack_s {
 
   //smallq
   cpus 4
-  memory '32gb'
+  memory '32 GB'
 
   publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
   //errorStrategy 'ignore' //Too few informative sites to test significance.
@@ -288,7 +288,7 @@ process phipack_e {
 
   //smallq
   cpus 4
-  memory '32gb'
+  memory '32 GB'
 
   publishDir 'out/E1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
   //errorStrategy 'ignore' //Too few informative sites to test significance.
