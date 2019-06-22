@@ -8,11 +8,11 @@ From: shub://fredjaya/rec-bench:base@digest
     wget http://mol.ax/rxiv/3seq_build_170612.zip
     unzip 3seq_build_170612.zip
     rm 3seq_build_170612.zip
-    cd 3seq_build_170612
+    cd 3seq\ build\ 170612
     make
     ./3seq # test bin
     # Create p-value table
     ./3seq -g my3seqTable700 700
 
 %environment
-    export PATH=/usr/src/3seq_build_170612/:$PATH  
+    export PATH=/usr/src/3seq_build_170612/:$PATH
