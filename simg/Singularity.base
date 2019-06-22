@@ -7,7 +7,7 @@ Include: yum wget
 
 %post
     # Add OS packages
-    yum -y install gcc openssl-devel bzip2-devel libffi-devel epel-release tar.x86_64 gzip make
+    yum -y install gcc openssl-devel bzip2-devel libffi-devel epel-release tar.x86_64 gzip make unzip
 
 %setup
     # Bind-mount the hosts directories
