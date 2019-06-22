@@ -3,7 +3,7 @@ BootStrap: shub
 From: shub://fredjaya/rec-bench:base@digest
 
 %post
-    yum -y install scl-utils-build
+    yum -y install scl-utils-build devtoolset-6
     scl enable devtoolset-6 bash
     # Add 3seq
     cd usr/src
