@@ -15,4 +15,4 @@ From: shub://fredjaya/rec-bench:base@digest
     ./3seq -g my3seqTable700 700
 
 %environment
-    export PATH=/usr/src/3seq_build_170612/:$PATH 
+    export PATH=/usr/src/3seq_build_170612/:$PATH  
