@@ -103,7 +103,7 @@ process santa {
 
   script:
   """
-  java -jar $baseDir/bin/santa-ba8733a.jar $xml
+  java -jar -Xmx512M -XX:ParallelGCThreads=2 $baseDir/bin/santa-ba8733a.jar $xml
   """
 
 }
@@ -163,10 +163,6 @@ process iqtree_e {
 //===================//
 
 process phipack_s {
-
-  //smallq
-  cpus 4
-  memory '32 GB'
 
   publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
   //errorStrategy 'ignore' //Too few informative sites to test significance.
@@ -285,10 +281,6 @@ process uchime_s {
 //===================//
 */
 process phipack_e {
-
-  //smallq
-  cpus 4
-  memory '32 GB'
 
   publishDir 'out/E1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
   //errorStrategy 'ignore' //Too few informative sites to test significance.
