@@ -103,7 +103,7 @@ process santa {
 
   script:
   """
-  java -jar $baseDir/bin/santa-ba8733a.jar $xml
+  java -jar -Xmx512M -XX:ParallelGCThreads=2 $baseDir/bin/santa-ba8733a.jar $xml
   """
 
 }
