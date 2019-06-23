@@ -19,4 +19,4 @@ From: shub://fredjaya/rec-bench:base@digest
 
 
 %environment
-    export PATH=/usr/src/3seq_build_170612/:$PATH
+    export PATH=/usr/src/3seq\ build\ 170612/:$PATH
