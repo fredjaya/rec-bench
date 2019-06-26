@@ -15,7 +15,7 @@ From: shub://fredjaya/rec-bench:base@digest
     ./3seq # test bin
 
     # Create p-value table
-    ./3seq -g my3seqTable300 300
+    ./3seq -g my3seqTable500 500
 
 
 %environment
