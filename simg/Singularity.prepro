@@ -17,4 +17,4 @@ From: shub://fredjaya/rec-bench:base@digest
     python3.7 -m pip install matplotlib
 
 %test
-    python3.7 -V
+    python3.7 -V 
