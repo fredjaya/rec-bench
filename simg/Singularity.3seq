@@ -13,10 +13,10 @@ From: shub://fredjaya/rec-bench:base@digest
     cd 3seq\ build\ 170612
     make
     ./3seq # test bin
-    
+
     # Create p-value table
-    ./3seq -g my3seqTable350 350
+    ./3seq -g my3seqTable500 500
 
 
 %environment
-    export PATH=/usr/src/3seq_build_170612/:$PATH
+    export PATH=/usr/src/3seq\ build\ 170612/:$PATH
