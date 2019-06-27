@@ -17,6 +17,5 @@ From: shub://fredjaya/rec-bench:base@digest
     # Create p-value table
     ./3seq -g my3seqTable300 300
 
-
 %environment
     export PATH=/usr/src/3seq\ build\ 170612/:$PATH
