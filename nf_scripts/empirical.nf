@@ -1,15 +1,6 @@
 #!/usr/local/bin nextflow
 
-/* Dependecies:
- *  Python (biopython)
- *  Java
- *  OpenMPI
- *  R - ape, phangorn
- *
- */
-
-//seq = file("$baseDir/data/hcv/alignment_1n.fasta")
-seq = file("$baseDir/data/fmdv/FMDV_Kenya_4refs_alg_m.fasta")
+seq = file("$baseDir/FMD_recomb_final.fas")
 
 //===================//
 // E M P I R I C A L //
@@ -17,7 +8,7 @@ seq = file("$baseDir/data/fmdv/FMDV_Kenya_4refs_alg_m.fasta")
 
 process phipack_e {
 
-  publishDir 'out/e/1_phipack', mode: 'move'
+  publishDir 'out/E1_phipack', mode: 'move'
 
   input:
   file seq from seq
@@ -37,13 +28,14 @@ process phipack_e {
 
 process phipack_profile_e {
 
-  publishDir 'out/e/1_phipack', mode: 'move'
+  publishDir 'out/E1_phipack', mode: 'move'
 
   input:
   file seq from seq
 
   output:
   file 'Profile.csv'
+  file 'Profile.log'
 
   script:
   """
@@ -55,7 +47,7 @@ process phipack_profile_e {
 
 process '3seq_e' {
 
-  publishDir 'out/e/2_3seq', mode: 'move'
+  publishDir 'out/E2_3seq', mode: 'move'
 
   input:
   file seq from seq
@@ -77,7 +69,7 @@ process '3seq_e' {
 // Create tree to initialise ClonalFrameML
 process iqtree {
 
-  publishDir 'out/e/iqtree', mode: 'copy'
+  publishDir 'out/Eiqtree', mode: 'copy'
 
   input:
   file seq from seq
@@ -100,7 +92,7 @@ process iqtree {
 
 process clonalfml_e {
 
-  publishDir 'out/e/3_cfml', mode: 'move'
+  publishDir 'out/E3_cfml', mode: 'move'
 
   input:
   file seq from seq
@@ -125,7 +117,7 @@ process clonalfml_e {
 
 process uchime_e {
 
-  publishDir 'out/e/4_uchime', mode: 'move'
+  publishDir 'out/E4_uchime', mode: 'move'
 
   input:
   file seq from seq
