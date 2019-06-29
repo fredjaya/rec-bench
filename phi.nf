@@ -23,23 +23,3 @@ process phipack_s {
   """
 
 }
-
-process phipack_e {
-
-  publishDir 'out/E1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
-
-  input:
-  file seq from seqFile
-
-  output:
-  file 'Phi.inf.list'
-  file 'Phi.inf.sites'
-  file 'Phi.log'
-  file 'Phi.poly.unambig.sites'
-
-  script:
-  """
-  $baseDir/bin/Phi -f $seq -o -p
-  """
-
-}
