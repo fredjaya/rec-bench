@@ -14,21 +14,21 @@ automated benchmarking of recombination detection methods
 * `clean.sh` removes nextflow outputs (logs, work dir, output files)
 
 
-#### bin
+### bin
 * Recombination detection binaries
 * Simulation binary
 * Output visualisation and pre-processing scripts
 
-#### data
+### data
 Sequence files for testing/proof of concept and analyses
 
-#### nf_scripts
+### nf_scripts
 Old nextflow scripts - outdated/needs updating
 
 Mainly for use on local OSX machine
 
-#### pbs_scripts
+### pbs_scripts
 Submission scripts for HPC jobs
 
-#### simg
+### simg
 Singularity images for build on shub
