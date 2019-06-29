@@ -195,6 +195,7 @@ process phipack_profile_s {
 
   output:
   file 'Profile.csv'
+  file 'Profile.log'
 
   script:
   """
