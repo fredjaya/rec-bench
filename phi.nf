@@ -19,7 +19,7 @@ process phipack_s {
 
   script:
   """
-  $baseDir/bin/Phi -f $seq -o -p
+  Phi -f $seq -o -p
   """
 
 }
