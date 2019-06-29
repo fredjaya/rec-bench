@@ -3,6 +3,5 @@
 .nextflow/*
 3seqPval500
 work/*
-out/*
 .RData
 .Rhistory
