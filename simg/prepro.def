@@ -1,7 +1,5 @@
-# https://tecadmin.net/install-python-3-7-on-centos/
-
-BootStrap: shub
-From: shub://fredjaya/rec-bench:base@digest
+BootStrap: library
+From: fredjaya/rec-bench/base:latest
 
 %post
     # Add python 3.7.3
@@ -17,4 +15,4 @@ From: shub://fredjaya/rec-bench:base@digest
     python3.7 -m pip install matplotlib
 
 %test
-    python3.7 -V 
+    python3.7 -V
