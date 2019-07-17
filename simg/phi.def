@@ -1,6 +1,5 @@
-
-BootStrap: shub
-From: shub://fredjaya/rec-bench:base@digest
+BootStrap: library
+From: fredjaya/rec-bench/base:latest
 
 %post
     # Add phipack

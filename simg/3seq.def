@@ -1,10 +1,7 @@
-
-BootStrap: shub
-From: shub://fredjaya/rec-bench:base@digest
+BootStrap: library
+From: fredjaya/rec-bench/base:latest
 
 %post
-    yum -y install scl-utils-build devtoolset-6
-    scl enable devtoolset-6 bash
     # Add 3seq
     cd usr/src
     wget http://mol.ax/rxiv/3seq_build_170612.zip
@@ -15,7 +12,8 @@ From: shub://fredjaya/rec-bench:base@digest
     ./3seq # test bin
 
     # Create p-value table
-    ./3seq -g my3seqTable200 200
+    echo "Y" |
+    ./3seq -g my3seqTable700 700 # size in manual
 
 %environment
     export PATH=/usr/src/3seq\ build\ 170612/:$PATH
