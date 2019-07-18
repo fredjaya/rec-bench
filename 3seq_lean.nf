@@ -1,6 +1,6 @@
 input = Channel.fromPath( 'out/santa/msa_*.fasta' )
 
-process 3seq_s {
+process '3seq_s' {
 
   publishDir 'out/S2_3seq', mode: 'move'
 
@@ -12,11 +12,11 @@ process 3seq_s {
   file '*3s.pvalHist'
   file '*s.rec'
   file '*3s.longRec' optional true
- 
+
   script:
   """
   echo "Y" |
-  3seq -f $seq -d -id ${seq}
+  $baseDir/bin/3seq_elf -f $seq -d -id ${seq}
   """
 
 }

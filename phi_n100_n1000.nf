@@ -1,7 +1,3 @@
-
-seq = "$baseDir/data/hcv/FP7_patient_037_allseqs.fasta"
-seqFile = file(seq)
-
 input = Channel.fromPath( 'out/santa/*{n100, n1000}*.fasta')
 
 process phipack_s {
@@ -19,7 +15,7 @@ process phipack_s {
 
   script:
   """
-  Phi -f $seq -o -p
+  $baseDir/bin/Phi -f $seq -o -p
   """
 
 }
