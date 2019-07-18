@@ -1,0 +1,12 @@
+process {
+    withName:prepro { container = 'shub://fredjaya/rec-bench:prepro' }
+
+    withName:phipack_s { container = 'shub://fredjaya/rec-bench:phi' }
+    withName:phipack_e { container = 'shub://fredjaya/rec-bench:phi' }
+
+    withName:'3seq_s' { container = 'shub://fredjaya/rec-bench:3seq' }
+    withName:'3seq_e' { container = 'shub://fredjaya/rec-bench:3seq' }
+
+}
+
+singularity { enabled = true }
