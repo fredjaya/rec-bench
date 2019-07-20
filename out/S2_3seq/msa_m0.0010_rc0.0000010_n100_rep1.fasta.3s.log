@@ -1,0 +1,65 @@
+════════════════════════════════════════════════════════════════════════════════
+3SEQ -- Full Run
+════════════════════════════════════════════════════════════════════════════════
+
+COMMAND:
+  -f msa_m0.0010_rc0.0000010_n100_rep1.fasta -d -id msa_m0.0010_rc0.0000010_n100_rep1.fasta
+
+Removing identical sequences.
+
+Using 99 sequences as parents.
+Using 99 sequences as children.
+
+Need a p-value of 5.31297e-08 to survive multiple comparisons correction.
+
+All recombinant triplets will be recorded to the file "msa_m0.0010_rc0.0000010_n100_rep1.fasta.3s.rec".
+
+Long recombinants will be recorded to the file "msa_m0.0010_rc0.0000010_n100_rep1.fasta.3s.longRec".
+
+Searching for P-value table file...
+
+Loading P-value table from file
+"/shared/homes/13444841/rec-bench/bin/3seqTable700"
+  Table size : 700 * 700 * 700
+
+This will take 436 MB of memory (RAM). Proceed? (Y/N) - YES
+
+Please be patient while the table loads into memory.
+This will typically take less than twenty seconds.
+
+────────────────────────────────────────────────────────────────────────────────
+
+                                                Recombinant
+Progress    Time Elapsed    Minimum P-Value    Triplets Found
+100.000%      000:00:03       4.377153e-06                0
+
+────────────────────────────────────────────────────────────────────────────────
+
+Number of triples tested :              941094
+Number of p-values computed exactly :   941094
+Number of p-values approximated (HS) :  0
+Number of p-values not computed :       0
+
+Number of recombinant triplets :                               	0
+Number of distinct recombinant sequences :                     	0
+Number of distinct recombinant sequences at least 100nt long : 	0
+Longest of short recombinant segments :                        	0nt
+
+────────────────────────────────────────────────────────────────────────────────
+
+Rejection of the null hypothesis of clonal evolution at p = 0.983744
+                                                        p = 9.837e-01
+                                            Uncorrected p = 4.37715e-06
+                                            Bonferroni  p = 4.11931
+
+────────────────────────────────────────────────────────────────────────────────
+
+The histogram of P-values has been saved in the file "msa_m0.0010_rc0.0000010_n100_rep1.fasta.3s.pvalHist".
+
+════════════════════════════════════════════════════════════════════════════════
+
+
+                                            ╔══════════════════════════════════╗
+                                            ║ Log saved at 2019/07/19 08:04:32 ║
+                                            ╚══════════════════════════════════╝
+
