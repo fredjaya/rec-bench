@@ -8,4 +8,4 @@
 #PBS -M frederick.r.jaya@student.uts.edu.au
 
 cd ~/rec-bench
-nextflow run phi_n100_n1000.nf --with-timeline timeline.html --with-report report.html
+nextflow run phi_n100_n1000.nf -with-timeline phi_timeline.html -with-report phi_report.html
