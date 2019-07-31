@@ -1,4 +1,6 @@
-input = Channel.fromPath( 'out/santa/n100/*.fasta' )
+input1 = Channel.fromPath( 'out/santa/n100/*.fasta' )
+input2 = Channel.fromPath( 'out/santa/n100/*.fasta' )
+input3 = Channel.fromPath( 'out/santa/n100/*.fasta' )
 
 process phipack_s {
 
@@ -7,7 +9,7 @@ process phipack_s {
   publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
 
   input:
-  file seq from input.flatten()
+  file seq from input1.flatten()
 
   output:
   file 'Phi.inf.list'
@@ -29,7 +31,7 @@ process profile_s {
   publishDir 'out/S2_profile', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
 
   input:
-  file seq from input.flatten()
+  file seq from input2.flatten()
 
   output:
   file 'Profile.csv'
@@ -49,7 +51,7 @@ process '3seq_s' {
   publishDir 'out/S3_3seq', mode: 'move'
 
   input:
-  file seq from input.flatten()
+  file seq from input3.flatten()
 
   output:
   file '*3s.log'
