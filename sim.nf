@@ -19,7 +19,7 @@ dualInf = Channel.from(0.05)
 //====================//
 // I N P U T  P R E P //
 //====================//
-/*
+
 process prepro {
 
   publishDir 'out/fasta', mode: 'copy'
@@ -104,7 +104,7 @@ process santa {
   """
 
 }
-*/
+
 process divy {
 
   input:
