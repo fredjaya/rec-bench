@@ -1,0 +1,28 @@
+Reading sequence file msa_m0.00010_rc1.0E-7_n1000_dual0.05_rep2.fasta
+Allocating space for 1000 taxa and 1680 sites
+Alignment looks like a valid DNA alignment.
+Estimated diversity is (pairwise deletion - ignoring missing/ambig):  0.4%
+Found 156 informative sites.
+Writing alignment of informative sites to: Phi.inf.sites
+Writing list of informative sites to:      Phi.inf.list
+Using a window size of 100 with k as 9
+
+Calculating analytical mean and variance
+
+Doing permutation test for PHI
+
+Doing permutation test for NSS
+
+Doing Permutation test for MAXCHI
+
+ Writing  alignment of polymorphic unambig sites to: Phi.poly.sites
+Window size is 265 polymorphic sites
+
+       p-Value(s)
+       ----------
+
+NSS:                 7.50e-02  (1000 permutations)
+Max Chi^2:           4.70e-02  (1000 permutations)
+PHI (Permutation):   1.15e-01  (1000 permutations)
+PHI (Normal):        1.04e-01
+
