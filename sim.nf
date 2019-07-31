@@ -10,20 +10,16 @@ seqFile = file(seq)
 //===================//
 //  C H A N N E L S  //
 //===================//
-/*
+
 mutRate = Channel.from(10e-5, 10e-4, 10e-3) //  "Error rate", mutation/nt/rep cycle (Bartenschlager and Lohmann, 2000; Ribeiro et al., 2012)
 recRate = Channel.from(10e-8, 10e-7) // recombination/site/day (Raghwani et al., 2019) "average normalised recombination frequency" (Reiter, 2011)
 seqNum = Channel.from(100, 1000, 2500, 5000, 10000)
-*/
+dualInf = Channel.from(0.05)
 
-mutRate = Channel.from(10e-5)
-recRate = Channel.from(10e-8, 10e-6, 10e-4, 10e-2)
-dualInf = Channel.from(0, 0.2, 0.4, 0.6, 0.8, 1)
-seqNum = Channel.from(100)
 //====================//
 // I N P U T  P R E P //
 //====================//
-
+/*
 process prepro {
 
   publishDir 'out/fasta', mode: 'copy'
@@ -106,5 +102,19 @@ process santa {
   """
   java -jar -Xmx512M -XX:ParallelGCThreads=2 $baseDir/bin/santa_bp.jar $xml
   """
+
+}
+*/
+process divy {
+
+  input:
+  each seqNum from seqNum
+
+  script:
+  """
+  mkdir $baseDir/out/santa/n${seqNum}
+  mv $baseDir/out/santa/*${seqNum}_*.fasta $baseDir/out/santa/n${seqNum}
+  """
+
 
 }
