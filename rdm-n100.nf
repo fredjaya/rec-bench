@@ -37,7 +37,7 @@ process profile_s {
 
   script:
   """
-  $baseDir/bin/Phi -f $seq -o -p
+  $baseDir/bin/Profile_elf -f $seq -o -p
   """
 
 }
