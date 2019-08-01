@@ -1,0 +1,91 @@
+N E X T F L O W  ~  version 19.04.1
+Launching `rdm-n10000_phi_profile.nf` [maniac_murdock] - revision: 99f58ca402
+[warm up] executor > pbs
+executor >  pbs (3)
+[22/90a1a9] process > profile_s [  0%] 0 of 2
+[ed/2524b0] process > phipack_s [  0%] 0 of 1
+
+executor >  pbs (6)
+[22/90a1a9] process > profile_s [  0%] 0 of 2
+[c9/bdcfd9] process > phipack_s [  0%] 0 of 4
+
+executor >  pbs (9)
+[5f/3502df] process > profile_s [  0%] 0 of 4
+[9e/99e8a1] process > phipack_s [  0%] 0 of 5
+
+executor >  pbs (10)
+[5f/3502df] process > profile_s [  0%] 0 of 4
+[aa/bdae53] process > phipack_s [  0%] 0 of 6
+ERROR ~ Error executing process > 'profile_s (msa_m0.00010_rc0.0000010_n10000_dual0.05_rep2.fasta)'
+
+Caused by:
+  Failed to submit process to grid scheduler for execution
+
+Command executed:
+
+  qsub -N nf-profile_s_ms .command.run
+
+Command exit status:
+  38
+
+Command output:
+  qsub: would exceed queue generic's per-user limit
+
+Work dir:
+  /shared/homes/13444841/rec-bench/work/2a/819a4a451fc6ba9075e10ae6427aef
+
+Tip: you can replicate the issue by changing to the process work dir and entering the command `bash .command.run`
+
+ -- Check '.nextflow.log' file for details
+
+executor >  pbs (10)
+[5f/3502df] process > profile_s [125%] 5 of 4, failed: 5
+[aa/bdae53] process > phipack_s [100%] 6 of 6, failed: 6
+WARN: Killing pending tasks (10)
+ERROR ~ Error executing process > 'profile_s (msa_m0.00010_rc0.0000010_n10000_dual0.05_rep2.fasta)'
+
+Caused by:
+  Failed to submit process to grid scheduler for execution
+
+Command executed:
+
+  qsub -N nf-profile_s_ms .command.run
+
+Command exit status:
+  38
+
+Command output:
+  qsub: would exceed queue generic's per-user limit
+
+Work dir:
+  /shared/homes/13444841/rec-bench/work/2a/819a4a451fc6ba9075e10ae6427aef
+
+Tip: you can replicate the issue by changing to the process work dir and entering the command `bash .command.run`
+
+ -- Check '.nextflow.log' file for details
+
+executor >  pbs (10)
+[5f/3502df] process > profile_s [125%] 5 of 4, failed: 5
+[aa/bdae53] process > phipack_s [100%] 6 of 6, failed: 6
+WARN: Killing pending tasks (10)
+ERROR ~ Error executing process > 'profile_s (msa_m0.00010_rc0.0000010_n10000_dual0.05_rep2.fasta)'
+
+Caused by:
+  Failed to submit process to grid scheduler for execution
+
+Command executed:
+
+  qsub -N nf-profile_s_ms .command.run
+
+Command exit status:
+  38
+
+Command output:
+  qsub: would exceed queue generic's per-user limit
+
+Work dir:
+  /shared/homes/13444841/rec-bench/work/2a/819a4a451fc6ba9075e10ae6427aef
+
+Tip: you can replicate the issue by changing to the process work dir and entering the command `bash .command.run`
+
+ -- Check '.nextflow.log' file for details

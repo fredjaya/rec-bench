@@ -1,4 +1,4 @@
-input3 = Channel.fromPath( 'out/santa/n1000/*.fasta' )
+input3 = Channel.fromPath( 'out/santa/n10000/*.fasta' )
 
 process '3seq_s' {
 

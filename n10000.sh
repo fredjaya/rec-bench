@@ -1,8 +1,7 @@
 #!/bin/bash
 
-#PBS -l ncpus=2
-#PBS -l mem=2GB
-#PBS -l walltime=100:00:00
+#PBS -l select=1:ncpus=2:mem=2GB
+#PBS -l walltime=168:00:00
 
 #PBS -m abe
 #PBS -M frederick.r.jaya@student.uts.edu.au
