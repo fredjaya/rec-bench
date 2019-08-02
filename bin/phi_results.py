@@ -17,12 +17,13 @@ for logFile in glob.glob("out/S1_phipack/*.log"):
 # Loop through output files to parse parameters and p-values
 with open('out/phipack_s_stats.csv', 'w+') as csvfile:
     writer = csv.writer(csvfile, delimiter = ',')
-    writer.writerow(['theta', 'rho', 'seqLen', 'rep', 'NSS', 'MaxChi', 'PhiPerm', 'PhiNorm'])
+    writer.writerow(['mut', 'rec', 'seqLen', 'dualInf', 'rep', 'NSS', 'MaxChi', 'PhiPerm', 'PhiNorm'])
     for logFile in simLogs:
         phi = open(logFile, 'r').read()
         name = re.sub('[a-z]+', '', logFile)
         name = name.split("_")
-        name = name[2:6]
+        name = name[2:7]
+        print(name)
         pvals = re.findall(regex_pval, phi)
         writer.writerow(name + pvals)
 
