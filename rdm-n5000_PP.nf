@@ -1,10 +1,9 @@
-input1 = Channel.fromPath( 'out/santa/n2500/*.fasta' )
-input2 = Channel.fromPath( 'out/santa/n2500/*.fasta' )
-input3 = Channel.fromPath( 'out/santa/n2500/*.fasta' )
+input1 = Channel.fromPath( 'out/santa/n5000/*.fasta' )
+input2 = Channel.fromPath( 'out/santa/n5000/*.fasta' )
 
 process phipack_s {
 
-  label 'small'
+  label 'med'
   tag "$seq"
   publishDir 'out/S1_phipack', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
 
@@ -26,7 +25,7 @@ process phipack_s {
 
 process profile_s {
 
-  label 'small'
+  label 'med'
   tag "$seq"
   publishDir 'out/S2_profile', mode: 'move', saveAs: { filename -> "${seq}_$filename" }
 
@@ -40,29 +39,6 @@ process profile_s {
   script:
   """
   $baseDir/bin/Profile_elf -f $seq -o -p
-  """
-
-}
-
-process '3seq_s' {
-
-  label 'small'
-  tag "$seq"
-  publishDir 'out/S3_3seq', mode: 'move'
-
-  input:
-  file seq from input3.flatten()
-
-  output:
-  file '*3s.log'
-  file '*3s.pvalHist'
-  file '*s.rec'
-  file '*3s.longRec' optional true
-
-  script:
-  """
-  echo "Y" |
-  $baseDir/bin/3seq_elf -f $seq -d -id ${seq}
   """
 
 }
