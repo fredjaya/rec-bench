@@ -3,18 +3,18 @@
 ════════════════════════════════════════════════════════════════════════════════
 
 COMMAND:
-  -f msa_m0.00010_rc1.0E-7_n2500_dual0.05_rep3.fasta -d -id msa_m0.00010_rc1.0E-7_n2500_dual0.05_rep3.fasta
+  -f msa_m0.00010_rc1.0E-7_n5000_dual0.05_rep3.fasta -d -id msa_m0.00010_rc1.0E-7_n5000_dual0.05_rep3.fasta
 
 Removing identical sequences.
 
-Using 732 sequences as parents.
-Using 732 sequences as children.
+Using 1666 sequences as parents.
+Using 1666 sequences as children.
 
-Need a p-value of 1.28003e-10 to survive multiple comparisons correction.
+Need a p-value of 1.08325e-11 to survive multiple comparisons correction.
 
-All recombinant triplets will be recorded to the file "msa_m0.00010_rc1.0E-7_n2500_dual0.05_rep3.fasta.3s.rec".
+All recombinant triplets will be recorded to the file "msa_m0.00010_rc1.0E-7_n5000_dual0.05_rep3.fasta.3s.rec".
 
-Long recombinants will be recorded to the file "msa_m0.00010_rc1.0E-7_n2500_dual0.05_rep3.fasta.3s.longRec".
+Long recombinants will be recorded to the file "msa_m0.00010_rc1.0E-7_n5000_dual0.05_rep3.fasta.3s.longRec".
 
 Searching for P-value table file...
 
@@ -31,12 +31,12 @@ This will typically take less than twenty seconds.
 
                                                 Recombinant
 Progress    Time Elapsed    Minimum P-Value    Triplets Found
-100.000%      000:53:56       2.380953e-02                0
+100.000%      011:50:27       6.993008e-04                0
 
 ────────────────────────────────────────────────────────────────────────────────
 
-Number of triples tested :              3.90617e+08
-Number of p-values computed exactly :   3.90617e+08
+Number of triples tested :              4.61575e+09
+Number of p-values computed exactly :   4.61575e+09
 Number of p-values approximated (HS) :  0
 Number of p-values not computed :       0
 
@@ -49,17 +49,17 @@ Longest of short recombinant segments :                        	0nt
 
 Rejection of the null hypothesis of clonal evolution at p = 1
                                                         p = 1.000e+00
-                                            Uncorrected p = 0.0238095
-                                            Bonferroni  p = 9.30041e+06
+                                            Uncorrected p = 0.000699301
+                                            Bonferroni  p = 3.2278e+06
 
 ────────────────────────────────────────────────────────────────────────────────
 
-The histogram of P-values has been saved in the file "msa_m0.00010_rc1.0E-7_n2500_dual0.05_rep3.fasta.3s.pvalHist".
+The histogram of P-values has been saved in the file "msa_m0.00010_rc1.0E-7_n5000_dual0.05_rep3.fasta.3s.pvalHist".
 
 ════════════════════════════════════════════════════════════════════════════════
 
 
                                             ╔══════════════════════════════════╗
-                                            ║ Log saved at 2019/08/03 08:40:59 ║
+                                            ║ Log saved at 2019/08/03 08:15:47 ║
                                             ╚══════════════════════════════════╝
 

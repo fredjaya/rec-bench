@@ -1,0 +1,82 @@
+N E X T F L O W  ~  version 19.04.1
+Launching `rdm-n2500_3seq.nf` [intergalactic_cantor] - revision: 095eef60b9
+[warm up] executor > pbs
+executor >  pbs (1)
+[b0/a36355] process > 3seq_s [  0%] 0 of 1
+
+executor >  pbs (4)
+[c9/4dbc58] process > 3seq_s [  0%] 0 of 4
+
+executor >  pbs (7)
+[6c/16efde] process > 3seq_s [  0%] 0 of 7
+
+executor >  pbs (10)
+[c5/1a392e] process > 3seq_s [  0%] 0 of 10
+
+executor >  pbs (13)
+[6e/52d31f] process > 3seq_s [  0%] 0 of 13
+
+executor >  pbs (16)
+[17/6b2265] process > 3seq_s [  0%] 0 of 16
+
+executor >  pbs (18)
+[91/e67482] process > 3seq_s [  0%] 0 of 18
+
+executor >  pbs (18)
+[91/e67482] process > 3seq_s [  0%] 0 of 18
+WARN: [PBS] queue (medq) status cannot be fetched
+- cmd executed: bash -c set -o pipefail; qstat -f -1 medq | { egrep '(Job Id:|job_state =)' || true; }
+- exit status : 2
+- output      :
+  qstat: conflicting options.
+  usage: 
+  qstat [-f] [-J] [-p] [-t] [-x] [-E] [-F format] [-D delim] [ job_identifier... | destination... ]
+  qstat [-a|-i|-r|-H|-T] [-J] [-t] [-u user] [-n] [-s] [-G|-M] [-1] [-w]
+  	[ job_identifier... | destination... ]
+  qstat -Q [-f] [-F format] [-D delim] [ destination... ]
+  qstat -q [-G|-M] [ destination... ]
+  qstat -B [-f] [-F format] [-D delim] [ server_name... ]
+  qstat --version
+
+executor >  pbs (18)
+[c9/4dbc58] process > 3seq_s [  6%] 1 of 18
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+executor >  pbs (18)
+[5a/53526a] process > 3seq_s [ 11%] 2 of 18
+
+executor >  pbs (18)
+[17/6b2265] process > 3seq_s [ 17%] 3 of 18
+
+executor >  pbs (18)
+[c5/1a392e] process > 3seq_s [ 22%] 4 of 18
+
+executor >  pbs (18)
+[91/e67482] process > 3seq_s [ 28%] 5 of 18
+
+executor >  pbs (18)
+[6c/16efde] process > 3seq_s [ 33%] 6 of 18
+
+executor >  pbs (18)
+[6c/16efde] process > 3seq_s [ 33%] 6 of 18
+WARN: Killing pending tasks (12)
+
+executor >  pbs (18)
+[b9/9a4a77] process > 3seq_s [100%] 18 of 18, failed: 12
+WARN: Killing pending tasks (12)
+
+executor >  pbs (18)
+[b9/9a4a77] process > 3seq_s [100%] 18 of 18, failed: 12
+WARN: Killing pending tasks (12)
