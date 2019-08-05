@@ -31,7 +31,7 @@ This will typically take less than twenty seconds.
 
                                                 Recombinant
 Progress    Time Elapsed    Minimum P-Value    Triplets Found
-100.000%      001:38:44       2.331003e-03                0
+100.000%      001:06:19       2.331003e-03                0
 
 ────────────────────────────────────────────────────────────────────────────────
 
@@ -60,6 +60,6 @@ The histogram of P-values has been saved in the file "msa_m0.00010_rc0.0000010_n
 
 
                                             ╔══════════════════════════════════╗
-                                            ║ Log saved at 2019/07/31 17:48:37 ║
+                                            ║ Log saved at 2019/08/03 08:53:20 ║
                                             ╚══════════════════════════════════╝
 
