@@ -5,70 +5,35 @@ library(ggplot2)
 library(gridExtra)
 library(viridis)
 
+#setwd("~/GitHub/rec-bench/")
 x <- read.csv("out/phipack_s_stats.csv")
 #x <- arrange(x, seqLen, rec, mut, rep)
 
 # Set parameters as factors for plotting 
 x[,1:5] <- sapply(x[,1:5], as.factor)
 
-# Note: calling X stat for y aesthetic via for loop and function fails as it 
-# calls "X" rather than unquoted X. Plotting individually.
+#try facet_wrap per thing
+x$x <- "x" # add arbitrary column
 
-# NSS
-p1 <- ggplot(x) +
-  theme_minimal() +
+p1 <- ggplot(data = x, aes(x, NSS)) +
   scale_y_reverse() +
-  coord_cartesian(ylim = c(1, 0)) +
-  ylab("p-value") +
-  ggtitle("NSS") +
-  geom_hline(yintercept = 0.05, col = "red", alpha = 0.5) +
-  geom_point(aes(mut, NSS), size = 4, col = "#107896", alpha = 0.5, stroke = 0) +
-  facet_wrap(vars(rec, seqLen), nrow = 1, strip.position = "bottom", scales = "free_x") +
-  theme(panel.spacing = unit(0, "lines"),
-        strip.background = element_blank(),
-        strip.placement = "outside")
+  geom_jitter(aes(col = seqLen), size = 5, alpha = 0.5) +
+  facet_grid(rows = vars(rec), cols = vars(mut))
 
-# MaxChi
-p2 <- ggplot(x) +
-  theme_minimal() +
+p2 <- ggplot(data = x, aes(x, MaxChi)) +
   scale_y_reverse() +
-  coord_cartesian(ylim = c(1, 0)) +
-  ylab("p-value") +
-  ggtitle("MaxChi") +
-  geom_hline(yintercept = 0.05, col = "red", alpha = 0.5) +
-  geom_point(aes(mut, MaxChi), size = 4, col = "#107896", alpha = 0.5, stroke = 0) +
-  facet_wrap(vars(rec, seqLen), nrow = 1, strip.position = "bottom", scales = "free_x") +
-  theme(panel.spacing = unit(0, "lines"),
-        strip.background = element_blank(),
-        strip.placement = "outside")
+  geom_jitter(aes(col = seqLen), size = 5, alpha = 0.5) +
+  facet_grid(rows = vars(rec), cols = vars(mut))
 
-# PhiPerm
-p3 <- ggplot(x) +
-  theme_minimal() +
+p3 <- ggplot(data = x, aes(x, PhiPerm)) +
   scale_y_reverse() +
-  coord_cartesian(ylim = c(1, 0)) +
-  ylab("p-value") +
-  ggtitle("PhiPerm") +
-  geom_hline(yintercept = 0.05, col = "red", alpha = 0.5) +
-  geom_point(aes(mut, PhiPerm), size = 4, col = "#107896", alpha = 0.5, stroke = 0) +
-  facet_wrap(vars(rec, seqLen), nrow = 1, strip.position = "bottom", scales = "free_x") +
-  theme(panel.spacing = unit(0, "lines"),
-        strip.background = element_blank(),
-        strip.placement = "outside")
+  geom_jitter(aes(col = seqLen), size = 5, alpha = 0.5) +
+  facet_grid(rows = vars(rec), cols = vars(mut))
 
-# PhiNorm
-p4 <- ggplot(x) +
-  theme_minimal() +
+p4 <- ggplot(data = x, aes(x, PhiNorm)) +
   scale_y_reverse() +
-  coord_cartesian(ylim = c(1, 0)) +
-  ylab("p-value") +
-  ggtitle("PhiNorm") +
-  geom_hline(yintercept = 0.05, col = "red", alpha = 0.5) +
-  geom_point(aes(mut, PhiNorm), size = 4, col = "#107896", alpha = 0.5, stroke = 0) +
-  facet_wrap(vars(rec, seqLen), nrow = 1, strip.position = "bottom", scales = "free_x") +
-  theme(panel.spacing = unit(0, "lines"),
-        strip.background = element_blank(),
-        strip.placement = "outside")
+  geom_jitter(aes(col = seqLen), size = 5, alpha = 0.5) +
+  facet_grid(rows = vars(rec), cols = vars(mut))
 
 # Plot to pdf
 pdf("out/phipack.pdf")
@@ -80,10 +45,3 @@ rm(x, p1, p2, p3, p4)
 print("Plotting to out/phipack.pdf")
 # print("Writing to 'out/phipack_s_stats_sorted.csv'...")
 # write.csv(x, "out/phipack_s_stats_sorted.csv")
-
-
-#try facet_wrap per thing
-x$x <- "x"
-ggplot(data = x, aes(x, PhiPerm)) +
-  geom_point(aes(col = viridis(seqLen)), size = 5, alpha = 0.5) +
-  facet_grid(rows = vars(rec), cols = vars(mut))
