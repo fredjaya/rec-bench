@@ -1,0 +1,84 @@
+N E X T F L O W  ~  version 19.04.1
+Launching `rdm-n2500_profile.nf` [focused_liskov] - revision: 85cb135a94
+[warm up] executor > pbs
+executor >  pbs (1)
+[a8/155226] process > profile_s [  0%] 0 of 1
+
+executor >  pbs (3)
+[11/a3d4c2] process > profile_s [  0%] 0 of 3
+
+executor >  pbs (6)
+[23/6bc5a7] process > profile_s [  0%] 0 of 6
+
+executor >  pbs (8)
+[26/cc5a1c] process > profile_s [  0%] 0 of 8
+
+executor >  pbs (11)
+[4f/954ab2] process > profile_s [  0%] 0 of 11
+
+executor >  pbs (13)
+[a6/cd2694] process > profile_s [  0%] 0 of 13
+
+executor >  pbs (15)
+[f3/dbea0a] process > profile_s [  0%] 0 of 15
+
+executor >  pbs (18)
+[8f/bfdb37] process > profile_s [  0%] 0 of 18
+
+executor >  pbs (18)
+[8f/bfdb37] process > profile_s [  0%] 0 of 18
+WARN: [PBS] queue (medq) status cannot be fetched
+- cmd executed: bash -c set -o pipefail; qstat -f -1 medq | { egrep '(Job Id:|job_state =)' || true; }
+- exit status : 2
+- output      :
+  qstat: conflicting options.
+  usage: 
+  qstat [-f] [-J] [-p] [-t] [-x] [-E] [-F format] [-D delim] [ job_identifier... | destination... ]
+  qstat [-a|-i|-r|-H|-T] [-J] [-t] [-u user] [-n] [-s] [-G|-M] [-1] [-w]
+  	[ job_identifier... | destination... ]
+  qstat -Q [-f] [-F format] [-D delim] [ destination... ]
+  qstat -q [-G|-M] [ destination... ]
+  qstat -B [-f] [-F format] [-D delim] [ server_name... ]
+  qstat --version
+
+executor >  pbs (18)
+[77/9fe364] process > profile_s [ 11%] 2 of 18
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+executor >  pbs (18)
+[04/ee3251] process > profile_s [ 28%] 5 of 18
+
+executor >  pbs (18)
+[e9/78c91c] process > profile_s [ 50%] 9 of 18
+
+executor >  pbs (18)
+[26/cc5a1c] process > profile_s [ 67%] 12 of 18
+
+executor >  pbs (18)
+[8f/bfdb37] process > profile_s [ 78%] 14 of 18
+
+executor >  pbs (18)
+[22/852221] process > profile_s [ 94%] 17 of 18
+
+executor >  pbs (18)
+[dd/e12740] process > profile_s [100%] 18 of 18 ✔
+
+executor >  pbs (18)
+[dd/e12740] process > profile_s [100%] 18 of 18 ✔
+Completed at: 06-Aug-2019 16:53:04
+Duration    : 17m 1s
+CPU hours   : 4.0
+Succeeded   : 18
+
