@@ -1,0 +1,108 @@
+N E X T F L O W  ~  version 19.04.1
+Launching `rdm-n5000_profile.nf` [nice_pare] - revision: a3336c2cc6
+[warm up] executor > pbs
+executor >  pbs (3)
+[59/67647b] process > profile_s [  0%] 0 of 3
+
+executor >  pbs (5)
+[5f/9a855d] process > profile_s [  0%] 0 of 5
+
+executor >  pbs (8)
+[e9/a047a9] process > profile_s [  0%] 0 of 8
+
+executor >  pbs (11)
+[81/9d1218] process > profile_s [  0%] 0 of 11
+
+executor >  pbs (13)
+[48/de04dc] process > profile_s [  0%] 0 of 13
+
+executor >  pbs (16)
+[d0/bb7edc] process > profile_s [  0%] 0 of 16
+
+executor >  pbs (18)
+[4a/99ad91] process > profile_s [  0%] 0 of 18
+
+executor >  pbs (18)
+[4a/99ad91] process > profile_s [  0%] 0 of 18
+WARN: [PBS] queue (medq) status cannot be fetched
+- cmd executed: bash -c set -o pipefail; qstat -f -1 medq | { egrep '(Job Id:|job_state =)' || true; }
+- exit status : 2
+- output      :
+  qstat: conflicting options.
+  usage: 
+  qstat [-f] [-J] [-p] [-t] [-x] [-E] [-F format] [-D delim] [ job_identifier... | destination... ]
+  qstat [-a|-i|-r|-H|-T] [-J] [-t] [-u user] [-n] [-s] [-G|-M] [-1] [-w]
+  	[ job_identifier... | destination... ]
+  qstat -Q [-f] [-F format] [-D delim] [ destination... ]
+  qstat -q [-G|-M] [ destination... ]
+  qstat -B [-f] [-F format] [-D delim] [ server_name... ]
+  qstat --version
+
+executor >  pbs (18)
+[ce/094a4a] process > profile_s [  6%] 1 of 18
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+executor >  pbs (18)
+[d5/bf0e68] process > profile_s [ 11%] 2 of 18
+
+executor >  pbs (18)
+[32/99ed6a] process > profile_s [ 17%] 3 of 18
+
+executor >  pbs (18)
+[e9/a047a9] process > profile_s [ 22%] 4 of 18
+
+executor >  pbs (18)
+[48/de04dc] process > profile_s [ 33%] 6 of 18
+
+executor >  pbs (18)
+[88/bebfea] process > profile_s [ 39%] 7 of 18
+
+executor >  pbs (18)
+[81/f6602e] process > profile_s [ 44%] 8 of 18
+
+executor >  pbs (18)
+[6c/35a46b] process > profile_s [ 50%] 9 of 18
+
+executor >  pbs (18)
+[4c/1b3c4a] process > profile_s [ 56%] 10 of 18
+
+executor >  pbs (18)
+[4a/99ad91] process > profile_s [ 67%] 12 of 18
+
+executor >  pbs (18)
+[ae/6b2d55] process > profile_s [ 72%] 13 of 18
+
+executor >  pbs (18)
+[0f/b6ef6d] process > profile_s [ 78%] 14 of 18
+
+executor >  pbs (18)
+[59/67647b] process > profile_s [ 83%] 15 of 18
+
+executor >  pbs (18)
+[7d/4d86aa] process > profile_s [ 89%] 16 of 18
+
+executor >  pbs (18)
+[d0/bb7edc] process > profile_s [ 94%] 17 of 18
+
+executor >  pbs (18)
+[5f/9a855d] process > profile_s [100%] 18 of 18 ✔
+
+executor >  pbs (18)
+[5f/9a855d] process > profile_s [100%] 18 of 18 ✔
+Completed at: 07-Aug-2019 08:08:45
+Duration    : 1h 3m 1s
+CPU hours   : 15.9
+Succeeded   : 18
+

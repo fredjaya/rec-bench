@@ -1,0 +1,75 @@
+N E X T F L O W  ~  version 19.04.1
+Launching `rdm-n5000_3seq.nf` [angry_torvalds] - revision: ab9dc8ad16
+[warm up] executor > pbs
+executor >  pbs (3)
+[39/4b52d5] process > 3seq_s [  0%] 0 of 3
+
+executor >  pbs (6)
+[a4/8879dd] process > 3seq_s [  0%] 0 of 6
+
+executor >  pbs (9)
+[2c/086fb2] process > 3seq_s [  0%] 0 of 9
+
+executor >  pbs (12)
+[f8/3294de] process > 3seq_s [  0%] 0 of 12
+
+executor >  pbs (15)
+[10/384a91] process > 3seq_s [  0%] 0 of 15
+
+executor >  pbs (18)
+[55/2efd57] process > 3seq_s [  0%] 0 of 18
+
+executor >  pbs (18)
+[55/2efd57] process > 3seq_s [  0%] 0 of 18
+WARN: [PBS] queue (medq) status cannot be fetched
+- cmd executed: bash -c set -o pipefail; qstat -f -1 medq | { egrep '(Job Id:|job_state =)' || true; }
+- exit status : 2
+- output      :
+  qstat: conflicting options.
+  usage: 
+  qstat [-f] [-J] [-p] [-t] [-x] [-E] [-F format] [-D delim] [ job_identifier... | destination... ]
+  qstat [-a|-i|-r|-H|-T] [-J] [-t] [-u user] [-n] [-s] [-G|-M] [-1] [-w]
+  	[ job_identifier... | destination... ]
+  qstat -Q [-f] [-F format] [-D delim] [ destination... ]
+  qstat -q [-G|-M] [ destination... ]
+  qstat -B [-f] [-F format] [-D delim] [ server_name... ]
+  qstat --version
+
+executor >  pbs (18)
+[d6/c41729] process > 3seq_s [  6%] 1 of 18
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+executor >  pbs (18)
+[f8/3294de] process > 3seq_s [ 11%] 2 of 18
+
+executor >  pbs (18)
+[78/bf02fd] process > 3seq_s [ 17%] 3 of 18
+
+executor >  pbs (18)
+[10/384a91] process > 3seq_s [ 22%] 4 of 18
+
+executor >  pbs (18)
+[27/6eec69] process > 3seq_s [ 28%] 5 of 18
+
+executor >  pbs (18)
+[39/4b52d5] process > 3seq_s [ 33%] 6 of 18
+
+executor >  pbs (18)
+[55/2efd57] process > 3seq_s [100%] 18 of 18, failed: 12
+WARN: Killing pending tasks (12)
+
+executor >  pbs (18)
+[55/2efd57] process > 3seq_s [100%] 18 of 18, failed: 12
+WARN: Killing pending tasks (12)

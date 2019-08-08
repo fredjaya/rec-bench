@@ -1,0 +1,67 @@
+Reading sequence file msa_m0.00010_rc1.0E-7_n10000_dual0.05_rep3.fasta
+Allocating space for 10000 taxa and 1680 sites
+Alignment looks like a valid DNA alignment.
+
+PHI is calculated with w as 100
+
+Checking for recombination using a window size of 1000 and a step size of 25
+
+Checking for recombination at 500 between 0 and 1000
+PHI (Normal):        1.00e+00
+Checking for recombination at 525 between 25 and 1025
+PHI (Normal):        1.00e+00
+Checking for recombination at 550 between 50 and 1050
+PHI (Normal):        1.00e+00
+Checking for recombination at 575 between 75 and 1075
+PHI (Normal):        1.00e+00
+Checking for recombination at 600 between 100 and 1100
+PHI (Normal):        1.00e+00
+Checking for recombination at 625 between 125 and 1125
+PHI (Normal):        1.00e+00
+Checking for recombination at 650 between 150 and 1150
+PHI (Normal):        1.00e+00
+Checking for recombination at 675 between 175 and 1175
+PHI (Normal):        1.00e+00
+Checking for recombination at 700 between 200 and 1200
+PHI (Normal):        1.00e+00
+Checking for recombination at 725 between 225 and 1225
+PHI (Normal):        1.00e+00
+Checking for recombination at 750 between 250 and 1250
+PHI (Normal):        1.00e+00
+Checking for recombination at 775 between 275 and 1275
+PHI (Normal):        1.00e+00
+Checking for recombination at 800 between 300 and 1300
+PHI (Normal):        1.00e+00
+Checking for recombination at 825 between 325 and 1325
+PHI (Normal):        1.00e+00
+Checking for recombination at 850 between 350 and 1350
+PHI (Normal):        1.00e+00
+Checking for recombination at 875 between 375 and 1375
+PHI (Normal):        1.00e+00
+Checking for recombination at 900 between 400 and 1400
+PHI (Normal):        1.00e+00
+Checking for recombination at 925 between 425 and 1425
+PHI (Normal):        1.00e+00
+Checking for recombination at 950 between 450 and 1450
+PHI (Normal):        1.00e+00
+Checking for recombination at 975 between 475 and 1475
+PHI (Normal):        1.00e+00
+Checking for recombination at 1000 between 500 and 1500
+PHI (Normal):        1.00e+00
+Checking for recombination at 1025 between 525 and 1525
+PHI (Normal):        1.00e+00
+Checking for recombination at 1050 between 550 and 1550
+PHI (Normal):        1.00e+00
+Checking for recombination at 1075 between 575 and 1575
+PHI (Normal):        1.00e+00
+Checking for recombination at 1100 between 600 and 1600
+PHI (Normal):        1.00e+00
+Checking for recombination at 1125 between 625 and 1625
+PHI (Normal):        1.00e+00
+Checking for recombination at 1150 between 650 and 1650
+PHI (Normal):        9.89e-01
+Checking for recombination at 1175 between 675 and 1675
+PHI (Normal):        3.90e-01
+Number of tests performed is 28
+
+
