@@ -7,4 +7,4 @@
 #PBS -M frederick.r.jaya@student.uts.edu.au
 
 cd ~/rec-bench
-nextflow rdm-n10000_profile.nf -with-timeline out/n1000_profile_timeline.html -with-report out/n10000_profile_report.html -with-trace out/n10000_profile_trace.html
+nextflow rdm-n10000_profile.nf -with-timeline out/n10000_profile_timeline.html -with-report out/n10000_profile_report.html -with-trace out/n10000_profile_trace.html
