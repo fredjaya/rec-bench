@@ -82,5 +82,5 @@ process geneconv {
 
   script:
   """
-  ./geneconv $seq -inputpath=${baseDir}/out/santa/n100/ $seq -nolog -Dumptab -Fancy
+  $baseDir/bin/geneconv -inputpath=${baseDir}/out/santa/n100/ $seq -nolog -Dumptab -Fancy
   """
