@@ -1,7 +1,7 @@
 input1 = Channel.fromPath( 'out/santa/n1000/*.fasta' )
 input2 = Channel.fromPath( 'out/santa/n1000/*.fasta' )
 input3 = Channel.fromPath( 'out/santa/n1000/*.fasta' )
-input4 = Chanell.fromPath( 'out/santa/n1000/*.fasta' )
+input4 = Channel.fromPath( 'out/santa/n1000/*.fasta' )
 /*
 process phipack_s {
 
@@ -84,3 +84,5 @@ process geneconv {
   """
   $baseDir/bin/geneconv -inputpath=${baseDir}/out/santa/n100/ $seq -nolog -Dumptab -Fancy
   """
+
+}

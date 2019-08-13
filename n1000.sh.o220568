@@ -1,0 +1,117 @@
+N E X T F L O W  ~  version 19.04.1
+Launching `rdm-n1000.nf` [nostalgic_panini] - revision: a49e3e70ba
+[warm up] executor > pbs
+executor >  pbs (1)
+[af/5c419f] process > geneconv [  0%] 0 of 1
+
+executor >  pbs (3)
+[31/f6bf53] process > geneconv [  0%] 0 of 3
+
+executor >  pbs (6)
+[ef/306de2] process > geneconv [  0%] 0 of 6
+
+executor >  pbs (9)
+[f2/b0efb0] process > geneconv [  0%] 0 of 9
+
+executor >  pbs (12)
+[3e/a055d3] process > geneconv [  0%] 0 of 12
+
+executor >  pbs (15)
+[97/16a321] process > geneconv [  0%] 0 of 15
+
+executor >  pbs (17)
+[02/46254f] process > geneconv [  0%] 0 of 17
+
+executor >  pbs (18)
+[43/61a5cc] process > geneconv [  0%] 0 of 18
+
+executor >  pbs (18)
+[43/61a5cc] process > geneconv [  0%] 0 of 18
+WARN: [PBS] queue (smallq) status cannot be fetched
+- cmd executed: bash -c set -o pipefail; qstat -f -1 smallq | { egrep '(Job Id:|job_state =)' || true; }
+- exit status : 2
+- output      :
+  qstat: conflicting options.
+  usage: 
+  qstat [-f] [-J] [-p] [-t] [-x] [-E] [-F format] [-D delim] [ job_identifier... | destination... ]
+  qstat [-a|-i|-r|-H|-T] [-J] [-t] [-u user] [-n] [-s] [-G|-M] [-1] [-w]
+  	[ job_identifier... | destination... ]
+  qstat -Q [-f] [-F format] [-D delim] [ destination... ]
+  qstat -q [-G|-M] [ destination... ]
+  qstat -B [-f] [-F format] [-D delim] [ server_name... ]
+  qstat --version
+
+executor >  pbs (18)
+[43/61a5cc] process > geneconv [  6%] 1 of 18
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+executor >  pbs (18)
+[f2/b0efb0] process > geneconv [ 11%] 2 of 18
+
+executor >  pbs (18)
+[01/f43be3] process > geneconv [ 17%] 3 of 18
+
+executor >  pbs (18)
+[d1/b05901] process > geneconv [ 22%] 4 of 18
+
+executor >  pbs (18)
+[97/16a321] process > geneconv [ 28%] 5 of 18
+
+executor >  pbs (18)
+[e0/b5c8a8] process > geneconv [ 33%] 6 of 18
+
+executor >  pbs (18)
+[af/5c419f] process > geneconv [ 39%] 7 of 18
+
+executor >  pbs (18)
+[dc/7ed8eb] process > geneconv [ 44%] 8 of 18
+
+executor >  pbs (18)
+[e8/88fdf1] process > geneconv [ 50%] 9 of 18
+
+executor >  pbs (18)
+[07/83f6c2] process > geneconv [ 56%] 10 of 18
+
+executor >  pbs (18)
+[ef/306de2] process > geneconv [ 61%] 11 of 18
+
+executor >  pbs (18)
+[3e/a055d3] process > geneconv [ 67%] 12 of 18
+
+executor >  pbs (18)
+[16/dfb21d] process > geneconv [ 72%] 13 of 18
+
+executor >  pbs (18)
+[05/611feb] process > geneconv [ 78%] 14 of 18
+
+executor >  pbs (18)
+[2b/8c8b27] process > geneconv [ 83%] 15 of 18
+
+executor >  pbs (18)
+[02/46254f] process > geneconv [ 89%] 16 of 18
+
+executor >  pbs (18)
+[da/8783f8] process > geneconv [ 94%] 17 of 18
+
+executor >  pbs (18)
+[31/f6bf53] process > geneconv [100%] 18 of 18 ✔
+
+executor >  pbs (18)
+[31/f6bf53] process > geneconv [100%] 18 of 18 ✔
+Completed at: 14-Aug-2019 02:42:03
+Duration    : 11h 42m 48s
+CPU hours   : 130.9
+Succeeded   : 18
+
