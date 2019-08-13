@@ -1,7 +1,8 @@
 input1 = Channel.fromPath( 'out/santa/n100/*.fasta' )
 input2 = Channel.fromPath( 'out/santa/n100/*.fasta' )
 input3 = Channel.fromPath( 'out/santa/n100/*.fasta' )
-
+input4 = Channel.fromPath( 'out/santa/n100/*.fasta' )
+ /*
 process phipack_s {
 
   label 'small'
@@ -63,6 +64,26 @@ process '3seq_s' {
   """
   echo "Y" |
   $baseDir/bin/3seq_elf -f $seq -d -id ${seq}
+  """
+
+}
+*/
+
+process geneconv {
+
+  label 'small'
+  tag "$seq"
+  publishDir 'out/S4_geneconv', mode: 'move'
+
+  input:
+  file seq from input4.flatten()
+
+  output:
+  file '*.tab'
+
+  script:
+  """
+  ./geneconv $seq -inputpath=${baseDir}/out/santa/n100/ $seq -nolog -Dumptab -Fancy
   """
 
 }
