@@ -14,7 +14,7 @@ process geneconv {
 
   script:
   """
-  $baseDir/bin/geneconv $seq -inputpath=${baseDir}/out/santa/n100/ $seq -nolog -Dumptab -Fancy
+  $baseDir/bin/geneconv $seq -inputpath=${baseDir}/out/santa/n2500/ $seq -nolog -Dumptab -Fancy
   """
 
 }
