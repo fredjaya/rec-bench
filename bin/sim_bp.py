@@ -7,12 +7,15 @@ import os
 
 # Append fasta files / filenames to list
 fileNames = []
-print(" Reading simulated .fasta files...")
+
+print("Reading simulated .fasta files...")
 for file in glob.glob("out/simfasta/*.fasta"):
     # simfasta is a folder with all fasta files, likely deleting this in future
     # versions as it's a dupe of santa/n* folders
     fileNames.append(file)
-    #print(file)
+
+bp_counter = 0
+no_bp_counter = 0
 
 with open('out/sim_bp_stats.csv', 'w+') as csvfile:
     writer = csv.writer(csvfile, delimiter = ',')
@@ -27,14 +30,14 @@ with open('out/sim_bp_stats.csv', 'w+') as csvfile:
             for line in file:
                 paramsNew = params.copy()
                 if line.startswith('>'):
-                    #bp_counter = 0
-                    #no_bp_counter = 0
                     if re.search(':', line):
                         line = line.split(':')
                         paramsNew.append(line)
                         bp_counter += 1
-                        print(bp_counter)
                         writer.writerow(paramsNew)
                     else:
                         paramsNew.append(line)
                         writer.writerow(paramsNew)
+                        no_bp_counter += 1
+print('Sequences with breakpoints: ' + str(bp_counter) + '\n' + \
+ 'Sequences without breakpoints ' + str(no_bp_counter))
