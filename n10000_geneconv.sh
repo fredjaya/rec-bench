@@ -7,4 +7,4 @@
 #PBS -M frederick.r.jaya@student.uts.edu.au
 
 cd ~/rec-bench
-nextflow rdm-n10000_geneconv.nf -with-timeline out/n10000_geneconv_timeline.html -with-report out/n10000_geneconv_report.html -with-trace out/n10000_geneconv_trace.html
+nextflow rdm-n10000_geneconv.nf -with-timeline out/n10000_geneconv_timeline.html -with-report out/n10000_geneconv_report.html -with-trace out/n10000_geneconv_trace.tsv

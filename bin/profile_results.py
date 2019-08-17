@@ -1,6 +1,5 @@
 #!/bin/bash/python3
 
-#import transposer
 import glob
 import csv
 import re
