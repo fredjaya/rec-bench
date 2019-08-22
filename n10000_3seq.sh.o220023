@@ -1,0 +1,81 @@
+N E X T F L O W  ~  version 19.04.1
+Launching `rdm-n10000_3seq.nf` [magical_curie] - revision: 6868b46915
+[warm up] executor > pbs
+executor >  pbs (1)
+[af/92ccee] process > 3seq_s [  0%] 0 of 1
+
+executor >  pbs (4)
+[46/7460b8] process > 3seq_s [  0%] 0 of 4
+
+executor >  pbs (6)
+[ce/25623c] process > 3seq_s [  0%] 0 of 6
+
+executor >  pbs (8)
+[b0/8f3304] process > 3seq_s [  0%] 0 of 8
+
+executor >  pbs (10)
+[64/f412ce] process > 3seq_s [  0%] 0 of 10
+
+executor >  pbs (13)
+[e6/21512c] process > 3seq_s [  0%] 0 of 13
+
+executor >  pbs (15)
+[95/54fbac] process > 3seq_s [  0%] 0 of 15
+
+executor >  pbs (18)
+[2e/6ec1ad] process > 3seq_s [  0%] 0 of 18
+
+executor >  pbs (18)
+[2e/6ec1ad] process > 3seq_s [  0%] 0 of 18
+WARN: [PBS] queue (medq) status cannot be fetched
+- cmd executed: bash -c set -o pipefail; qstat -f -1 medq | { egrep '(Job Id:|job_state =)' || true; }
+- exit status : 2
+- output      :
+  qstat: conflicting options.
+  usage: 
+  qstat [-f] [-J] [-p] [-t] [-x] [-E] [-F format] [-D delim] [ job_identifier... | destination... ]
+  qstat [-a|-i|-r|-H|-T] [-J] [-t] [-u user] [-n] [-s] [-G|-M] [-1] [-w]
+  	[ job_identifier... | destination... ]
+  qstat -Q [-f] [-F format] [-D delim] [ destination... ]
+  qstat -q [-G|-M] [ destination... ]
+  qstat -B [-f] [-F format] [-D delim] [ server_name... ]
+  qstat --version
+
+executor >  pbs (18)
+[aa/3bf78b] process > 3seq_s [  6%] 1 of 18
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+executor >  pbs (18)
+[ce/25623c] process > 3seq_s [ 11%] 2 of 18
+
+executor >  pbs (18)
+[95/54fbac] process > 3seq_s [ 17%] 3 of 18
+
+executor >  pbs (18)
+[0d/e2360b] process > 3seq_s [ 22%] 4 of 18
+
+executor >  pbs (18)
+[b0/8f3304] process > 3seq_s [ 28%] 5 of 18
+
+executor >  pbs (18)
+[ba/85d2a0] process > 3seq_s [ 33%] 6 of 18
+
+executor >  pbs (18)
+[2e/6ec1ad] process > 3seq_s [100%] 18 of 18, failed: 12
+WARN: Killing pending tasks (12)
+
+executor >  pbs (18)
+[2e/6ec1ad] process > 3seq_s [100%] 18 of 18, failed: 12
+WARN: Killing pending tasks (12)
