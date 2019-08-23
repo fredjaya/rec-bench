@@ -1,0 +1,19 @@
+task_id,hash,native_id,name,status,exit,submit,duration,realtime,%cpu,peak_rss,peak_vmem,rchar,wchar
+18,d6/c41729,219932.hpcnode0,3seq_s (msa_m0.00010_rc1.0E-7_n5000_dual0.05_rep2.fasta),COMPLETED,0,2019-08-02 20:25:14.690,6h 21m 20s,6h 20m 19s,100.1%,828.7 MB,941.4 MB,444.3 MB,699.8 KB
+16,f8/3294de,219933.hpcnode0,3seq_s (msa_m0.00010_rc0.0000010_n5000_dual0.05_rep1.fasta),COMPLETED,0,2019-08-02 20:25:14.754,8h 16m 35s,8h 15m 50s,100.1%,828.7 MB,941.4 MB,444.3 MB,909.5 KB
+12,78/bf02fd,219923.hpcnode0,3seq_s (msa_m0.00010_rc1.0E-7_n5000_dual0.05_rep1.fasta),COMPLETED,0,2019-08-02 20:25:14.059,11h 42m 11s,11h 41m 23s,100.1%,828.7 MB,941.4 MB,444.3 MB,1.3 MB
+13,10/384a91,219936.hpcnode0,3seq_s (msa_m0.00010_rc1.0E-7_n5000_dual0.05_rep3.fasta),COMPLETED,0,2019-08-02 20:25:14.955,11h 51m 20s,11h 50m 32s,100.1%,828.7 MB,941.4 MB,444.3 MB,1.3 MB
+1,27/6eec69,219926.hpcnode0,3seq_s (msa_m0.00010_rc0.0000010_n5000_dual0.05_rep3.fasta),COMPLETED,0,2019-08-02 20:25:14.271,12h 38m 31s,12h 38m 4s,100.1%,828.7 MB,941.4 MB,444.3 MB,1.4 MB
+8,39/4b52d5,219924.hpcnode0,3seq_s (msa_m0.00010_rc0.0000010_n5000_dual0.05_rep2.fasta),COMPLETED,0,2019-08-02 20:25:14.126,13h 16s,12h 59m 30s,100.1%,828.7 MB,941.4 MB,444.3 MB,1.4 MB
+7,b0/a39fd6,219922.hpcnode0,3seq_s (msa_m0.0010_rc1.0E-7_n5000_dual0.05_rep2.fasta),ABORTED,-,2019-08-02 20:25:13.969,-,-,-,-,-,-,-
+10,e3/d8d3b3,219925.hpcnode0,3seq_s (msa_m0.0010_rc0.0000010_n5000_dual0.05_rep2.fasta),ABORTED,-,2019-08-02 20:25:14.203,-,-,-,-,-,-,-
+15,a4/8879dd,219927.hpcnode0,3seq_s (msa_m0.010_rc0.0000010_n5000_dual0.05_rep1.fasta),ABORTED,-,2019-08-02 20:25:14.338,-,-,-,-,-,-,-
+11,4b/291aeb,219928.hpcnode0,3seq_s (msa_m0.0010_rc0.0000010_n5000_dual0.05_rep3.fasta),ABORTED,-,2019-08-02 20:25:14.402,-,-,-,-,-,-,-
+6,e5/aa5408,219929.hpcnode0,3seq_s (msa_m0.0010_rc1.0E-7_n5000_dual0.05_rep3.fasta),ABORTED,-,2019-08-02 20:25:14.469,-,-,-,-,-,-,-
+9,2c/086fb2,219930.hpcnode0,3seq_s (msa_m0.0010_rc1.0E-7_n5000_dual0.05_rep1.fasta),ABORTED,-,2019-08-02 20:25:14.534,-,-,-,-,-,-,-
+2,e4/118485,219931.hpcnode0,3seq_s (msa_m0.010_rc0.0000010_n5000_dual0.05_rep2.fasta),ABORTED,-,2019-08-02 20:25:14.625,-,-,-,-,-,-,-
+4,48/aebc67,219934.hpcnode0,3seq_s (msa_m0.010_rc0.0000010_n5000_dual0.05_rep3.fasta),ABORTED,-,2019-08-02 20:25:14.823,-,-,-,-,-,-,-
+3,36/50cb94,219935.hpcnode0,3seq_s (msa_m0.010_rc1.0E-7_n5000_dual0.05_rep1.fasta),ABORTED,-,2019-08-02 20:25:14.891,-,-,-,-,-,-,-
+5,52/6737f9,219937.hpcnode0,3seq_s (msa_m0.0010_rc0.0000010_n5000_dual0.05_rep1.fasta),ABORTED,-,2019-08-02 20:25:15.023,-,-,-,-,-,-,-
+14,36/3cf275,219938.hpcnode0,3seq_s (msa_m0.010_rc1.0E-7_n5000_dual0.05_rep2.fasta),ABORTED,-,2019-08-02 20:25:15.099,-,-,-,-,-,-,-
+17,55/2efd57,219939.hpcnode0,3seq_s (msa_m0.010_rc1.0E-7_n5000_dual0.05_rep3.fasta),ABORTED,-,2019-08-02 20:25:15.163,-,-,-,-,-,-,-

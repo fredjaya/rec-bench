@@ -1,0 +1,55 @@
+task_id,hash,native_id,name,status,exit,submit,duration,realtime,%cpu,peak_rss,peak_vmem,rchar,wchar
+24,0a/097a58,219190.hpcnode0,profile_s (msa_m0.00010_rc1.0E-7_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:01.345,4.7s,1.2s,95.6%,2.4 MB,110.6 MB,217.1 KB,6 KB
+46,c3/5d3bfa,219191.hpcnode0,3seq_s (msa_m0.0010_rc1.0E-7_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:01.430,4.7s,3.5s,81.4%,450.7 MB,563.4 MB,436.5 MB,9.4 KB
+51,2b/d9613e,219195.hpcnode0,3seq_s (msa_m0.0010_rc0.0000010_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:01.709,4.6s,3.6s,76.7%,450.7 MB,563.4 MB,436.5 MB,9.4 KB
+29,56/917c79,219199.hpcnode0,profile_s (msa_m0.010_rc0.0000010_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:02.014,4.3s,2.8s,97.7%,3.1 MB,111.2 MB,217.2 KB,6 KB
+40,b7/f50faa,219200.hpcnode0,3seq_s (msa_m0.00010_rc1.0E-7_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:02.114,4.2s,2.1s,35.6%,339.1 MB,563.4 MB,436.5 MB,9.3 KB
+53,ed/6f1c91,219202.hpcnode0,3seq_s (msa_m0.00010_rc0.0000010_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:02.280,4.1s,1.7s,32.7%,391 MB,563.4 MB,436.5 MB,9.3 KB
+32,00/ab6eb5,219204.hpcnode0,profile_s (msa_m0.010_rc1.0E-7_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:02.420,4s,3.2s,97.9%,3.2 MB,111.3 MB,217.1 KB,6 KB
+39,06/62df9d,219206.hpcnode0,3seq_s (msa_m0.00010_rc0.0000010_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:02.581,3.9s,1.2s,33.8%,450.6 MB,563.4 MB,436.4 MB,9.3 KB
+41,40/e25b42,219207.hpcnode0,3seq_s (msa_m0.00010_rc1.0E-7_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:02.655,3.8s,1.6s,51.1%,450.6 MB,563.4 MB,436.4 MB,9.3 KB
+22,4c/7d3a84,219210.hpcnode0,profile_s (msa_m0.010_rc1.0E-7_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:02.845,3.7s,2.3s,97.4%,2.9 MB,111.1 MB,217.1 KB,6 KB
+18,db/b09f7c,219211.hpcnode0,profile_s (msa_m0.0010_rc1.0E-7_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:02.919,3.7s,1.3s,95.3%,2.5 MB,110.6 MB,217.1 KB,6 KB
+33,d4/c9e285,219214.hpcnode0,profile_s (msa_m0.0010_rc0.0000010_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:03.107,3.5s,1.3s,94.5%,2.5 MB,110.6 MB,217.1 KB,6 KB
+31,58/5c4155,219215.hpcnode0,profile_s (msa_m0.0010_rc1.0E-7_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:03.168,3.5s,1.3s,94.6%,2.5 MB,110.6 MB,217.1 KB,6 KB
+26,ae/aadf4d,219220.hpcnode0,profile_s (msa_m0.0010_rc0.0000010_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:03.483,3.2s,1.6s,96.4%,2.5 MB,112.6 MB,219.9 KB,6 KB
+43,6a/2b77ce,219222.hpcnode0,3seq_s (msa_m0.00010_rc1.0E-7_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:03.612,3.1s,2.1s,50.0%,371.5 MB,565.4 MB,436.4 MB,9.3 KB
+20,f2/a2e5ec,219223.hpcnode0,profile_s (msa_m0.00010_rc0.0000010_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:03.683,3s,1.4s,96.7%,2.4 MB,112.6 MB,219.9 KB,6.3 KB
+21,f6/160b05,219224.hpcnode0,profile_s (msa_m0.00010_rc1.0E-7_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:03.744,3s,1.5s,95.7%,2.4 MB,112.6 MB,219.9 KB,6 KB
+28,a0/d6a133,219227.hpcnode0,profile_s (msa_m0.0010_rc1.0E-7_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:03.937,2.8s,1.6s,94.9%,2.5 MB,112.6 MB,220.1 KB,6 KB
+34,3e/ce6f76,219230.hpcnode0,profile_s (msa_m0.00010_rc0.0000010_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:04.129,2.6s,1.5s,94.1%,2.4 MB,112.6 MB,220.1 KB,6 KB
+16,f4/097fd8,219232.hpcnode0,profile_s (msa_m0.0010_rc0.0000010_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:04.305,2.5s,1.6s,95.6%,2.5 MB,112.6 MB,220.1 KB,6 KB
+35,c6/e21c5d,219235.hpcnode0,profile_s (msa_m0.00010_rc0.0000010_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:04.507,2.3s,1.5s,95.1%,2.4 MB,112.6 MB,219.9 KB,6 KB
+25,48/7f8bb5,219237.hpcnode0,profile_s (msa_m0.00010_rc1.0E-7_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:04.673,2.2s,1.3s,94.8%,2.4 MB,110.6 MB,217.1 KB,6 KB
+52,90/4d92d6,219238.hpcnode0,3seq_s (msa_m0.00010_rc0.0000010_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:04.744,2.2s,742ms,86.8%,1.3 MB,103.6 MB,436.4 MB,9.3 KB
+48,51/83ca38,219192.hpcnode0,3seq_s (msa_m0.010_rc0.0000010_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:01.497,9.6s,6.2s,91.5%,450.7 MB,563.4 MB,436.5 MB,9.4 KB
+19,87/ba4ac7,219213.hpcnode0,phipack_s (msa_m0.00010_rc0.0000010_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:03.047,8s,6.1s,99.1%,2.6 MB,110.7 MB,217.1 KB,16.2 KB
+13,0a/c00146,219193.hpcnode0,phipack_s (msa_m0.0010_rc1.0E-7_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:01.558,29.5s,24.2s,99.7%,3.4 MB,111.4 MB,217.1 KB,57.3 KB
+4,2f/f8377c,219196.hpcnode0,phipack_s (msa_m0.00010_rc1.0E-7_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:01.781,39.3s,7.1s,98.6%,2.6 MB,110.7 MB,217.1 KB,19.9 KB
+47,62/aea9be,219197.hpcnode0,3seq_s (msa_m0.010_rc0.0000010_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:01.849,39.2s,6.4s,89.8%,450.7 MB,563.4 MB,436.5 MB,9.5 KB
+6,f5/e8d6a5,219198.hpcnode0,phipack_s (msa_m0.00010_rc0.0000010_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:01.921,39.2s,4.9s,98.4%,2.5 MB,110.7 MB,217.1 KB,13.7 KB
+42,4d/4f5001,219201.hpcnode0,3seq_s (msa_m0.010_rc1.0E-7_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:02.185,38.9s,7.1s,84.1%,450.7 MB,563.4 MB,436.5 MB,9.5 KB
+38,1c/69fbad,219205.hpcnode0,3seq_s (msa_m0.0010_rc1.0E-7_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:02.494,38.6s,3.7s,73.8%,450.6 MB,563.4 MB,436.4 MB,9.4 KB
+8,ae/fcc1fd,219208.hpcnode0,phipack_s (msa_m0.0010_rc0.0000010_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:02.720,38.4s,23s,99.7%,3.4 MB,111.4 MB,217.1 KB,57 KB
+49,20/8cf7d2,219209.hpcnode0,3seq_s (msa_m0.0010_rc1.0E-7_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:02.782,38.3s,3.7s,84.6%,450.6 MB,563.4 MB,436.4 MB,9.4 KB
+2,85/cc27a3,219212.hpcnode0,phipack_s (msa_m0.0010_rc0.0000010_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:02.980,38.2s,22.8s,99.6%,3.4 MB,111.4 MB,217.1 KB,56.2 KB
+36,ce/708e1b,219216.hpcnode0,profile_s (msa_m0.010_rc1.0E-7_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:03.231,37.9s,3.6s,98.3%,3.5 MB,111.6 MB,217.1 KB,6 KB
+10,ce/22b433,219219.hpcnode0,phipack_s (msa_m0.0010_rc1.0E-7_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:03.418,37.7s,27.6s,99.8%,3.5 MB,113.6 MB,219.9 KB,57.2 KB
+1,38/92ffa8,219221.hpcnode0,phipack_s (msa_m0.00010_rc1.0E-7_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:03.546,37.6s,8.8s,99.3%,2.7 MB,112.8 MB,219.9 KB,23.1 KB
+15,01/d892af,219225.hpcnode0,phipack_s (msa_m0.0010_rc0.0000010_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:03.809,37.3s,25.6s,99.7%,3.3 MB,113.3 MB,219.9 KB,52.9 KB
+5,15/e29385,219226.hpcnode0,phipack_s (msa_m0.00010_rc1.0E-7_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:03.870,37.3s,8.7s,99.0%,2.7 MB,112.8 MB,219.9 KB,23.3 KB
+27,f9/23915d,219228.hpcnode0,profile_s (msa_m0.010_rc0.0000010_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:04.001,37.2s,3.1s,98.2%,3.1 MB,113.2 MB,220.1 KB,6 KB
+54,41/9b731b,219229.hpcnode0,3seq_s (msa_m0.010_rc1.0E-7_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:04.061,37.1s,8.6s,88.0%,450.6 MB,565.4 MB,436.4 MB,9.5 KB
+17,e9/1a83eb,219231.hpcnode0,phipack_s (msa_m0.00010_rc0.0000010_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:04.219,37s,8.6s,98.8%,2.7 MB,112.8 MB,220.1 KB,21.7 KB
+30,e7/ad4726,219233.hpcnode0,profile_s (msa_m0.010_rc0.0000010_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:04.366,36.8s,3.2s,97.3%,3.1 MB,113.2 MB,220.1 KB,6 KB
+7,61/8f8302,219234.hpcnode0,phipack_s (msa_m0.0010_rc1.0E-7_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:04.428,36.8s,27s,99.7%,3.5 MB,113.6 MB,220.1 KB,55 KB
+37,09/8862b2,219239.hpcnode0,3seq_s (msa_m0.0010_rc0.0000010_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:04.830,36.4s,10.9s,89.4%,450.6 MB,565.4 MB,436.4 MB,9.4 KB
+50,74/464b1a,219240.hpcnode0,3seq_s (msa_m0.010_rc1.0E-7_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:04.892,36.3s,14.2s,95.8%,450.6 MB,565.4 MB,436.4 MB,9.5 KB
+44,81/2816ae,219241.hpcnode0,3seq_s (msa_m0.010_rc0.0000010_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:04.957,36.3s,5.2s,98.2%,450.6 MB,563.4 MB,436.4 MB,9.4 KB
+45,a3/677f85,219242.hpcnode0,3seq_s (msa_m0.0010_rc0.0000010_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:05.019,36.2s,2.7s,96.6%,450.6 MB,563.4 MB,436.4 MB,9.4 KB
+3,2b/9109f9,219194.hpcnode0,phipack_s (msa_m0.010_rc1.0E-7_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:01.645,1m 39s,1m 20s,99.9%,6.8 MB,114.9 MB,217.1 KB,177.5 KB
+11,dc/5ea113,219203.hpcnode0,phipack_s (msa_m0.010_rc0.0000010_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:02.350,1m 44s,1m 8s,100.0%,7.4 MB,115.4 MB,217.1 KB,190.1 KB
+12,fb/b51ec1,219218.hpcnode0,phipack_s (msa_m0.010_rc0.0000010_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:03.356,1m 43s,1m 11s,99.9%,7.3 MB,115.4 MB,217.1 KB,193.1 KB
+9,8e/dd9854,219236.hpcnode0,phipack_s (msa_m0.010_rc0.0000010_n100_dual0.05_rep3.fasta),COMPLETED,0,2019-07-31 13:37:04.590,1m 42s,1m 23s,100.1%,7.4 MB,117.5 MB,219.9 KB,190.2 KB
+23,71/d33a1e,219217.hpcnode0,phipack_s (msa_m0.010_rc1.0E-7_n100_dual0.05_rep2.fasta),COMPLETED,0,2019-07-31 13:37:03.291,2m 13s,1m 16s,99.9%,8.4 MB,116.5 MB,217.1 KB,215.6 KB
+14,bc/3e2433,219243.hpcnode0,phipack_s (msa_m0.010_rc1.0E-7_n100_dual0.05_rep1.fasta),COMPLETED,0,2019-07-31 13:37:05.103,2m 11s,1m 27s,100.1%,8.1 MB,118.1 MB,219.9 KB,204.4 KB

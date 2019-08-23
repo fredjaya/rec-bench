@@ -1,0 +1,19 @@
+task_id,hash,native_id,name,status,exit,submit,duration,realtime,%cpu,peak_rss,peak_vmem,rchar,wchar
+5,fb/44e5c7,220004.hpcnode0,3seq_s (msa_m0.00010_rc1.0E-7_n2500_dual0.05_rep3.fasta),COMPLETED,0,2019-08-03 07:46:59.403,54m 49s,54m,100.1%,635.8 MB,748.6 MB,440.2 MB,107.3 KB
+7,ab/188669,220006.hpcnode0,3seq_s (msa_m0.00010_rc0.0000010_n2500_dual0.05_rep2.fasta),COMPLETED,0,2019-08-03 07:46:59.549,1h 6m 54s,1h 6m 21s,100.1%,635.8 MB,750.6 MB,440.2 MB,129.8 KB
+16,56/b1a926,219997.hpcnode0,3seq_s (msa_m0.00010_rc1.0E-7_n2500_dual0.05_rep2.fasta),COMPLETED,0,2019-08-03 07:46:58.914,2h 25m 45s,2h 25m 42s,100.1%,635.8 MB,748.6 MB,440.2 MB,273.9 KB
+11,c6/f40c8c,220000.hpcnode0,3seq_s (msa_m0.00010_rc0.0000010_n2500_dual0.05_rep1.fasta),COMPLETED,0,2019-08-03 07:46:59.123,2h 30m 5s,2h 29m 6s,100.1%,635.8 MB,748.6 MB,440.2 MB,280.1 KB
+9,e8/8d13d1,219998.hpcnode0,3seq_s (msa_m0.00010_rc0.0000010_n2500_dual0.05_rep3.fasta),COMPLETED,0,2019-08-03 07:46:58.989,2h 50m,2h 49m 58s,100.1%,635.8 MB,748.6 MB,440.2 MB,318 KB
+2,6b/858e09,219995.hpcnode0,3seq_s (msa_m0.00010_rc1.0E-7_n2500_dual0.05_rep1.fasta),COMPLETED,0,2019-08-03 07:46:58.786,3h 1m,3h 57s,100.1%,635.8 MB,748.6 MB,440.2 MB,338 KB
+13,bb/55ae1c,219993.hpcnode0,3seq_s (msa_m0.0010_rc1.0E-7_n2500_dual0.05_rep2.fasta),COMPLETED,0,2019-08-03 07:46:58.626,1d 8h 30m,1d 8h 29m 55s,100.1%,635.8 MB,748.6 MB,440.2 MB,3.5 MB
+12,d2/618fbc,219994.hpcnode0,3seq_s (msa_m0.010_rc1.0E-7_n2500_dual0.05_rep3.fasta),COMPLETED,0,2019-08-03 07:46:58.717,1d 9h 44m 50s,1d 9h 44m 46s,100.1%,635.8 MB,748.6 MB,440.2 MB,3.6 MB
+14,fa/abbc7b,219999.hpcnode0,3seq_s (msa_m0.0010_rc0.0000010_n2500_dual0.05_rep2.fasta),COMPLETED,0,2019-08-03 07:46:59.061,1d 10h 9m 19s,1d 10h 8m 34s,100.1%,635.8 MB,748.6 MB,440.2 MB,3.6 MB
+6,f8/03228b,220002.hpcnode0,3seq_s (msa_m0.0010_rc1.0E-7_n2500_dual0.05_rep3.fasta),COMPLETED,0,2019-08-03 07:46:59.258,1d 10h 57m 39s,1d 10h 56m 49s,100.1%,635.8 MB,748.6 MB,440.2 MB,3.7 MB
+1,33/e4ce28,220003.hpcnode0,3seq_s (msa_m0.010_rc0.0000010_n2500_dual0.05_rep1.fasta),COMPLETED,0,2019-08-03 07:46:59.339,1d 12h 46m 14s,1d 12h 45m 46s,100.1%,635.8 MB,748.6 MB,440.2 MB,3.9 MB
+17,a3/30f78d,220010.hpcnode0,3seq_s (msa_m0.0010_rc0.0000010_n2500_dual0.05_rep1.fasta),COMPLETED,0,2019-08-03 07:46:59.841,1d 13h 9m 49s,1d 13h 9m 35s,100.1%,635.8 MB,748.6 MB,440.2 MB,4 MB
+18,33/fc98a6,219996.hpcnode0,3seq_s (msa_m0.0010_rc0.0000010_n2500_dual0.05_rep3.fasta),COMPLETED,0,2019-08-03 07:46:58.850,1d 14h 32m 15s,1d 14h 32m 12s,100.1%,635.8 MB,748.6 MB,440.2 MB,4.1 MB
+4,c8/fa449b,220001.hpcnode0,3seq_s (msa_m0.010_rc1.0E-7_n2500_dual0.05_rep2.fasta),COMPLETED,0,2019-08-03 07:46:59.184,1d 14h 50m 10s,1d 14h 49m 25s,100.1%,635.8 MB,748.6 MB,440.2 MB,4.1 MB
+8,53/fa4df9,220009.hpcnode0,3seq_s (msa_m0.010_rc0.0000010_n2500_dual0.05_rep3.fasta),COMPLETED,0,2019-08-03 07:46:59.762,1d 16h 7m 59s,1d 16h 7m 16s,100.1%,635.8 MB,748.6 MB,440.2 MB,4.3 MB
+3,23/ceda13,220005.hpcnode0,3seq_s (msa_m0.0010_rc1.0E-7_n2500_dual0.05_rep1.fasta),COMPLETED,0,2019-08-03 07:46:59.466,1d 17h 58m 35s,1d 17h 58m 7s,100.0%,636 MB,750.6 MB,440.3 MB,4.5 MB
+15,50/c0f5f9,220008.hpcnode0,3seq_s (msa_m0.010_rc0.0000010_n2500_dual0.05_rep2.fasta),COMPLETED,0,2019-08-03 07:46:59.683,1d 19h 7m 50s,1d 19h 6m 53s,100.0%,635.8 MB,750.6 MB,440.2 MB,4.6 MB
+10,9e/875e47,220007.hpcnode0,3seq_s (msa_m0.010_rc1.0E-7_n2500_dual0.05_rep1.fasta),COMPLETED,0,2019-08-03 07:46:59.621,1d 23h 12m 25s,1d 23h 11m 30s,100.0%,635.8 MB,750.6 MB,440.2 MB,5 MB
