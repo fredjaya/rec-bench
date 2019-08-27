@@ -3,48 +3,49 @@
 import pandas as pd
 import re
 import numpy as np
-import time
-import datetime as dt
 
-def nf_timeparse(x):
-    nf_time = []
-    # Where x is the realtime col
-    for row in x:
-        row = str(row)
-        days = 0
-        hours = 0
-        mins = 0
-        if re.findall('ms', row) == ['ms']:
-            mins = 1
-        elif re.findall('d', row) == ['d']:
-            days = re.findall('\d+(?=d)', row)
-            days = int(days[0])
-        elif re.findall('h', row) == ['h']:
-            hours = re.findall('\d+(?=h)', row)
-            hours = int(hours[0])
-        elif re.findall('m', row) == ['m']:
-            mins = re.findall('\d+(?=m)', row)
-            mins = int(mins[0])
-        elif re.findall('s', row) == ['s']:
-             mins = 1
-        temp = dt.timedelta(days = days, hours = hours, minutes = mins)
-        print(temp)
-        nf_time.append(temp)
-        return(nf_time)
+def nf_hours(t):
+    t = str(t)
+    total_hours = 0
+    if re.findall('ms', t) == ['ms']:
+            total_hours += 1/60 # minute
+    else:
+        if re.findall('d', t) == ['d']:
+            days = re.findall('\d+(?=d)', t)
+            total_hours += int(days[0]) * 24
+        if re.findall('h', t) == ['h']:
+            hours = re.findall('\d+(?=h)', t)
+            total_hours += int(hours[0])
+        if re.findall('m', t) == ['m']:
+            mins = re.findall('\d+(?=m)', t)
+            total_hours += int(mins[0]) / 60 
+        if re.findall('s', t) == ['s']:
+            total_hours += 1/60 # minute
+    return(total_hours)
+    
+# Check for unique time combos
+def nf_unique_times(df_col):
+    rt = df['realtime']
+    rt_unique = []
+    for i in rt:
+        i = str(i)
+        i = re.sub('[^a-z]', '', i)
+        rt_unique.append(i)
+    rt_unique = np.unique(rt_unique) 
+    print(rt_unique)
 
+####
+####
+    
 df = pd.read_csv("~/GitHub/rec-bench/out/trace/trace_all.csv")
 df = df.drop(columns = ['Unnamed: 0', 'task_id', 'status', 'exit'])
 drop_rows = df.realtime != '-'
 df = df[drop_rows]
-
-nf_time = nf_timeparse(df['realtime'])    
-
-# Check for unique time combos
-rt = df['realtime']
-rt_unique = []
-for i in rt:
-    i = str(i)
-    i = re.sub('[^a-z]', '', i)
-    rt_unique.append(i)
-rt_unique = np.unique(rt_unique) 
-print(rt_unique)
+   
+nf_times = []
+for row in df['realtime']:
+    total_hours = nf_hours(row)
+    nf_times.append(total_hours)
+    
+df_out = d
+df['parsed_hours'] = nf_times
