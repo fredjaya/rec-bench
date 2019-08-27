@@ -1,0 +1,35 @@
+---
+title: "nf trace plots"
+author: "Fred Jaya"
+date: "27/08/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+``` {r, include = F}
+library(ggplot2)
+library(viridis)
+
+x <- read.csv("~/GitHub/rec-bench/out/trace/nf_times.csv")
+p <- ggplot(x, aes(seq_n, parsed_hours), group = interaction(name, mut, rc, seq_n, rep)) +
+  geom_jitter(aes(col = name, shape = as.factor(mut)), size = 2, alpha = 0.9) + 
+  # cause rc is "not significant"
+  stat_summary(aes(y = parsed_hours, group=interaction(name, mut), col = name),
+               fun.y = mean, geom = "line", alpha = 0.7) +
+  scale_colour_viridis(discrete = T)
+```
+
+```{r, echo=F}
+p
+```
+
+* profile all (< 4h)
+* little variation in runtime across RDMs at n = 100 (< 1h)
+    * Note: `trace.py` rounds all seconds == 1m
+* higher mutation rate 'signifcantly' affects runtime
+    * distinct split across all rdms (n = 1000 - 5000)
+* Runs that timed out (120h) were removed -> need to include these
+

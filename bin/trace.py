@@ -46,6 +46,5 @@ nf_times = []
 for row in df['realtime']:
     total_hours = nf_hours(row)
     nf_times.append(total_hours)
-    
-df_out = d
 df['parsed_hours'] = nf_times
+df.to_csv('~/GitHub/rec-bench/out/trace/nf_times.csv')
