@@ -18,11 +18,11 @@ def nf_hours(t):
             total_hours += int(hours[0])
         if re.findall('m', t) == ['m']:
             mins = re.findall('\d+(?=m)', t)
-            total_hours += int(mins[0]) / 60 
+            total_hours += int(mins[0]) / 60
         if re.findall('s', t) == ['s']:
             total_hours += 1/60 # minute
     return(total_hours)
-    
+
 # Check for unique time combos
 def nf_unique_times(df_col):
     rt = df['realtime']
@@ -31,20 +31,21 @@ def nf_unique_times(df_col):
         i = str(i)
         i = re.sub('[^a-z]', '', i)
         rt_unique.append(i)
-    rt_unique = np.unique(rt_unique) 
+    rt_unique = np.unique(rt_unique)
     print(rt_unique)
 
 ####
 ####
-    
+
 df = pd.read_csv("~/GitHub/rec-bench/out/trace/trace_all.csv")
-df = df.drop(columns = ['Unnamed: 0', 'task_id', 'status', 'exit'])
-drop_rows = df.realtime != '-'
-df = df[drop_rows]
-   
+df = df.drop(columns = ['task_id', 'status', 'exit'])
+#drop_rows = df.realtime != '-'
+#df = df[drop_rows]
+
 nf_times = []
 for row in df['realtime']:
     total_hours = nf_hours(row)
     nf_times.append(total_hours)
 df['parsed_hours'] = nf_times
+print('Writing /out/trace/nf_times.csv')
 df.to_csv('~/GitHub/rec-bench/out/trace/nf_times.csv')
