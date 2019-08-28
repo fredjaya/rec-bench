@@ -26,10 +26,13 @@ p <- ggplot(x, aes(seq_n, parsed_hours), group = interaction(name, mut, rc, seq_
 p
 ```
 
+Runtime plots of 3SEQ, GENECONV and PhiPack. Plots represent the walltime (in hours) of individual replicates. Lines are mean runtime across all mutation rates per RDM.
+
 * profile all (< 4h)
 * little variation in runtime across RDMs at n = 100 (< 1h)
     * Note: `trace.py` rounds all seconds == 1m
 * higher mutation rate 'signifcantly' affects runtime
     * distinct split across all rdms (n = 1000 - 5000)
-* Runs that timed out (120h) were removed -> need to include these
+* max walltime is 120h
+
 
