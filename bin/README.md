@@ -27,6 +27,10 @@ Need `3seq_results.py` to parse breakpoints for all runs i.e. start/end hists
 `3seq_results.R`
 * Plots 3SEQ breakpoint locations for each sequence, one replicate only
 
+### GENECONV
+`geneconv_results.py` and `geneconv_results.R`
+* plots facets of start/end breakpoints
+
 ### Nextflow trace
 `trace.py` and `trace.R`
 * parses Nextflows trace output, converting everything to hours, and plots times per method
