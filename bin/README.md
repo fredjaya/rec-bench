@@ -1,30 +1,32 @@
-### Binaries and scripts
-**santa-sim**
+# Binaries and scripts
+### SANTA-SIM
 `santa-ba8733a.jar`
+* needs to be added into a `.sif`
 
-**PhiPack**
-`Phi` overall detection using NSS, MaxChi, Phi
-`Profile` Phi test with sliding window
+`fasta_preprocess.py`
+* filters and edits sequences for programs that cannot handle hyphens `-` i.e. santa-sim, UCHIME
 
-`phi_results.sh` runs the following scritps:
-`phi_results.py` parses phi simulation results for viz
-`phi_results.R` generates viz
+`sim_bp.py` and `sim_bp.R`
+* parse `.fasta` headers for breakpoints
 
-**3SEQ**
-`3seq`
-`3seqPval500` P-value table (500 x 500 x 500)
+`santa_stats.py` and `santa_stats.R`
+* parses SANTA-SIM stats.csvs and plots stats (PCA etc.)
 
-`3seq_results.R` generates viz
-`3seq_strip_ts.sh` ??? probably delete
+### PhiPack
+`phi_results.sh` runs the following scripts:
+* `phi_results.py` parses phi simulation results for viz
+* `phi_results.R` generates viz
 
-**ClonalFrameML**
-`iqtree` to generate initial tree for ClonalFrameML analysis
-`ClonalFrameML`
+### Profile
+`profile_results.py` and `profile_results.R`
+* parses Profile outputs and plots
 
-`cfml_results.R` generates viz
+### 3SEQ
+Need `3seq_results.py` to parse breakpoints for all runs i.e. start/end hists
 
-**UCHIME**
-`vsearch`
+`3seq_results.R`
+* Plots 3SEQ breakpoint locations for each sequence, one replicate only
 
-**other**
-`fasta_preprocess.py` filters and edits sequences for santa-sim and UCHIME
+### Nextflow trace
+`trace.py` and `trace.R`
+* parses Nextflows trace output, converting everything to hours, and plots times per method
