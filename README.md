@@ -21,3 +21,7 @@ Update readme.
 
 **S4_santa**
 - [ ] add `santa_bp.jar` in conda/docker/sing
+
+**Config**
+- [ ] add profiles for local, HPC
+- [ ] look into setting `executor{queueSize = n}` based on queue

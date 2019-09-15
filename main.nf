@@ -158,6 +158,7 @@ if (params.mode == 'sim') {
   process S4_santa {
     // Simulate sequences over time, based on .xml files generated
     // TO DO: add santa.jar to conda/docker/sing
+    label 'pbs_small'
 
     publishDir "${params.out}/S4_santa", mode: 'copy'
 
@@ -180,20 +181,23 @@ if (params.mode == 'sim') {
 
 }
 
+/*
 if (params.mode == 'simv') {
   // Set input; S4_santa output dir
+  println "Reading files in ${params.out}/S4_santa"
+  v1_temp = "${params.out}/S4_santa"
+  seq_file = file(seq_temp)
 
   process V1_santa_stats {
     // Visualise simulation statistics and breakpoints
 
-    v1_temp = ""
     publishDir "${params.out}/viz", mode: 'copy'
 
     input:
     file
 
   }
-}
+}*/
 
 
 /*
