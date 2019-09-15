@@ -1,4 +1,8 @@
 # Binaries and scripts
+
+### SANTA-SIM
+* [`santa_bp.jar`](https://github.com/koadman/santa-sim) is the modified SANTA-SIM .jar to report breakpoint locations. Copy into Dockerfile
+
 ### PhiPack
 `phi_results.sh` runs the following scripts:
 * `phi_results.py` parses phi simulation results for viz

@@ -4,11 +4,10 @@ automated benchmarking of recombination detection methods
 Update readme.
 
 ## To-do
-- [x] Run `S1_filter_fasta` via Docker
-- [x] Add xml process
-- [ ] Change --mode x/y/z to --x/--y/--z?
-- [ ] Add paramsweep process
+- [ ] ? Change --mode x/y/z to --x/--y/--z
 - [ ] Add santa.jar in docker image
+- [ ] add process to visualise simulation outputs
+- [ ] generate simulations on the HPC
 
 **S1_filter_fasta**
 - [ ] Needs a better way to deal with sequence gaps
@@ -16,3 +15,9 @@ Update readme.
 
 **S2_santa_xml**
 - [ ] read in sequence length from S1
+
+**S3_param_sweep**
+- [ ] make parameter config file
+
+**S4_santa**
+- [ ] add `santa_bp.jar` in conda/docker/sing
