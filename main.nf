@@ -3,14 +3,10 @@
 //===============================================================
 //===============================================================
 // Define parameters for S3_param_sweep. Edit the following:
-//mutrate = Channel.from(10e-8, 10e-7, 10e-6, 10e-5, 10e-4, 10e-3)
-//recrate = Channel.from(10e-8, 10e-7, 10e-6, 10e-5, 10e-4, 10e-3)
-//seqnum = Channel.from(100, 1000, 2500, 5000, 10000)
-//dualinf = Channel.from(0.05, 0.1, 0.25, 0.5, 1)
-mutrate = Channel.from(10e-7)
-recrate = Channel.from(10e-4, 10e-3)
-seqnum = Channel.from(100, 1000)
-dualinf = Channel.from(0.5, 0.9)
+mutrate = Channel.from(10e-7, 10e-5, 10e-3)
+recrate = Channel.from(10e-7, 10e-5, 10e-3)
+seqnum = Channel.from(100, 1000, 2500, 5000)
+dualinf = Channel.from(0, 0.05, 0.5, 1)
 //===============================================================
 //===============================================================
 
