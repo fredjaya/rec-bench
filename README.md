@@ -7,7 +7,7 @@ Update readme.
 - [ ] ? Change --mode x/y/z to --x/--y/--z
 - [ ] Add santa.jar in docker image
 - [ ] add process to visualise simulation outputs
-- [ ] generate simulations on the HPC
+- [x] generate simulations on the HPC
 
 **S1_filter_fasta**
 - [ ] Needs a better way to deal with sequence gaps

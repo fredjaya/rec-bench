@@ -48,8 +48,11 @@ if (params.help) {
 
 if (!params.seq) {
   // check input seq
-  println "ERROR: No input file specified. Use --seq [.fasta]"
-  exit 1
+  if (params.seq == 'sim_v') {}
+  else {
+    println "ERROR: No input file specified. Use --seq [.fasta]"
+    exit 1
+  }
 }
 
 // Decide which analysis to run and set channels for input files
@@ -64,7 +67,8 @@ else if (params.mode == 'emp') {
   println "Analysing recombination in empirical data..."
 }
 else if (params.mode == 'sim_v') {
-  println "Plotting simulation results..."
+  println "WIP"
+  exit 0
 }
 else {
   log.info"""
@@ -158,6 +162,7 @@ if (params.mode == 'sim') {
   process S4_santa {
     // Simulate sequences over time, based on .xml files generated
     // TO DO: add santa.jar to conda/docker/sing
+    label 'pbs_small'
 
     publishDir "${params.out}/S4_santa", mode: 'copy'
 
@@ -180,19 +185,31 @@ if (params.mode == 'sim') {
 
 }
 
-if (params.mode == 'simv') {
+if (params.mode == 'sim_v') {
   // Set input; S4_santa output dir
+  println "Reading files in ${params.out}/S4_santa"
+  v1_temp = "${params.out}/S4_santa"
 
   process V1_santa_stats {
     // Visualise simulation statistics and breakpoints
+    // TO DO: debug python script
+    // TO DO: implement Rscript
 
-    v1_temp = ""
     publishDir "${params.out}/viz", mode: 'copy'
 
     input:
-    file
+    val v1_temp from v1_temp
+
+    output:
+    file 'V1_santa_bp_stats.csv'
+
+    script:
+    """
+    python3.7 $baseDir/bin/V1_santa_stats.py ${v1_temp}
+    """
 
   }
+
 }
 
 
