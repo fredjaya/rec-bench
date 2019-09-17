@@ -27,3 +27,7 @@ Update readme.
 **V1_santa_stats**
 - [ ] fix python script
 - [ ] implement R script
+
+**Config**
+- [ ] add profiles for local, HPC
+- [ ] look into setting `executor{queueSize = n}` based on queue

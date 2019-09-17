@@ -1,0 +1,2 @@
+generation,population_size,mean_diversity,max_diversity,min_fitness,mean_fitness,max_fitness,max_frequency,mean_distance
+213,10000,0.07801980198019802,2.0,0.007910156250000008,0.07897803222656251,0.07910156250000003,9889,40.0714
