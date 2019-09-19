@@ -3,14 +3,13 @@
 //===============================================================
 //===============================================================
 // Define parameters for S3_param_sweep. Edit the following:
-//seqnum = Channel.from(100, 1000, 2500, 5000, 10000)
-<<<<<<< HEAD
 mutrate = Channel.from(10e-7, 10e-5, 10e-3)
 recrate = Channel.from(10e-7, 10e-5, 10e-3)
 seqnum = Channel.from(100, 1000, 2500, 5000)
 dualinf = Channel.from(0, 0.05, 0.5, 1)
 //===============================================================
 //===============================================================
+
 
 /*
  * INPUT OPTIONS / PARAMETERS
@@ -44,19 +43,15 @@ if (params.help) {
   exit 0
 }
 
-if (!params.seq) {
-  // check input seq
-  if (params.seq == 'sim_v') {}
-  else {
+// Decide which analysis to run and set channels for input files
+if (params.mode == 'sim') {
+  if (!params.seq) {
     println "ERROR: No input file specified. Use --seq [.fasta]"
     exit 1
   }
-}
-
-// Decide which analysis to run and set channels for input files
-
-if (params.mode == 'sim') {
-  println "Running simulation..."
+  else {
+    println "Running simulation..."
+  }
 }
 else if (params.mode == 'bm') {
   println "Analysing recombination in simulated data..."
@@ -65,8 +60,7 @@ else if (params.mode == 'emp') {
   println "Analysing recombination in empirical data..."
 }
 else if (params.mode == 'sim_v') {
-  println "WIP"
-  exit 0
+  println "Plotting simulation outputs..."
 }
 else {
   log.info"""
@@ -110,7 +104,7 @@ if (params.mode == 'sim') {
 
     script:
     """
-    python3.7 $baseDir/bin/S1_filter_fasta.py $seq_file
+    python3.7 ${params.bin}/S1_filter_fasta.py $seq_file
     """
 
   }
@@ -175,7 +169,7 @@ if (params.mode == 'sim') {
 
     script:
     """
-    java -jar -Xmx512M -XX:ParallelGCThreads=2 $baseDir/bin/santa_bp.jar \
+    java -jar -Xmx512M -XX:ParallelGCThreads=2 ${params.bin}/santa_bp.jar \
     $santa_in
     """
 
@@ -183,55 +177,65 @@ if (params.mode == 'sim') {
 
 }
 
-<<<<<<< HEAD
 if (params.mode == 'sim_v') {
   // Set input; S4_santa output dir
   println "Reading files in ${params.out}/S4_santa"
-  v1_temp = "${params.out}/S4_santa"
-=======
-/*
-if (params.mode == 'simv') {
-  // Set input; S4_santa output dir
-  println "Reading files in ${params.out}/S4_santa"
-  v1_temp = "${params.out}/S4_santa"
-  seq_file = file(seq_temp)
->>>>>>> feature/hpc_santa
+  v1_fileDir = "${params.out}/S4_santa"
 
   process V1_santa_stats {
     // Visualise simulation statistics and breakpoints
-    // TO DO: debug python script
     // TO DO: implement Rscript
-
-    publishDir "${params.out}/viz", mode: 'copy'
+    //
 
     input:
-    val v1_temp from v1_temp
+    val v1_fileDir from v1_fileDir
 
-    output:
-    file 'V1_santa_bp_stats.csv'
+    //output:
+    //file 'V1_santa_stats.csv'
 
     script:
     """
-    python3.7 $baseDir/bin/V1_santa_stats.py ${v1_temp}
+    python3.7 ${params.bin}/V1_santa_stats.py ${v1_fileDir}
+    Rscript ${params.bin}/V1_santa_stats.R
+    mkdir -p ${params.out}/viz
     """
 
   }
-<<<<<<< HEAD
 
 }
-=======
-}*/
->>>>>>> feature/hpc_santa
-
 
 /*
  * 2. RECOMBINATION DETECTION (SIMULATIONS)
  */
 
-/*
- *  Filter sequences for gaps
- */
+if (params.mode == 'bm') {
 
+  // INPUT CHANNELS
+  // TO DO: select sequence number -> queue settings for all
+  S1_input = Channel.fromPath( "${params.out}/S4_santa/msa*_n100_*.fasta" )
+
+  process B1_phi_profile {
+
+    label 'pbs_small'
+    tag "$seq"
+    publishDir "${params.out}/B1_phi_profile", mode: 'move', saveAs: { filename -> "${seq}_$filename" }
+
+    input:
+    file seq from S1_input.flatten()
+
+    output:
+    file 'Phi.inf.list'
+    file 'Phi.inf.sites'
+    file 'Phi.log'
+    file 'Phi.poly.unambig.sites'
+
+    script:
+    """
+    Profile -f $seq -o -p
+    """
+
+  }
+}
 
 /*
  * 3. RECOMBINATION DETECTION (EMPIRICAL)

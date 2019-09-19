@@ -9,5 +9,9 @@ dependencies:
   - matplotlib=3.1.0
   # S4_santa-sim
   - java-jdk=8.0.92
+  # sim_v
+  - R=3.5
+  # BM1_phi_profile
+  - phipack=1.1
   # Pipeline tracing and reporting
   #- graphviz=2.40.1 # Nextflow still outputs 'install graphviz' error

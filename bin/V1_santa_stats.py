@@ -1,51 +1,41 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
+import glob
 import csv
 import re
-import glob
+import os
 import sys
 
-# Read ${params.out} from nf
-path = sys.argv[0]
-path = str(path + "/*.fasta")
+#setwd
+# TO DO: # Change to ${params.out}
+path = sys.argv[1]
+os.chdir(path)
 
 # Append fasta files / filenames to list
 fileNames = []
 
-for file in glob.glob(path):
+print("Reading santa stats files...")
+for file in glob.glob("stats_*.csv"):
     fileNames.append(file)
-    #print(file)
 
-with open('V1_bp_stats.csv', 'w+') as csvfile:
+with open('V1_santa_stats.csv', 'w+') as csvfile:
     writer = csv.writer(csvfile, delimiter = ',')
-    writer.writerow(['mut', 'rec', 'seqL', 'dualInf', 'rep', 'bps'])
-
-    for name in fileNames:
-        # Parse file names for parameters
-        params = re.sub('[a-z]+', '', name)
-        params = params.split("_")
-        params = params[1:]
-        print(name)
-        print(params)
-        with open(name) as file:
-            for line in file:
-                paramsNew = params.copy()
-                if line.startswith('>'):
-                    #print(line)
-                    if re.search(':', line):
-                        line = line.split(':')
-                        #print("colon found: " + str(line))
-                        paramsNew.append(line)
-                        #print(params)
-                        print("YES BP: " +str(paramsNew))
-                        writer.writerow(paramsNew)
-                    else:
-                        #print("no colon"  + line)
-                        #params.append(line)
-                        #print(params)
-
-                    #print(params)
-                    #end
-                        paramsNew.append(line)
-                        print("no bps: " + str(paramsNew))
-                        writer.writerow(paramsNew)
+    # write header
+    writer.writerow([
+        'mut', 'rec', 'seqLen', 'dualInf', 'rep', 'generation',
+        'population_size', 'mean_diversity', 'max_diversity',
+        'min_fitness', 'mean_fitness', 'max_fitness', 'max_frequency',
+        'mean_distance'
+        ])
+    for file in fileNames:
+        # parse file name
+        params = re.sub('stats_', '', file)
+        params = re.sub('.csv', '', params)
+        params = re.sub('out/santa/', '', params)
+        params = re.sub('[a-z]', '', params)
+        params = params.split('_')
+        # parse row with santa stats
+        f = open(file, 'r').read()
+        f = f.split('\n')
+        f = f[1].split(',')
+        writer.writerow(params + f)

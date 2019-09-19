@@ -10,6 +10,7 @@ Update readme.
 - [x] generate simulations on the HPC
 - [ ] test PhiPack with conda
 - [ ] add 3seq or geneconv to conda
+- [ ]
 
 **S1_filter_fasta**
 - [ ] Needs a better way to deal with sequence gaps
@@ -30,4 +31,5 @@ Update readme.
 
 **Config**
 - [ ] add profiles for local, HPC
+- [ ] specify queue based on seqnum 
 - [ ] look into setting `executor{queueSize = n}` based on queue
