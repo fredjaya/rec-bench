@@ -32,8 +32,9 @@ dualinf = Channel.from(0, 0.05, 0.5, 1)
      --seq [.fasta]  Path to input .fasta file
 
    Optional arguments:
-     --out [str]     Name of output folder
-     --xml [.xml]    SANTA-SIM .xml configuration. Defaults to santa.xml
+     --seqn [int]     Required for '--mode bm'. Sequence number for benchmark analysis   
+     --out  [str]     Name of output folder
+     --xml  [.xml]    SANTA-SIM .xml configuration. Defaults to santa.xml
 
    """.stripIndent()
  }
@@ -66,15 +67,16 @@ base      = ${baseDir}
 bin       = ${params.bin}
 out       = ${params.out}
 trace     = ${params.tracedir}
-
+=================================================
+=================================================
+"""
+/*
 PARAMETERS
 Mutation rate       = ${mutrate}
 Recombination rate  = ${recrate}
 Sequence number     = ${seqnum}
 Dual infection rate = ${dualinf}
-=================================================
-=================================================
-"""
+*/
 
 // Decide which analysis to run and set channels for input files
 if (params.mode == 'sim') {
@@ -87,7 +89,13 @@ if (params.mode == 'sim') {
   }
 }
 else if (params.mode == 'bm') {
+  if (!params.seqn) {
+    println "ERROR: Please specify sequence number for analysis"
+    exit 1
+  }
+  else {
   println "Analysing recombination in simulated data..."
+  }
 }
 else if (params.mode == 'emp') {
   println "Analysing recombination in empirical data..."
@@ -260,11 +268,14 @@ if (params.mode == 'bm') {
 
   // INPUT CHANNELS
   // TO DO: select sequence number -> queue settings for all
-  S1_input = Channel.fromPath( "${params.out}/S4_santa/msa*_n100_*.fasta" )
-
+  B1_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
+  B2_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
+  B3_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
+  B4_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
+ 
   process B1_phi_profile {
 
-    label str(processLabel())
+    label 'pbs_small'
     tag "$seq"
     publishDir "${params.out}/B1_phi_profile", mode: 'move', saveAs: { filename -> "${seq}_$filename" }
 
@@ -272,17 +283,84 @@ if (params.mode == 'bm') {
     file seq from B1_input.flatten()
 
     output:
-    file 'Phi.inf.list'
-    file 'Phi.inf.sites'
-    file 'Phi.log'
-    file 'Phi.poly.unambig.sites'
+    file 'Profile.csv'
+    file 'Profile.log'
 
     script:
     """
-    Profile -f $seq -o -p
+    Profile -f ${seq}
     """
 
   }
+
+  process B2_3seq {
+    // TO DO: add to bioconda
+
+    label 'pbs_small'
+    tag '$seq'
+    publishDir "${params.out}/B2_3seq", mode: 'move'
+
+    input:  
+    file seq from B2_input.flatten()
+
+    output:
+    file '*3s.log'
+    file '*3s.pvalHist'
+    file '*s.rec'
+    file '*3s.longRec' optional true
+
+    script:
+    """
+    echo "Y" |
+    ${params.bin}/3seq_elf -f $seq -d -id ${seq}  
+    """
+
+  }
+
+  process B3_geneconv { 
+    // TO DO: add to bioconda
+
+    label 'pbs_small'
+    tag '$seq'
+    publishDir "${params.out}/B3_geneconv", mode: 'move'
+
+    input:
+    file seq from B3_input.flatten()
+
+    output:
+    file '*.tab'
+    
+    script:
+    """
+    ${params.bin}/geneconv $seq -inputpath=${params.out}/S4_santa/n${params.seqn}/ -nolog -Dumptab -Fancy
+    """ 
+ 
+   } 
+
+  process B4_uchime {
+ 
+    label 'pbs_small'
+    tag '$seq'
+    publishDir "${params.out}/B4_uchime", mode: 'move'
+
+    input:
+    file seq from B4_input.flatten()
+
+    output:
+    file '*.rc'
+    file '*.nonrc'
+    file '*.log'
+    
+    script:
+    """
+    vsearch --uchime_denovo ${seq} \
+            --chimeras ${seq}.rc \
+            --nonchimeras ${seq}.nonrc \
+            --log ${seq}.log
+    """
+ 
+  }
+
 }
 
 /*
