@@ -3,14 +3,10 @@
 //===============================================================
 //===============================================================
 // Define parameters for S3_param_sweep. Edit the following:
-//mutrate = Channel.from(10e-8, 10e-7, 10e-6, 10e-5, 10e-4, 10e-3)
-//recrate = Channel.from(10e-8, 10e-7, 10e-6, 10e-5, 10e-4, 10e-3)
-//seqnum = Channel.from(100, 1000, 2500, 5000, 10000)
-//dualinf = Channel.from(0.05, 0.1, 0.25, 0.5, 1)
-mutrate = Channel.from(10e-7)
-recrate = Channel.from(10e-4, 10e-3)
-seqnum = Channel.from(100, 1000)
-dualinf = Channel.from(0.5, 0.9)
+mutrate = Channel.from(10e-7, 10e-5, 10e-3)
+recrate = Channel.from(10e-7, 10e-5, 10e-3)
+seqnum = Channel.from(100, 1000, 2500, 5000)
+dualinf = Channel.from(0, 0.05, 0.5, 1)
 //===============================================================
 //===============================================================
 
@@ -30,7 +26,8 @@ dualinf = Channel.from(0.5, 0.9)
      --mode sim      Generate simulation datasets
      --mode bm       Detect recombination in simulated datasets and benchmark methods
      --mode emp      Detect recombination in empirical sequence alignments
-     --mode sim_v  Visualise simulation outputs (sequence stats, breakpoints)
+     --mode sim_v    Visualise simulation outputs (sequence stats, breakpoints)
+     --mode div      Divide sequence simulations by size for `--mode bm`
      --seq [.fasta]  Path to input .fasta file
 
    Optional arguments:
@@ -40,22 +37,52 @@ dualinf = Channel.from(0.5, 0.9)
    """.stripIndent()
  }
 
+/*
+def processLabel() {
+  // Provide PBS queue based on seqnum
+  if (seqnum < 1001) {
+    println "pbs_smallq"
+  }
+  else if (seqnum > 1000) {
+    println "pbs_medq"
+  }
+}
+*/
+
 if (params.help) {
   // Show help message
   helpMessage()
   exit 0
 }
 
-if (!params.seq) {
-  // check input seq
-  println "ERROR: No input file specified. Use --seq [.fasta]"
-  exit 1
-}
+// Print parameters
+log.info """
+=================================================
+=================================================
+DIRECTORIES / PATHS
+base      = ${baseDir}
+bin       = ${params.bin}
+out       = ${params.out}
+trace     = ${params.tracedir}
+
+PARAMETERS
+Mutation rate       = ${mutrate}
+Recombination rate  = ${recrate}
+Sequence number     = ${seqnum}
+Dual infection rate = ${dualinf}
+=================================================
+=================================================
+"""
 
 // Decide which analysis to run and set channels for input files
-
 if (params.mode == 'sim') {
-  println "Running simulation..."
+  if (!params.seq) {
+    println "ERROR: No input file specified. Use --seq [.fasta]"
+    exit 1
+  }
+  else {
+    println "Running simulation..."
+  }
 }
 else if (params.mode == 'bm') {
   println "Analysing recombination in simulated data..."
@@ -64,7 +91,10 @@ else if (params.mode == 'emp') {
   println "Analysing recombination in empirical data..."
 }
 else if (params.mode == 'sim_v') {
-  println "Plotting simulation results..."
+  println "Plotting simulation outputs..."
+}
+else if (params.mode == 'div') {
+  println "Arranging sequences into dirs by size"
 }
 else {
   log.info"""
@@ -76,12 +106,7 @@ else {
 }
 
 /*
- *  Channels for input files
- */
-
-
-/*
- * [S]IMULATIONS
+ * 1. SEQUENCE SIMULATION
  */
 
 if (params.mode == 'sim') {
@@ -108,7 +133,7 @@ if (params.mode == 'sim') {
 
     script:
     """
-    python3.7 $baseDir/bin/S1_filter_fasta.py $seq_file
+    python3.7 ${params.bin}/S1_filter_fasta.py $seq_file
     """
 
   }
@@ -158,6 +183,7 @@ if (params.mode == 'sim') {
   process S4_santa {
     // Simulate sequences over time, based on .xml files generated
     // TO DO: add santa.jar to conda/docker/sing
+    label 'pbs_small'
 
     publishDir "${params.out}/S4_santa", mode: 'copy'
 
@@ -172,7 +198,7 @@ if (params.mode == 'sim') {
 
     script:
     """
-    java -jar -Xmx512M -XX:ParallelGCThreads=2 $baseDir/bin/santa_bp.jar \
+    java -jar -Xmx512M -XX:ParallelGCThreads=2 ${params.bin}/santa_bp.jar \
     $santa_in
     """
 
@@ -180,30 +206,83 @@ if (params.mode == 'sim') {
 
 }
 
-if (params.mode == 'simv') {
+if (params.mode == 'sim_v') {
   // Set input; S4_santa output dir
+  println "Reading files in ${params.out}/S4_santa"
+  v1_fileDir = "${params.out}/S4_santa"
 
   process V1_santa_stats {
     // Visualise simulation statistics and breakpoints
-
-    v1_temp = ""
-    publishDir "${params.out}/viz", mode: 'copy'
+    // TO DO: implement Rscript
+    //
 
     input:
-    file
+    val v1_fileDir from v1_fileDir
+
+    //output:
+    //file 'V1_santa_stats.csv'
+
+    script:
+    """
+    python3.7 ${params.bin}/V1_santa_stats.py ${v1_fileDir}
+    Rscript ${params.bin}/V1_santa_stats.R
+    mkdir -p ${params.out}/viz
+    """
 
   }
+
 }
 
+if (params.mode == 'div') {
+
+  process split_seqnum {
+    // Divide files into dirs based on sequence number
+
+    input:
+    each seqnum from seqnum
+
+    script:
+    """
+    mkdir ${params.out}/S4_santa/n${seqnum}
+    mv ${params.out}/S4_santa/*_n${seqnum}_*.fasta \
+       ${params.out}/S4_santa/n${seqnum}
+    """
+  }
+
+}
 
 /*
  * 2. RECOMBINATION DETECTION (SIMULATIONS)
  */
 
-/*
- *  Filter sequences for gaps
- */
+if (params.mode == 'bm') {
 
+  // INPUT CHANNELS
+  // TO DO: select sequence number -> queue settings for all
+  S1_input = Channel.fromPath( "${params.out}/S4_santa/msa*_n100_*.fasta" )
+
+  process B1_phi_profile {
+
+    label str(processLabel()
+    tag "$seq"
+    publishDir "${params.out}/B1_phi_profile", mode: 'move', saveAs: { filename -> "${seq}_$filename" }
+
+    input:
+    file seq from B1_input.flatten()
+
+    output:
+    file 'Phi.inf.list'
+    file 'Phi.inf.sites'
+    file 'Phi.log'
+    file 'Phi.poly.unambig.sites'
+
+    script:
+    """
+    Profile -f $seq -o -p
+    """
+
+  }
+}
 
 /*
  * 3. RECOMBINATION DETECTION (EMPIRICAL)
