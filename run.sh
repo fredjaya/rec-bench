@@ -1,3 +1,3 @@
 #!/bin/bash
 
-nextflow run main.nf --mode bm -profile conda
+nextflow run main.nf --mode divy -profile conda

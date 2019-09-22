@@ -27,7 +27,8 @@ dualinf = Channel.from(0, 0.05, 0.5, 1)
      --mode sim      Generate simulation datasets
      --mode bm       Detect recombination in simulated datasets and benchmark methods
      --mode emp      Detect recombination in empirical sequence alignments
-     --mode sim_v  Visualise simulation outputs (sequence stats, breakpoints)
+     --mode sim_v    Visualise simulation outputs (sequence stats, breakpoints)
+     --mode div      Divide sequence simulations by size for `--mode bm`
      --seq [.fasta]  Path to input .fasta file
 
    Optional arguments:
@@ -37,11 +38,42 @@ dualinf = Channel.from(0, 0.05, 0.5, 1)
    """.stripIndent()
  }
 
+/*
+def processLabel() {
+  // Provide PBS queue based on seqnum
+  if (seqnum < 1001) {
+    println "pbs_smallq"
+  }
+  else if (seqnum > 1000) {
+    println "pbs_medq"
+  }
+*/
+
+}
 if (params.help) {
   // Show help message
   helpMessage()
   exit 0
 }
+
+// Print parameters
+log.info """
+=================================================
+=================================================
+DIRECTORIES / PATHS
+base      = ${baseDir}
+bin       = ${params.bin}
+out       = ${params.out}
+trace     = ${params.tracedir}
+
+PARAMETERS
+Mutation rate       = ${mutrate}
+Recombination rate  = ${recrate}
+Sequence number     = ${seqnum}
+Dual infection rate = ${dualinf}
+=================================================
+=================================================
+"""
 
 // Decide which analysis to run and set channels for input files
 if (params.mode == 'sim') {
@@ -62,6 +94,9 @@ else if (params.mode == 'emp') {
 else if (params.mode == 'sim_v') {
   println "Plotting simulation outputs..."
 }
+else if (params.mode == 'div') {
+  println "Arranging sequences into dirs by size"
+}
 else {
   log.info"""
   ERROR: '--mode' not selected.
@@ -72,12 +107,7 @@ else {
 }
 
 /*
- *  Channels for input files
- */
-
-
-/*
- * [S]IMULATIONS
+ * 1. SEQUENCE SIMULATION
  */
 
 if (params.mode == 'sim') {
@@ -204,31 +234,36 @@ if (params.mode == 'sim_v') {
 
 }
 
+if (params.mode == 'div') {
+
+  process split_seqnum {
+    // Divide files into dirs based on sequence number
+
+    input:
+    each seqnum from seqnum
+
+    script:
+    """
+    mkdir ${params.out}/S4_santa/n${seqnum}
+    mv ${params.out}/S4_santa/*_n${seqnum}_*.fasta \
+       ${params.out}/S4_santa/n${seqnum}
+    """
+  }
+
+}
 /*
  * 2. RECOMBINATION DETECTION (SIMULATIONS)
  */
 
 if (params.mode == 'bm') {
 
-  // Select sample size?
-  if (!params.seqnum) {
-    println "Specify sample size for now (WIP)"
-    exit 1
-  }
-
-  Channel
-    .fromPath("${params.out}/S4_santa/msa_*_n${params.seqnum}_.fasta")
-    .set{ B1_input }
-    .set{ B2_input }
-    .set{ B3_input }
-    .set{ B4_input }
-
   // INPUT CHANNELS
   // TO DO: select sequence number -> queue settings for all
+  S1_input = Channel.fromPath( "${params.out}/S4_santa/msa*_n100_*.fasta" )
 
   process B1_phi_profile {
 
-    label 'pbs_small'
+    label str(processLabel()
     tag "$seq"
     publishDir "${params.out}/B1_phi_profile", mode: 'move', saveAs: { filename -> "${seq}_$filename" }
 
@@ -247,73 +282,6 @@ if (params.mode == 'bm') {
     """
 
   }
-
-  process B2_3seq {
-
-    label 'pbs_small'
-    tag "$seq"
-    publishDir "${params.outdir}/B2_3seq", mode: 'move'
-
-    input:
-    file seq from B2_input.flatten()
-
-    output:
-    file '*3s.log'
-    file '*3s.pvalHist'
-    file '*s.rec'
-    file '*3s.longRec' optional true
-
-    script:
-    // TO DO: Add 3seq to bioconda
-    """
-    echo "Y" |
-    ${params.bin}/3seq_elf -f $seq -d -id ${seq}
-    """
-
-  }
-
-  process B3_geneconv {
-
-    label 'pbs_small'
-    tag "$seq"
-    publishDir "${params.outdir}/S4_geneconv", mode: 'move'
-
-    input:
-    file seq from B3_input.flatten()
-
-    output:
-    file '*.tab'
-
-    script:
-    // TO DO: Add GENECONV to bioconda
-    """
-    ${params.bin}/geneconv $seq -inputpath=${params.out}/S4_santa $seq -nolog -Dumptab -Fancy
-    """
-
-  }
-
-  process B4_uchime {
-
-    label 'pbs_small'
-    tag "$seq"
-    publishDir "${params.outdir}/B4_uchime", mode: 'move'
-
-    input:
-    file seq from B4_input.flatten()
-
-    output:
-    file{'*'}
-
-    script:
-    """
-    vsearch --uchime_denovo $seq \
-            --chimeras ${seq}.rc \
-            --nonchimeras ${seq}.nonrc \
-            --log ${seq}.log
-    """
-
-  }
-
 }
 
 /*
