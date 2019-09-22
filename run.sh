@@ -1,3 +1,3 @@
 #!/bin/bash
 
-nextflow run main.nf --mode divy -profile conda
+nextflow run main.nf --mode div --out out_190917 -profile conda

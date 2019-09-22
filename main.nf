@@ -47,9 +47,10 @@ def processLabel() {
   else if (seqnum > 1000) {
     println "pbs_medq"
   }
-*/
 
 }
+*/
+
 if (params.help) {
   // Show help message
   helpMessage()
@@ -263,7 +264,7 @@ if (params.mode == 'bm') {
 
   process B1_phi_profile {
 
-    label str(processLabel()
+    label str(processLabel())
     tag "$seq"
     publishDir "${params.out}/B1_phi_profile", mode: 'move', saveAs: { filename -> "${seq}_$filename" }
 
