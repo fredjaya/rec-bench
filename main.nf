@@ -295,9 +295,10 @@ if (params.mode == 'bm') {
 
   process B2_3seq {
     // TO DO: add to bioconda
-
+    
+    errorStrategy 'ignore'
     label 'pbs_small'
-    tag '$seq'
+    tag "$seq"
     publishDir "${params.out}/B2_3seq", mode: 'move'
 
     input:  
@@ -318,10 +319,11 @@ if (params.mode == 'bm') {
   }
 
   process B3_geneconv { 
-    // TO DO: add to bioconda
+    // TO DO: add to bioconda    
 
+    errorStrategy 'ignore'
     label 'pbs_small'
-    tag '$seq'
+    tag "$seq"
     publishDir "${params.out}/B3_geneconv", mode: 'move'
 
     input:
@@ -340,7 +342,7 @@ if (params.mode == 'bm') {
   process B4_uchime {
  
     label 'pbs_small'
-    tag '$seq'
+    tag "$seq"
     publishDir "${params.out}/B4_uchime", mode: 'move'
 
     input:
