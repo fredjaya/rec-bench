@@ -32,9 +32,10 @@ dualinf = Channel.from(0, 0.05, 0.5, 1)
      --seq [.fasta]  Path to input .fasta file
 
    Optional arguments:
-     --seqn [int]     Required for '--mode bm'. Sequence number for benchmark analysis   
-     --out  [str]     Name of output folder
-     --xml  [.xml]    SANTA-SIM .xml configuration. Defaults to santa.xml
+     --seqn  [int]     Required for '--mode bm'. Sequence number for benchmark analysis   
+     --out   [str]     Name of output folder
+     --xml   [.xml]    SANTA-SIM .xml configuration. Defaults to santa.xml
+     --label ['str']   PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
 
    """.stripIndent()
  }
@@ -268,6 +269,7 @@ if (params.mode == 'bm') {
 
   // INPUT CHANNELS
   // TO DO: select sequence number -> queue settings for all
+  // TO DO: change below to look nicer `Channel.formPath.set{}...`
   B1_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
   B2_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
   B3_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
@@ -275,7 +277,7 @@ if (params.mode == 'bm') {
  
   process B1_phi_profile {
 
-    label 'pbs_small'
+    label "${params.label}" 
     tag "$seq"
     publishDir "${params.out}/B1_phi_profile", mode: 'move', saveAs: { filename -> "${seq}_$filename" }
 
@@ -296,8 +298,7 @@ if (params.mode == 'bm') {
   process B2_3seq {
     // TO DO: add to bioconda
     
-    errorStrategy 'ignore'
-    label 'pbs_small'
+    label "${params.label}" 
     tag "$seq"
     publishDir "${params.out}/B2_3seq", mode: 'move'
 
@@ -306,8 +307,8 @@ if (params.mode == 'bm') {
 
     output:
     file '*3s.log'
-    file '*3s.pvalHist'
-    file '*s.rec'
+    file '*3s.pvalHist' optional true
+    file '*s.rec' optional true
     file '*3s.longRec' optional true
 
     script:
@@ -322,7 +323,7 @@ if (params.mode == 'bm') {
     // TO DO: add to bioconda    
 
     errorStrategy 'ignore'
-    label 'pbs_small'
+    label "${params.label}"
     tag "$seq"
     publishDir "${params.out}/B3_geneconv", mode: 'move'
 
@@ -341,7 +342,7 @@ if (params.mode == 'bm') {
 
   process B4_uchime {
  
-    label 'pbs_small'
+    label "${params.label}"
     tag "$seq"
     publishDir "${params.out}/B4_uchime", mode: 'move'
 
