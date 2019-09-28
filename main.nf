@@ -219,25 +219,23 @@ if (params.mode == 'sim') {
 
 if (params.mode == 'sim_v') {
   // Set input; S4_santa output dir
-  println "Reading files in ${params.out}/S4_santa"
-  v1_fileDir = "${params.out}/S4_santa"
+
+  //V1_fileDir = "${params.out}/S4_santa"
 
   process V1_santa_stats {
-    // Visualise simulation statistics and breakpoints
+    // Visualise simulated SANTA-SIM sequence statistics
     // TO DO: implement Rscript
-    //
-
-    input:
-    val v1_fileDir from v1_fileDir
+    // TO DO: add output? `mv...` tests the output currently
 
     //output:
     //file 'V1_santa_stats.csv'
 
     script:
     """
-    python3.7 ${params.bin}/V1_santa_stats.py ${v1_fileDir}
-    Rscript ${params.bin}/V1_santa_stats.R
     mkdir -p ${params.out}/viz
+    python3.7 ${params.bin}/V1_santa_stats.py ${params.out}/S4_santa
+    mv ${params.out}/S4_santa/V1_santa_stats.csv ${params.out}/viz
+    #Rscript ${params.bin}/V1_santa_stats.R ${params.out}/viz/
     """
 
   }

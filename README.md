@@ -4,13 +4,10 @@ automated benchmarking of recombination detection methods
 Update readme.
 
 ## To-do
-- [ ] ? Change --mode x/y/z to --x/--y/--z
-- [ ] Add path to santa.jar in docker image
 - [ ] add/fix process to visualise simulation outputs
-- [x] generate simulations on the HPC
-- [ ] test PhiPack with conda
+- [x] test PhiPack with conda
 - [ ] add 3seq or geneconv to conda
-- [ ]
+- [ ] split conda recipes based on `--mode`
 
 **S1_filter_fasta**
 - [ ] Needs a better way to deal with sequence gaps
@@ -26,10 +23,19 @@ Update readme.
 - [ ] add `santa_bp.jar` in conda/docker/sing
 
 **V1_santa_stats**
-- [ ] fix python script
+- [x] fix python script
 - [ ] implement R script
+
+**sim_v general**
+- [ ] amend inputs
+**B1_phi_profile**
+- [ ]
+
+### Low priority
+- [ ] ? Change --mode x/y/z to --x/--y/--z
+- [ ] Add path to santa.jar in docker image
 
 **Config**
 - [ ] add profiles for local, HPC
-- [ ] specify queue based on seqnum 
+- [ ] specify queue based on seqnum
 - [ ] look into setting `executor{queueSize = n}` based on queue

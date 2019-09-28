@@ -8,8 +8,8 @@ import sys
 
 #setwd
 # TO DO: # Change to ${params.out}
-path = sys.argv[1]
-os.chdir(path)
+path_in = sys.argv[1]
+os.chdir(path_in)
 
 # Append fasta files / filenames to list
 fileNames = []
