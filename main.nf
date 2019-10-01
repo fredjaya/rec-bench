@@ -238,12 +238,13 @@ if (params.mode == 'viz') {
     python3.7 ${params.bin}/V1_santa_stats.py ${params.out}/S4_santa
     #python3.7 ${params.bin}/V2_santa_bp.py ${params.out}/S4_santa
     python3.7 ${params.bin}/V3_profile_results.py ${params.out}/B1_phi_profile
+    python3.7 ${params.bin}/V4_3seq_results.py ${params.out}/B2_3seq
     python3.7 ${params.bin}/V5_geneconv_results.py ${params.out}/B3_geneconv
     #python3.7 ${params.bin}/V6_uchime.py ${params.out}/B4_uchime
 
     mv ${params.out}/S4_santa/V1_santa_stats.csv ${params.out}/viz
     mv ${params.out}/B1_phi_profile/B1_profile_stats.csv ${params.out}/viz
-    #mv ${params.out}/B2_3seq/V1_santa_stats.csv ${params.out}/viz
+    mv ${params.out}/B2_3seq/B2_3seq_stats.csv ${params.out}/viz
     mv ${params.out}/B3_geneconv/B3_geneconv_*.csv ${params.out}/viz
     """
 

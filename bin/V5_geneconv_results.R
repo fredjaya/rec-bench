@@ -2,11 +2,11 @@ library(ggplot2)
 library(viridis)
 library(dplyr)
 
-setwd("~/GitHub/rec-bench/")
-x <- read.csv("out/geneconv_s_stats_long.csv")
+#setwd("~/Dropbox/Masters/03_results/out_190925/out_190917/")
+x <- read.csv("~/Dropbox/Masters/03_results/out_190925/out_190917/viz/B3_geneconv_stats_long.csv")
 
 # Plot all start and end breakpoints
-x100 <- filter(x, seqLen == 100)
+x100  <- filter(x, seqLen == 100)
 x1000 <- filter(x, seqLen == 1000)
 x2500 <- filter(x, seqLen == 2500)
 x5000 <- filter(x, seqLen == 5000)
