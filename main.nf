@@ -27,7 +27,7 @@ dualinf = Channel.from(0, 0.05, 0.5, 1)
      --mode sim      Generate simulation datasets
      --mode bm       Detect recombination in simulated datasets and benchmark methods
      --mode emp      Detect recombination in empirical sequence alignments
-     --mode sim_v    Visualise simulation outputs (sequence stats, breakpoints)
+     --mode viz      Parse simulation and analysis outputs for analysis
      --mode div      Divide sequence simulations by size for `--mode bm`
      --seq [.fasta]  Path to input .fasta file
 
@@ -36,18 +36,19 @@ dualinf = Channel.from(0, 0.05, 0.5, 1)
      --out   [str]     Name of output folder
      --xml   [.xml]    SANTA-SIM .xml configuration. Defaults to santa.xml
      --label ['str']   PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
-
+     --trace [t/f]     Enables/disables tracing. Disable for testing and non `--mode bm`
    """.stripIndent()
  }
 
 /*
 def processLabel() {
   // Provide PBS queue based on seqnum
-  if (seqnum < 1001) {
-    println "pbs_smallq"
+  if (seqnum < 5000) {
+    params.label = pbs_small
+    println "pbs_small"
   }
   else if (seqnum > 1000) {
-    println "pbs_medq"
+    println "pbs_med"
   }
 
 }
@@ -101,7 +102,7 @@ else if (params.mode == 'bm') {
 else if (params.mode == 'emp') {
   println "Analysing recombination in empirical data..."
 }
-else if (params.mode == 'sim_v') {
+else if (params.mode == 'viz') {
   println "Plotting simulation outputs..."
 }
 else if (params.mode == 'div') {
@@ -217,15 +218,15 @@ if (params.mode == 'sim') {
 
 }
 
-if (params.mode == 'sim_v') {
+if (params.mode == 'viz') {
   // Set input; S4_santa output dir
 
   //V1_fileDir = "${params.out}/S4_santa"
 
-  process V1_santa_stats {
+  process parse_outputs {
     // Visualise simulated SANTA-SIM sequence statistics
-    // TO DO: implement Rscript
-    // TO DO: add output? `mv...` tests the output currently
+    // TO DO: implement Rscript (crushingly diminishing returns to softcode plots)
+    // TO DO: add output? `mv...` tests the output currently and destroys the purpose of nextflow
 
     //output:
     //file 'V1_santa_stats.csv'
@@ -233,9 +234,17 @@ if (params.mode == 'sim_v') {
     script:
     """
     mkdir -p ${params.out}/viz
+
     python3.7 ${params.bin}/V1_santa_stats.py ${params.out}/S4_santa
+    #python3.7 ${params.bin}/V2_santa_bp.py ${params.out}/S4_santa
+    python3.7 ${params.bin}/V3_profile_results.py ${params.out}/B1_phi_profile
+    python3.7 ${params.bin}/V5_geneconv_results.py ${params.out}/B3_geneconv
+    #python3.7 ${params.bin}/V6_uchime.py ${params.out}/B4_uchime
+
     mv ${params.out}/S4_santa/V1_santa_stats.csv ${params.out}/viz
-    #Rscript ${params.bin}/V1_santa_stats.R ${params.out}/viz/
+    mv ${params.out}/B1_phi_profile/B1_profile_stats.csv ${params.out}/viz
+    #mv ${params.out}/B2_3seq/V1_santa_stats.csv ${params.out}/viz
+    mv ${params.out}/B3_geneconv/B3_geneconv_*.csv ${params.out}/viz
     """
 
   }

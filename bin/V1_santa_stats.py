@@ -6,8 +6,7 @@ import re
 import os
 import sys
 
-#setwd
-# TO DO: # Change to ${params.out}
+#setwd based on ${params.out}
 path_in = sys.argv[1]
 os.chdir(path_in)
 
