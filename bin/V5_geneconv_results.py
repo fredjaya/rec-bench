@@ -12,7 +12,7 @@ def parse_params(name):
     # Get parameters from file names and tabulate
     p = re.sub('[a-z]+', '', name)
     p = p.split("_")
-    p = p[2:7]
+    p = p[1:6]
     return(p)
 
 def inner(file):
