@@ -27,28 +27,28 @@ dualinf = Channel.from(0, 0.05, 0.5, 1)
      --mode sim      Generate simulation datasets
      --mode bm       Detect recombination in simulated datasets and benchmark methods
      --mode emp      Detect recombination in empirical sequence alignments
-     --mode viz      Parse simulation and analysis outputs for analysis
+     --mode sim_v    Visualise simulation outputs (sequence stats, breakpoints)
      --mode div      Divide sequence simulations by size for `--mode bm`
      --seq [.fasta]  Path to input .fasta file
 
    Optional arguments:
-     --seqn  [int]     Required for '--mode bm'. Sequence number for benchmark analysis
+     --seqn  [int]     Required for '--mode bm'. Sequence number for benchmark analysis   
+     --label [str]     Specify process label for `-- mode bm` e.g. 'pbs_small/pbs_med/local'
      --out   [str]     Name of output folder
      --xml   [.xml]    SANTA-SIM .xml configuration. Defaults to santa.xml
      --label ['str']   PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
-     --trace [t/f]     Enables/disables tracing. Disable for testing and non `--mode bm`
+
    """.stripIndent()
  }
 
 /*
 def processLabel() {
   // Provide PBS queue based on seqnum
-  if (seqnum < 5000) {
-    params.label = pbs_small
-    println "pbs_small"
+  if (seqnum < 1001) {
+    println "pbs_smallq"
   }
   else if (seqnum > 1000) {
-    println "pbs_med"
+    println "pbs_medq"
   }
 
 }
@@ -102,7 +102,7 @@ else if (params.mode == 'bm') {
 else if (params.mode == 'emp') {
   println "Analysing recombination in empirical data..."
 }
-else if (params.mode == 'viz') {
+else if (params.mode == 'sim_v') {
   println "Plotting simulation outputs..."
 }
 else if (params.mode == 'div') {
@@ -218,35 +218,27 @@ if (params.mode == 'sim') {
 
 }
 
-if (params.mode == 'viz') {
+if (params.mode == 'sim_v') {
   // Set input; S4_santa output dir
+  println "Reading files in ${params.out}/S4_santa"
+  v1_fileDir = "${params.out}/S4_santa"
 
-  //V1_fileDir = "${params.out}/S4_santa"
+  process V1_santa_stats {
+    // Visualise simulation statistics and breakpoints
+    // TO DO: implement Rscript
+    //
 
-  process parse_outputs {
-    // Visualise simulated SANTA-SIM sequence statistics
-    // TO DO: implement Rscript (crushingly diminishing returns to softcode plots)
-    // TO DO: add output? `mv...` tests the output currently and destroys the purpose of nextflow
+    input:
+    val v1_fileDir from v1_fileDir
 
     //output:
     //file 'V1_santa_stats.csv'
 
     script:
     """
+    python3.7 ${params.bin}/V1_santa_stats.py ${v1_fileDir}
+    Rscript ${params.bin}/V1_santa_stats.R
     mkdir -p ${params.out}/viz
-
-    #python3.7 ${params.bin}/V1_santa_stats.py ${params.out}/S4_santa
-    #python3.7 ${params.bin}/V2_santa_bp.py ${params.out}/S4_santa
-    python3.7 ${params.bin}/V3_profile_results.py ${params.out}/B1_phi_profile
-    #python3.7 ${params.bin}/V4_3seq_results.py ${params.out}/B2_3seq
-    #python3.7 ${params.bin}/V5_geneconv_results.py ${params.out}/B3_geneconv
-    #python3.7 ${params.bin}/V6_uchime.py ${params.out}/B4_uchime
-
-    #mv ${params.out}/S4_santa/V1_santa_stats.csv ${params.out}/viz
-    #mv ${params.out}/S4_santa/V2_santa_bp.csv ${params.out}/viz
-    mv ${params.out}/B1_phi_profile/B1_profile_stats.csv ${params.out}/viz
-    #mv ${params.out}/B2_3seq/B2_3seq_stats.csv ${params.out}/viz
-    #mv ${params.out}/B3_geneconv/B3_geneconv_*.csv ${params.out}/viz
     """
 
   }
@@ -278,15 +270,15 @@ if (params.mode == 'bm') {
 
   // INPUT CHANNELS
   // TO DO: select sequence number -> queue settings for all
-  // TO DO: change below to look nicer `Channel.fromPath.set{}...`
+  // TO DO: change below to look nicer `Channel.formPath.set{}...`
   B1_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
   B2_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
   B3_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
   B4_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
-
+/* 
   process B1_phi_profile {
 
-    label "${params.label}"
+    label "${params.label}" 
     tag "$seq"
     publishDir "${params.out}/B1_phi_profile", mode: 'move', saveAs: { filename -> "${seq}_$filename" }
 
@@ -303,15 +295,15 @@ if (params.mode == 'bm') {
     """
 
   }
-
+*/
   process B2_3seq {
     // TO DO: add to bioconda
-
-    label "${params.label}"
+    
+    label "${params.label}" 
     tag "$seq"
     publishDir "${params.out}/B2_3seq", mode: 'move'
 
-    input:
+    input:  
     file seq from B2_input.flatten()
 
     output:
@@ -323,13 +315,13 @@ if (params.mode == 'bm') {
     script:
     """
     echo "Y" |
-    ${params.bin}/3seq_elf -f $seq -d -id ${seq}
+    ${params.bin}/3seq_elf -f $seq -d -id ${seq}  
     """
 
   }
 
-  process B3_geneconv {
-    // TO DO: add to bioconda
+  process B3_geneconv { 
+    // TO DO: add to bioconda    
 
     errorStrategy 'ignore'
     label "${params.label}"
@@ -341,16 +333,16 @@ if (params.mode == 'bm') {
 
     output:
     file '*.tab'
-
+    
     script:
     """
     ${params.bin}/geneconv $seq -inputpath=${params.out}/S4_santa/n${params.seqn}/ -nolog -Dumptab -Fancy
-    """
-
-   }
-
+    """ 
+ 
+   } 
+/*
   process B4_uchime {
-
+ 
     label "${params.label}"
     tag "$seq"
     publishDir "${params.out}/B4_uchime", mode: 'move'
@@ -362,7 +354,7 @@ if (params.mode == 'bm') {
     file '*.rc'
     file '*.nonrc'
     file '*.log'
-
+    
     script:
     """
     vsearch --uchime_denovo ${seq} \
@@ -370,9 +362,9 @@ if (params.mode == 'bm') {
             --nonchimeras ${seq}.nonrc \
             --log ${seq}.log
     """
-
+ 
   }
-
+*/
 }
 
 /*
