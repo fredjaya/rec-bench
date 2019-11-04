@@ -235,17 +235,18 @@ if (params.mode == 'viz') {
     """
     mkdir -p ${params.out}/viz
 
-    python3.7 ${params.bin}/V1_santa_stats.py ${params.out}/S4_santa
+    #python3.7 ${params.bin}/V1_santa_stats.py ${params.out}/S4_santa
     #python3.7 ${params.bin}/V2_santa_bp.py ${params.out}/S4_santa
     python3.7 ${params.bin}/V3_profile_results.py ${params.out}/B1_phi_profile
-    python3.7 ${params.bin}/V4_3seq_results.py ${params.out}/B2_3seq
-    python3.7 ${params.bin}/V5_geneconv_results.py ${params.out}/B3_geneconv
+    #python3.7 ${params.bin}/V4_3seq_results.py ${params.out}/B2_3seq
+    #python3.7 ${params.bin}/V5_geneconv_results.py ${params.out}/B3_geneconv
     #python3.7 ${params.bin}/V6_uchime.py ${params.out}/B4_uchime
 
-    mv ${params.out}/S4_santa/V1_santa_stats.csv ${params.out}/viz
+    #mv ${params.out}/S4_santa/V1_santa_stats.csv ${params.out}/viz
+    #mv ${params.out}/S4_santa/V2_santa_bp.csv ${params.out}/viz
     mv ${params.out}/B1_phi_profile/B1_profile_stats.csv ${params.out}/viz
-    mv ${params.out}/B2_3seq/B2_3seq_stats.csv ${params.out}/viz
-    mv ${params.out}/B3_geneconv/B3_geneconv_*.csv ${params.out}/viz
+    #mv ${params.out}/B2_3seq/B2_3seq_stats.csv ${params.out}/viz
+    #mv ${params.out}/B3_geneconv/B3_geneconv_*.csv ${params.out}/viz
     """
 
   }
@@ -277,7 +278,7 @@ if (params.mode == 'bm') {
 
   // INPUT CHANNELS
   // TO DO: select sequence number -> queue settings for all
-  // TO DO: change below to look nicer `Channel.formPath.set{}...`
+  // TO DO: change below to look nicer `Channel.fromPath.set{}...`
   B1_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
   B2_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
   B3_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )

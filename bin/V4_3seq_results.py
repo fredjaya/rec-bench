@@ -43,5 +43,6 @@ with open('B2_3seq_stats.csv', 'w+') as csvfile:
                 if line_count == 1:
                     writer.writerow(params + na_row)
                 else:
-                    l = line.split()
+                    l = re.sub('\s&', '', line)
+                    l = l.split()
                     writer.writerow(params + l)
