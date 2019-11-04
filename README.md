@@ -1,41 +1,25 @@
 # rec-bench
 automated benchmarking of recombination detection methods
 
-Update readme.
+```
+nextflow run fredjaya/rec-bench --help
+```
 
-## To-do
-- [ ] add/fix process to visualise simulation outputs
-- [x] test PhiPack with conda
-- [ ] add 3seq or geneconv to conda
-- [ ] split conda recipes based on `--mode`
+The typical command for running the pipeline is as follows:
 
-**S1_filter_fasta**
-- [ ] Needs a better way to deal with sequence gaps
-- [ ] Output final sequence length?
+nextflow run fredjaya/rec-bench --mode [sim/rdm/emp]
 
-**S2_santa_xml**
-- [ ] read in sequence length from S1
+Mandatory arguments:
+  --mode sim      Generate simulation datasets
+  --mode bm       Detect recombination in simulated datasets and benchmark methods
+  --mode emp      Detect recombination in empirical sequence alignments
+  --mode viz      Parse simulation and analysis outputs for analysis
+  --mode div      Divide sequence simulations by size for `--mode bm`
+  --seq [.fasta]  Path to input .fasta file
 
-**S3_param_sweep**
-- [ ] make parameter config file
-
-**S4_santa**
-- [ ] add `santa_bp.jar` in conda/docker/sing
-
-**V1_santa_stats**
-- [x] fix python script
-- [ ] implement R script
-
-**sim_v general**
-- [ ] amend inputs
-**B1_phi_profile**
-- [ ]
-
-### Low priority
-- [ ] ? Change --mode x/y/z to --x/--y/--z
-- [ ] Add path to santa.jar in docker image
-
-**Config**
-- [ ] add profiles for local, HPC
-- [ ] specify queue based on seqnum
-- [ ] look into setting `executor{queueSize = n}` based on queue
+Optional arguments:
+  --seqn  [int]     Required for '--mode bm'. Sequence number for benchmark analysis
+  --out   [str]     Name of output folder
+  --xml   [.xml]    SANTA-SIM .xml configuration. Defaults to santa.xml
+  --label ['str']   PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
+  --trace [t/f]     Enables/disables tracing. Disable for testing and non `--mode bm`
