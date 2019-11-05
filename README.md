@@ -28,3 +28,13 @@ Optional arguments:
   --label ['str']   PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
   --trace [t/f]     Enables/disables tracing. Disable for testing and non `--mode bm`
 ```
+
+Example `run.sh` for `--mode bm`
+```
+nextflow run main.nf --mode bm \
+                     --seqn 100 \                              # Analyses all n = 100
+                     --label pbs_small \                       # Submits jobs to the small queue (PBS)
+                     --out /shared/homes/13444841/out_190917 \ # Specifies dir for sim outputs
+                      -profile conda \
+                     --trace false
+```
