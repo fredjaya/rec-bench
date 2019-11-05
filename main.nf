@@ -295,7 +295,7 @@ if (params.mode == 'bm') {
     """
 
   }
-*/
+
   process B2_3seq {
     // TO DO: add to bioconda
     
@@ -340,7 +340,29 @@ if (params.mode == 'bm') {
     """ 
  
    } 
-/*
+*/
+
+  process b4_uchime_derep {
+   
+    label "${params.label}"
+    tag "$seq"
+    publishDir "${params.out}/B4_uchime/derep", mode: 'symlink'
+ 
+    input:
+    file seq from B4_input.flatten()
+
+    output:
+    file 'derep_*' into B4_input_uchime
+
+    script:
+    """
+    vsearch --derep_fulllength ${seq} \
+            --output derep_${seq} \
+            --sizeout
+    """
+
+  }
+
   process B4_uchime {
  
     label "${params.label}"
@@ -348,7 +370,7 @@ if (params.mode == 'bm') {
     publishDir "${params.out}/B4_uchime", mode: 'move'
 
     input:
-    file seq from B4_input.flatten()
+    file seq from B4_input_uchime.flatten()
 
     output:
     file '*.rc'
@@ -364,9 +386,9 @@ if (params.mode == 'bm') {
     """
  
   }
-*/
+
 }
 
 /*
- * 3. RECOMBINATION DETECTION (EMPIRICAL)
+ *  3. RECOMBINATION DETECTION (EMPIRICAL)
  */
