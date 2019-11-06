@@ -11,6 +11,8 @@ dependencies:
   - java-jdk=8.0.92
   # sim_v
   - R=3.5
+  - r-tidyverse=1.2.1
+  - r-data.table=1.12.2
   # B1_phi_profile
   - phipack=1.1
   # B4_uchime

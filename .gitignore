@@ -1,8 +1,8 @@
 .DS_Store
 .nextflow.log*
 .nextflow/*
+out/
 .RData
 .Rhistory
-data
 work
-out
+pval700

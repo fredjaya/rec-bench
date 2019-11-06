@@ -37,7 +37,7 @@ def nf_unique_times(df_col):
 ####
 ####
 
-df = pd.read_csv("~/GitHub/rec-bench/out/trace/trace_all.csv")
+df = pd.read_csv("/Users/13444841/Dropbox/Masters/02_working/190815_timestats/trace_all.csv")
 df = df.drop(columns = ['task_id', 'status', 'exit'])
 #drop_rows = df.realtime != '-'
 #df = df[drop_rows]
@@ -47,5 +47,5 @@ for row in df['realtime']:
     total_hours = nf_hours(row)
     nf_times.append(total_hours)
 df['parsed_hours'] = nf_times
-print('Writing /out/trace/nf_times.csv')
-df.to_csv('~/GitHub/rec-bench/out/trace/nf_times.csv')
+print('Writing nf_times.csv')
+df.to_csv('/Users/13444841/Dropbox/Masters/02_working/190815_timestats/nf_times.csv')
