@@ -38,6 +38,12 @@ dualinf = Channel.from(0, 0.05, 0.5, 1)
      --xml   [.xml]    SANTA-SIM .xml configuration. Defaults to santa.xml
      --label ['str']   PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
 
+   Calculating F-Scores:
+     --mode    fscore     Determine conditions of simulations vs detected recombination
+     --simbp   [.csv]     Path to .csv containing simulated breakpoints per rep
+     --profile [dir]      Path to directory containing all Profile.csvs
+     --out     [str]      Name of output folder
+
    """.stripIndent()
  }
 
@@ -112,6 +118,11 @@ else if (params.mode == 'sim_v') {
 else if (params.mode == 'div') {
   println "Arranging sequences into dirs by size"
 }
+else if (params.mode == 'fscore') {
+  // Current inputs: (1) simulated breakpoints (2) Profile.csv
+  println "Calculating F-Scores of detected recombination"
+}
+
 else {
   log.info"""
   ERROR: '--mode' not selected.
@@ -533,3 +544,34 @@ if (params.mode == 'emp') {
  }
 
 }
+
+/*
+ * 4. CALCULATE F-SCORES (SIM VS. DETECTED)
+ */
+// Create simulated breakpoints with *.R
+
+if (params.mode == 'fscore') {
+
+  simBP = "${params.simbps}"
+  profile = "${params.profile}"
+
+  Channel
+      .fromPath(simBP)
+      .splitCsv(header:true)
+      .map { row -> tuple(file(row.params), row.seq, row.breakpoints)}
+      .map { row -> tuple(row.sampleId, file(row.read1), file(row.read2)) }
+      .set { samples_ch }
+
+ process F1_phi_profile {
+
+
+   process foo {
+       input:
+       set sampleId, file(read1), file(read2) from samples_ch
+
+       script:
+       """
+       echo your_command --sample $sampleId --reads $read1 $read2
+       """
+   }
+ }
