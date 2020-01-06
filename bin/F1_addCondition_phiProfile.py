@@ -39,14 +39,15 @@ def getCondition(isSimulated, isSignificant):
     return(condition)
 
 # Set log and system arguments
-log = open("phi_condition_" + sys.argv[2] + ".log", "w")
+log = open("phi_condition_" + sys.argv[1] + ".log", "w")
 sys.stdout = log
-print("Breakpoints: " + sys.argv[1] +
-      "\nPhiPack Profile.csv: " + sys.argv[2])
+print("Breakpoints: " + sys.argv[2] +
+      "\nPhiPack Profile.csv: " + sys.argv[1] +
+      "\n----------")
 
 # Read inputs - simulated breakpoints and detected files
-phiProfile           = pd.read_csv(sys.argv[2], names = ['position', 'pvalue'])
-simulatedBreakpoints = pd.read_csv(sys.argv[3])
+phiProfile           = pd.read_csv(sys.argv[1], names = ['position', 'pvalue'])
+simulatedBreakpoints = str(sys.argv[2])
 
 #print("==========\nCalculating conditions for all sequences at " +
 #      simulatedBreakpoints.loc[0]['params'] + "\n==========")
@@ -128,6 +129,6 @@ else:
               "\nCONDITION = " + condition + "\n----------")
 
 # Write to .csv
-outputName = "condition_" + sys.argv[2]
+outputName = "condition_" + sys.argv[1]
 phiProfile.to_csv(outputName, header = True, index = False)
 print("Writing to " + outputName)

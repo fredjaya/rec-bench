@@ -575,15 +575,18 @@ if (params.mode == 'fscore') {
       .set { F1_input }
 
   process F1_phi_profile {
+    // For some reason, params.bin and params.out don't work???
+    // https://github.com/fredjaya/rec-bench/issues/22
 
     label "${params.label}"
-    publishDir "${params.out}/F1_phi_profile", mode: 'move'
+    publishDir "/Users/13444841/Dropbox/Masters/02_working/2001_precision_recall/2001_profile_nf/F1_phi_profile", mode: 'move'
 
     input:
     set file(params), bps from F1_input
 
     output:
     file 'condition_*'
+    file '*.log'
 
     script:
     """
