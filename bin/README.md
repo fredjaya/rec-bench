@@ -1,30 +1,27 @@
-### Binaries and scripts
-**santa-sim**
-`santa-ba8733a.jar`
+# Binaries and scripts
 
-**PhiPack**
-`Phi` overall detection using NSS, MaxChi, Phi
-`Profile` Phi test with sliding window
+### SANTA-SIM
+* [`santa_bp.jar`](https://github.com/koadman/santa-sim) is the modified SANTA-SIM .jar to report breakpoint locations. Copy into Dockerfile
 
-`phi_results.sh` runs the following scritps:
-`phi_results.py` parses phi simulation results for viz
-`phi_results.R` generates viz
+### PhiPack
+`phi_results.sh` runs the following scripts:
+* `phi_results.py` parses phi simulation results for viz
+* `phi_results.R` generates viz
 
-**3SEQ**
-`3seq`
-`3seqPval500` P-value table (500 x 500 x 500)
+### Profile
+`profile_results.py` and `profile_results.R`
+* parses Profile outputs and plots
 
-`3seq_results.R` generates viz
-`3seq_strip_ts.sh` ??? probably delete
+### 3SEQ
+Need `3seq_results.py` to parse breakpoints for all runs i.e. start/end hists
 
-**ClonalFrameML**
-`iqtree` to generate initial tree for ClonalFrameML analysis
-`ClonalFrameML`
+`3seq_results.R`
+* Plots 3SEQ breakpoint locations for each sequence, one replicate only
 
-`cfml_results.R` generates viz
+### GENECONV
+`geneconv_results.py` and `geneconv_results.R`
+* plots facets of start/end breakpoints
 
-**UCHIME**
-`vsearch`
-
-**other**
-`fasta_preprocess.py` filters and edits sequences for santa-sim and UCHIME
+### Nextflow trace
+`trace.py` and `trace.R`
+* parses Nextflows trace output, converting everything to hours, and plots times per method

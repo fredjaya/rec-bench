@@ -32,7 +32,8 @@ dualinf = Channel.from(0, 0.05, 0.5, 1)
      --seq [.fasta]  Path to input .fasta file
 
    Optional arguments:
-     --seqn  [int]     Required for '--mode bm'. Sequence number for benchmark analysis   
+     --seqn  [int]     Required for '--mode bm'. Sequence number for benchmark analysis
+     --label [str]     Specify process label for `-- mode bm` e.g. 'pbs_small/pbs_med/local'
      --out   [str]     Name of output folder
      --xml   [.xml]    SANTA-SIM .xml configuration. Defaults to santa.xml
      --label ['str']   PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
@@ -274,10 +275,10 @@ if (params.mode == 'bm') {
   B2_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
   B3_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
   B4_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
- 
+
   process B1_phi_profile {
 
-    label "${params.label}" 
+    label "${params.label}"
     tag "$seq"
     publishDir "${params.out}/B1_phi_profile", mode: 'move', saveAs: { filename -> "${seq}_$filename" }
 
@@ -297,12 +298,12 @@ if (params.mode == 'bm') {
 
   process B2_3seq {
     // TO DO: add to bioconda
-    
-    label "${params.label}" 
+
+    label "${params.label}"
     tag "$seq"
     publishDir "${params.out}/B2_3seq", mode: 'move'
 
-    input:  
+    input:
     file seq from B2_input.flatten()
 
     output:
@@ -314,13 +315,13 @@ if (params.mode == 'bm') {
     script:
     """
     echo "Y" |
-    ${params.bin}/3seq_elf -f $seq -d -id ${seq}  
+    ${params.bin}/3seq_elf -f $seq -d -id ${seq}
     """
 
   }
 
-  process B3_geneconv { 
-    // TO DO: add to bioconda    
+  process B3_geneconv {
+    // TO DO: add to bioconda
 
     errorStrategy 'ignore'
     label "${params.label}"
@@ -332,28 +333,49 @@ if (params.mode == 'bm') {
 
     output:
     file '*.tab'
-    
+
     script:
     """
     ${params.bin}/geneconv $seq -inputpath=${params.out}/S4_santa/n${params.seqn}/ -nolog -Dumptab -Fancy
-    """ 
- 
-   } 
+    """
 
-  process B4_uchime {
- 
+   }
+
+  process B4_uchime_derep {
+
     label "${params.label}"
     tag "$seq"
-    publishDir "${params.out}/B4_uchime", mode: 'move'
+    publishDir "${params.out}/B4_uchime/derep", mode: 'symlink'
 
     input:
     file seq from B4_input.flatten()
 
     output:
+    file 'derep_*' into B4_input_uchime
+
+    script:
+    """
+    vsearch --derep_fulllength ${seq} \
+            --output derep_${seq} \
+            --sizeout
+    """
+
+  }
+
+  process B4_uchime {
+
+    label "${params.label}"
+    tag "$seq"
+    publishDir "${params.out}/B4_uchime", mode: 'move'
+
+    input:
+    file seq from B4_input_uchime.flatten()
+
+    output:
     file '*.rc'
     file '*.nonrc'
     file '*.log'
-    
+
     script:
     """
     vsearch --uchime_denovo ${seq} \
@@ -361,11 +383,149 @@ if (params.mode == 'bm') {
             --nonchimeras ${seq}.nonrc \
             --log ${seq}.log
     """
- 
+
   }
 
 }
 
 /*
- * 3. RECOMBINATION DETECTION (EMPIRICAL)
+ *  3. RECOMBINATION DETECTION (EMPIRICAL)
  */
+
+if (params.mode == 'emp') {
+
+  println "Reading ${params.seq}"
+  seq_temp = "$baseDir/${params.seq}"
+  seq_file = file(seq_temp)
+
+  process E1_phi_profile {
+
+    errorStrategy 'ignore'
+    label "${params.label}"
+    tag "$seq"
+    publishDir "${params.out}/empirical", mode: 'move'
+
+    input:
+    file seq from seq_file
+
+    output:
+    file 'Profile.csv'
+
+    script:
+    """
+    Profile -f $seq
+    """
+
+  }
+
+  process E2_3seq {
+
+    errorStrategy 'ignore'
+    label "${params.label}"
+    tag "$seq"
+    publishDir "${params.out}/empirical", mode: 'move'
+
+    input:
+    file seq from seq_file
+
+    output:
+    file '*3s.log'
+    file '*3s.pvalHist'
+    file '*s.rec'
+    file '*3s.longRec' optional true
+
+    script:
+    """
+    echo "Y" |
+    ${params.bin}/3seq_elf -f $seq -d -id ${seq}
+    """
+
+  }
+
+ process E3_geneconv {
+
+   errorStrategy 'ignore'
+   label "${params.label}"
+   tag "$seq"
+   publishDir "${params.out}/empirical", mode: 'move'
+
+   input:
+   file seq from seq_file
+
+   output:
+   file '*.tab'
+
+   script:
+   """
+   ${params.bin}/geneconv $seq -nolog -Dumptab -Fancy
+   """
+
+ }
+
+ process E4_filter_fasta {
+   // TO DO: Derep this process with S1_filter_fasta
+   publishDir "${params.out}/empirical/E0_filter_fasta", mode: 'copy'
+
+   input:
+   file seq from seq_file
+
+   output:
+   file 'seqLength*.png' optional true
+   file '*_m'
+   file '*_n'
+   file '*_n_filtered' into E4_input_uchime_derep
+   file '*_removed'
+   file '*_log.txt'
+
+   script:
+   """
+   python3.7 ${params.bin}/S1_filter_fasta.py $seq
+   """
+
+ }
+ process E4_uchime_derep {
+
+   label "${params.label}"
+   tag "$seq"
+   publishDir "${params.out}/empirical/E4_uchime_derep", mode: 'symlink'
+
+   input:
+   file seq from E4_input_uchime_derep
+
+   output:
+   file 'derep_*' into E4_input_uchime
+
+   script:
+   """
+   vsearch --derep_fulllength ${seq} \
+           --output derep_${seq} \
+           --sizeout
+   """
+
+ }
+
+ process E4_uchime {
+
+   label "${params.label}"
+   tag "$seq"
+   publishDir "${params.out}/empirical", mode: 'move'
+
+   input:
+   file seq from E4_input_uchime
+
+   output:
+   file '*.rc'
+   file '*.nonrc'
+   file '*.log'
+
+   script:
+   """
+   vsearch --uchime_denovo ${seq} \
+           --chimeras ${seq}.rc \
+           --nonchimeras ${seq}.nonrc \
+           --log ${seq}.log
+   """
+
+ }
+
+}

@@ -5,32 +5,40 @@ automated benchmarking of recombination detection methods
 
 [![https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/3131)
 
-# Dependencies
-* Singularity 2.6.1
-* Nextflow 19.04.1 (to be added to .simg)
+```
+nextflow run fredjaya/rec-bench --help
+```
 
-# Folders and files
-* `hcv_minimal_hpc.nf` most up-to-date and functional nextflow script. Runs PhiPack only.
-* `hcv_santa.xml` evolutionary parameters for HCV
-* `nextflow.config` specifies Singularity images for pipeline processes
-* `clean.sh` removes nextflow outputs (logs, work dir, output files)
+The typical command for running the pipeline is as follows:
+```
+nextflow run fredjaya/rec-bench --mode [sim/rdm/emp]
+```
 
+Mandatory arguments:
+```
+  --mode sim      Generate simulation datasets
+  --mode bm       Detect recombination in simulated datasets and benchmark methods
+  --mode emp      Detect recombination in empirical sequence alignments
+  --mode viz      Parse simulation and analysis outputs for analysis
+  --mode div      Divide sequence simulations by size for `--mode bm`
+  --seq [.fasta]  Path to input .fasta file
+```
 
-### bin
-* Recombination detection binaries
-* Simulation binary
-* Output visualisation and pre-processing scripts
+Optional arguments:
+```
+  --seqn  [int]     Required for '--mode bm'. Sequence number for benchmark analysis
+  --out   [str]     Name of output folder
+  --xml   [.xml]    SANTA-SIM .xml configuration. Defaults to santa.xml
+  --label ['str']   PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
+  --trace [t/f]     Enables/disables tracing. Disable for testing and non `--mode bm`
+```
 
-### data
-Sequence files for testing/proof of concept and analyses
-
-### nf_scripts
-Old nextflow scripts - outdated/needs updating
-
-Mainly for use on local OSX machine
-
-### pbs_scripts
-Submission scripts for HPC jobs
-
-### simg
-Singularity images for build on shub
+Example `run.sh` for `--mode bm`
+```
+nextflow run main.nf --mode bm \
+                     --seqn 100 \                              # Analyses all n = 100
+                     --label pbs_small \                       # Submits jobs to the small queue (PBS)
+                     --out /shared/homes/13444841/out_190917 \ # Specifies dir for sim outputs
+                      -profile conda \
+                     --trace false
+```

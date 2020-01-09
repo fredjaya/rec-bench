@@ -1,8 +1,8 @@
 .DS_Store
 .nextflow.log*
 .nextflow/*
-bin/3seqPval700
-work/*
+out/
 .RData
 .Rhistory
-bin/3seqPval500
+work
+pval700
