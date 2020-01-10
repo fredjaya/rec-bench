@@ -302,7 +302,8 @@ if (params.mode == 'bm') {
   B2_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
   B3_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
   B4_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
-
+  B5_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
+  
   process B1_phi_profile {
 
     label "${params.label}"
@@ -413,6 +414,30 @@ if (params.mode == 'bm') {
 
   }
 
+  process B5_gmos {
+
+    label "${params.label}"
+    tag "$seq"
+    publishDir "${params.out}/B5_gmos", mode: 'move'
+
+    input:
+    file seq from B5_input_gmos.flatten()
+
+    output:
+    file '*.fasta'
+    file '*.len'
+    file '*.txt'
+
+    script:
+    """
+    ${params.bin}/gmos -i ${seq} \
+                       -j ${seq} \
+                       -o gmos_${seq} \
+                       -t   
+    """
+
+  }
+
 }
 
 /*
@@ -510,6 +535,7 @@ if (params.mode == 'emp') {
     """
 
   }
+
   process E4_uchime_derep {
 
     label "${params.label}"
@@ -555,7 +581,29 @@ if (params.mode == 'emp') {
 
   }
 
-}
+  process E5_gmos {
+
+    label "${params.label}"
+    tag "$seq"
+    publishDir "${params.out}/empirical", mode: 'move'
+
+    input:
+    file seq from seq_file
+
+    output:
+    file '*.fasta'
+    file '*.len'
+    file '*.txt'
+
+    script:
+    """
+    ${params.bin}/gmos -i ${seq} \
+                       -j ${seq} \
+                       -o gmos_${seq} \
+                       -t   
+    """
+
+  }
 
 /*
  * 4. CALCULATE F-SCORES (SIM VS. DETECTED)
