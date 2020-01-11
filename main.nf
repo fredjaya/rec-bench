@@ -26,35 +26,35 @@ def helpMessage() {
   Process arguments:
     --label [str]     Specify process label for `-- mode bm` e.g. 'pbs_small/pbs_med/local'
     --out   [str]     Name of output folder
-    --label [str]      PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
+    --label [str]     PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
 
     Recommended --label options (based on seq length < 2000 nt):
-    --label pbs_small  sample size < 1001
-    --label pbs_med    sample size > 1000
+    --label pbs_small for sample size < 1001
+    --label pbs_med   for sample size > 1000
 
   1. Generate simulation datasets:
     * Please define evolutionary parameters in main.nf *
     --mode sim
-    --seq [.fasta]   Path to input .fasta file
-    --xml [.xml]     SANTA-SIM .xml configuration. Defaults to santa.xml
+    --seq [.fasta]    Path to input .fasta file
+    --xml [.xml]      SANTA-SIM .xml configuration. Defaults to santa.xml
 
   2. Visualise/summarise simulation outputs (sequence stats, breakpoints):
     --mode sim_v
 
   3. Benchmark recombination detection methods using simulated data:
-    --mode div       Move simulated .fasta into subdirs by size. * Use prior to `--mode bm`*
+    --mode div        Move simulated .fasta into subdirs by size. * Use prior to `--mode bm`*
 
-    --mode bm        Detect recombination in simulated datasets and benchmark methods
-    --seqn [int]     Sample size (number of sequences in alignment) to analyse. * Required for `--mode bm` *
+    --mode bm         Detect recombination in simulated datasets and benchmark methods
+    --seqn [int]      Sample size (number of sequences in alignment) to analyse. * Required for `--mode bm` *
 
   4. Detect recombination in empirical sequence alignments:
     --mode emp
-    --seq [.fasta]   Path to input .fasta file
+    --seq [.fasta]    Path to input .fasta file
 
   5. Calculating F-Scores - PhiPack (Profile) only:
-    --mode fscore    Determine conditions of simulations vs detected recombination
-    --simbp   [.csv] Path to .csv containing simulated breakpoints per rep
-    --out     [str]  Name of output folder
+    --mode fscore     Determine conditions of simulations vs detected recombination
+    --simbp   [.csv]  Path to .csv containing simulated breakpoints per rep
+    --out     [str]   Name of output folder
 
    """.stripIndent()
  }
@@ -303,7 +303,7 @@ if (params.mode == 'bm') {
   B3_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
   B4_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
   B5_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
-  
+/* 
   process B1_phi_profile {
 
     label "${params.label}"
@@ -413,15 +413,15 @@ if (params.mode == 'bm') {
     """
 
   }
-
+*/
   process B5_gmos {
 
     label "${params.label}"
     tag "$seq"
-    publishDir "${params.out}/B5_gmos", mode: 'move'
+    publishDir "${params.out}/B5_gmos", mode: 'move', saveAs: { filename -> "${seq}_$filename" }
 
     input:
-    file seq from B5_input_gmos.flatten()
+    file seq from B5_input.flatten()
 
     output:
     file '*.fasta'
@@ -432,7 +432,7 @@ if (params.mode == 'bm') {
     """
     ${params.bin}/gmos -i ${seq} \
                        -j ${seq} \
-                       -o gmos_${seq} \
+                       -o gmos.txt \
                        -t   
     """
 
@@ -604,6 +604,8 @@ if (params.mode == 'emp') {
     """
 
   }
+
+}
 
 /*
  * 4. CALCULATE F-SCORES (SIM VS. DETECTED)
