@@ -21,11 +21,12 @@ def helpMessage() {
 
   The typical command for running the pipeline is as follows:
 
-  nextflow run fredjaya/rec-bench --mode [sim/rdm/emp...] --other_options
+  nextflow run main.nf --mode [sim/rdm/emp...] --other_options
+
+  Example scripts can be found in rec-bench/example_runscripts
 
   Process arguments:
-    --label [str]     Specify process label for `-- mode bm` e.g. 'pbs_small/pbs_med/local'
-    --out   [str]     Name of output folder
+    --out   [str]     Name of output folder. Default 'baseDir/out'
     --label [str]     PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
 
     Recommended --label options (based on seq length < 2000 nt):
@@ -36,7 +37,7 @@ def helpMessage() {
     * Please define evolutionary parameters in main.nf *
     --mode sim
     --seq [.fasta]    Path to input .fasta file
-    --xml [.xml]      SANTA-SIM .xml configuration. Defaults to santa.xml
+    --xml [.xml]      SANTA-SIM .xml configuration. Defaults to ./santa.xml
 
   2. Visualise/summarise simulation outputs (sequence stats, breakpoints):
     --mode sim_v
@@ -45,7 +46,8 @@ def helpMessage() {
     --mode div        Move simulated .fasta into subdirs by size. * Use prior to `--mode bm`*
 
     --mode bm         Detect recombination in simulated datasets and benchmark methods
-    --seqn [int]      Sample size (number of sequences in alignment) to analyse. * Required for `--mode bm` *
+    --seqn   [int]    Sample size (number of sequences in alignment) to analyse. * Required for `--mode bm` *
+    --simdir [str]    Path to dir which contains folder for simulation files (S4_santa). Default 'baseDir/out'
 
   4. Detect recombination in empirical sequence alignments:
     --mode emp
@@ -85,22 +87,12 @@ log.info """
 DIRECTORIES / PATHS
 base      = ${baseDir}
 bin       = ${params.bin}
+in        = ${params.in}
 out       = ${params.out}
 trace     = ${params.tracedir}
 =================================================
 =================================================
 """
-/*
-PARAMETERS
-Mutation rate       = ${mutrate}
-Recombination rate  = ${recrate}
-Sequence number     = ${seqnum}
-Dual infection rate = ${dualinf}
-=================================================
-=================================================
-"""
-=======
-*/
 
 // Decide which analysis to run and set channels for input files
 if (params.mode == 'sim') {
@@ -149,6 +141,19 @@ else {
  */
 
 if (params.mode == 'sim') {
+
+/*
+PARAMETERS
+Mutation rate       = ${mutrate}
+Recombination rate  = ${recrate}
+Sequence number     = ${seqnum}
+Dual infection rate = ${dualinf}
+=================================================
+=================================================
+"""
+=======
+*/
+
   // Set input for SANTA-SIM
   println "Reading ${params.seq}"
   seq_temp = "$baseDir/${params.seq}"
@@ -298,11 +303,11 @@ if (params.mode == 'bm') {
   // INPUT CHANNELS
   // TO DO: select sequence number -> queue settings for all
   // TO DO: change below to look nicer `Channel.fromPath.set{}...`
-  B1_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
-  B2_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
-  B3_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
-  B4_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
-  B5_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
+  B1_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
+  B2_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
+  B3_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
+  B4_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
+  B5_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
 /* 
   process B1_phi_profile {
 
@@ -323,7 +328,7 @@ if (params.mode == 'bm') {
     """
 
   }
-
+*/
   process B2_3seq {
     // TO DO: add to bioconda
 
@@ -368,7 +373,7 @@ if (params.mode == 'bm') {
     """
 
    }
-
+/*
   process B4_uchime_derep {
 
     label "${params.label}"
@@ -413,7 +418,7 @@ if (params.mode == 'bm') {
     """
 
   }
-*/
+
   process B5_gmos {
 
     label "${params.label}"
@@ -437,7 +442,7 @@ if (params.mode == 'bm') {
     """
 
   }
-
+*/
 }
 
 /*
