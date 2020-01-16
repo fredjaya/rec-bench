@@ -1,0 +1,118 @@
+---
+title: "Summarise simulation breakpoints"
+author: "Fred Jaya"
+date: "16/01/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r data_prep}
+simBPs <- read.csv("~/Dropbox/Masters/03_results/out_190925/out_190917/S4_santa/V2_santa_bp.csv")
+
+filteredSimBPs <- simBPs %>%
+  filter(seqnum != 2500) %>% # n = 2500 not used in analyses
+  unite(col = breakpoints, bps:X.22, sep = ':', na.rm = T, remove = T) # concat all bps in one col
+
+# Remove additional NAs per observation
+filteredSimBPs$breakpoints <- gsub(pattern = ':NA',
+                                   replacement = '',
+                                   x = filteredSimBPs$breakpoints)
+
+# amend sci notation to match RDM output file names
+filteredSimBPs$mut <- gsub('0.001', '0.0010'   , filteredSimBPs$mut)
+filteredSimBPs$mut <- gsub('0.01' , '0.010'    , filteredSimBPs$mut)
+filteredSimBPs$mut <- gsub('1e-07', '1.0E-7'   , filteredSimBPs$mut)
+filteredSimBPs$mut <- gsub('1e-06', '0.0000010', filteredSimBPs$mut)
+filteredSimBPs$mut <- gsub('1e-05', '0.000010' , filteredSimBPs$mut)
+filteredSimBPs$mut <- gsub('1e-04', '0.00010'  , filteredSimBPs$mut)
+filteredSimBPs$rec <- gsub('0.001', '0.0010'   , filteredSimBPs$rec)
+filteredSimBPs$rec <- gsub('0.01' , '0.010'    , filteredSimBPs$rec)
+filteredSimBPs$rec <- gsub('1e-07', '1.0E-7'   , filteredSimBPs$rec)
+filteredSimBPs$rec <- gsub('1e-06', '0.0000010', filteredSimBPs$rec)
+filteredSimBPs$rec <- gsub('1e-05', '0.000010' , filteredSimBPs$rec)
+filteredSimBPs$rec <- gsub('1e-04', '0.00010'  , filteredSimBPs$rec)
+
+# Sanity check
+paste("Mutation rate: "     , unique(filteredSimBPs$mut   ))
+paste("Recombination rates ", unique(filteredSimBPs$rec   ))
+paste("Sample sizes "       , unique(filteredSimBPs$seqnum))
+
+# Add file name prefixes
+filteredSimBPs$mut     <- paste('msa_m', filteredSimBPs$mut    , sep = '')
+filteredSimBPs$rec     <- paste('rc'   , filteredSimBPs$rec    , sep = '')
+filteredSimBPs$seqnum  <- paste('n'    , filteredSimBPs$seqnum , sep = '')
+filteredSimBPs$dualInf <- paste('dual' , filteredSimBPs$dualInf, sep = '')
+
+write.csv(filteredSimBPs, "~/Dropbox/Masters/02_working/1911_precision_recall/191112_simbps/simBPHalfFiltered.csv",
+          row.names = F)
+```
+
+## 3SEQ
+
+```{r 3seq}
+tseqSimBPs <- filteredSimBPs
+
+# 3SEQ prefix and file extension
+tseqSimBPs$rep <- paste('rep', tseqSimBPs$rep, '.fasta.3s.rec', sep = '')
+
+# Concatenate as file name
+tseqSimBPs <- tseqSimBPs %>%
+  unite(col = params, mut:rep, sep = '_')
+
+# RC+
+listRCP <- list.files("~/Dropbox/Masters/02_working/2001_3seq_conditions/B2_3seq/RCp/")
+tseqSimBPsP <- tseqSimBPs %>%
+  filter(params %in% listRCP)
+n_distinct(tseqSimBPsP$params) == n_distinct(listRCP)
+write.csv(tseqSimBPsP, 
+          "~/Dropbox/Masters/02_working/2001_3seq_conditions/3seq_simBP_RCP.csv",
+          row.names = F)
+# RC- 
+# Derep sequences
+listRCN <- list.files("~/Dropbox/Masters/02_working/2001_3seq_conditions/B2_3seq/RCn/")
+tseqSimBPsN <- tseqSimBPs %>%
+  select(-seq) %>%
+  distinct() %>%
+  filter(params %in% listRCN) %>%
+  group_by(params) %>%
+  summarize(bps = paste(breakpoints, collapse = ":"))
+n_distinct(tseqSimBPsN$params) == n_distinct(listRCN)
+tseqSimBPsN$bps <- gsub('NA:', '', tseqSimBPsN$bps)
+tseqSimBPsN$bps <- gsub(':NA', '', tseqSimBPsN$bps)
+
+write.csv(tseqSimBPsN, "~/Dropbox/Masters/02_working/2001_3seq_conditions/3seq_simBP_RCN.csv",
+          row.names = F)
+
+```
+
+## PhiPack (Profile)
+
+```{r phi_profile}
+# PhiPack (Profile)-specific prefix and extension 
+filteredSimBPs$rep <- paste('rep', filteredSimBPs$rep, '.fasta_Profile.csv', sep = '')
+
+# Concatenate as file name
+filteredSimBPs <- filteredSimBPs %>%
+  unite(col = params, mut:rep, sep = '_')
+
+write.csv(filteredSimBPs, "~/Dropbox/Masters/02_working/1911_precision_recall/191112_simbps/sim_bp_f1.csv", 
+          row.names = F)
+
+# Derep sequences?
+filDerep <- fil %>%
+  select(-seq) %>%
+  distinct() %>%
+  group_by(params) %>%
+  summarize(bps = paste(breakpoints, collapse = ":"))
+
+filDerep$bps <- gsub('NA:', '', filDerep$bps)
+filDerep$bps <- gsub(':NA', '', filDerep$bps)
+
+write.csv(filDerep, "sim_bp_derep_f1.csv", row.names = F)
+
+# Run 191115_phipack_f1.py
+```
