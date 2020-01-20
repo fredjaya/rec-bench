@@ -9,11 +9,8 @@ Compares simulated breakpoints with detected breakpoints from PhiPack (Profile)
 to determine the detected condition (i.e. FP/TP/FN/TN) across the sequence, per
 window
 
-Currently works for all sequences within a parameter/rep.
-
 TODO:
     * Refactor bpPerWindow into function
-    * Add command line conditions/help
 """
 
 import pandas as pd

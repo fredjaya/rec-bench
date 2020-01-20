@@ -72,11 +72,9 @@ write.csv(tseqSimBPsP,
           "~/Dropbox/Masters/02_working/2001_3seq_conditions/3seq_simBP_RCP.csv",
           row.names = F)
 # RC- 
-# Derep sequences
+# Derep sequences, but retain duplicate simulated bps over sequences
 listRCN <- list.files("~/Dropbox/Masters/02_working/2001_3seq_conditions/B2_3seq/RCn/")
 tseqSimBPsN <- tseqSimBPs %>%
-  select(-seq) %>%
-  distinct() %>%
   filter(params %in% listRCN) %>%
   group_by(params) %>%
   summarize(bps = paste(breakpoints, collapse = ":"))
