@@ -14,6 +14,7 @@ import pandas as pd
 class testFunctions(unittest.TestCase):
 
     def readRecFile_testMod(x):
+        # TODO: define this not manually
         recFile = pd.DataFrame([line.strip().split('\t') 
                     for line in open(x, 'r')])
         newHeader = recFile.iloc[0]
@@ -27,9 +28,14 @@ class testFunctions(unittest.TestCase):
                     'seq': 'seq_9999999',
             'breakpoints': float('NaN')})
     
-        self.test_simSeq_matchMultiBP = pd.Series(
+        self.test_simSeq_matchMultiBP_single = pd.Series(
                 {'params': 'msa_m0.010_rc0.010_n100_dual1_rep2.fasta.3s.rec',
                     'seq': 'seq_3',	
+            'breakpoints': 891})
+    
+        self.test_simSeq_matchMultiBP_multi = pd.Series(
+                {'params': 'msa_m0.010_rc0.010_n100_dual1_rep2.fasta.3s.rec',
+                    'seq': 'seq_8',	
             'breakpoints': 891})
     
         self.test_predictedRec_Norm    = readRecFile_testMod("/Users/13444841/Dropbox/Masters/02_working/2001_3seq_conditions/B2_3seq/RCp/msa_m0.0010_rc0.000010_n100_dual0.1_rep1.fasta.3s.rec")
@@ -66,15 +72,20 @@ class testFunctions(unittest.TestCase):
         Data with multiple breakpoints predicted, when one sequence matches only one 
         pair of bps 
         '''
-        self.assertEqual(getPredictedBPs(self.test_simSeq_matchMultiBP,
+        self.assertEqual(getPredictedBPs(self.test_simSeq_matchMultiBP_single,
                                          self.test_predictedRec_MultiBP),
-                                        [44, 45, 46, 763, 764, 765])
+                                        [44, 45, 46, 47, 763, 764, 765, 766])
         
         ''' 
         Data with multiple breakpoints predicted, and sequence matches more
         than one breakpoint pairs
         '''
-        
+        self.assertEqual(getPredictedBPs(self.test_simSeq_matchMultiBP_multi,
+                                         self.test_predictedRec_MultiBP),
+             [44, 45, 46, 47, 828, 829, 830, 835, 836, 837, 838, 839, 840, 841,
+              842, 848, 849, 850, 851, 852, 853, 854, 855, 856, 857, 858, 859,
+              860, 861, 862, 863, 864, 865, 866, 867, 868, 869, 870, 871, 872,
+              873, 874])
         
         ''' 
         When simSeq is not present in predictedRec

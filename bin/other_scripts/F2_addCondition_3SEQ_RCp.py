@@ -11,7 +11,7 @@ Script to count conditions of 3SEQ predictions containing positive predictions
 
 import pandas as pd
 import re
-import sys
+#import sys
 import os
 
 def parseSeqNum(fileName):
@@ -58,7 +58,7 @@ def getPredictedBPs(simSeq, predictedRec):
         matches = re.findall(pattern, s) 
         for i in matches:
             j = re.split('-', i)
-            tempBP = list(range(int(j[0]), int(j[1])))
+            tempBP = list(range(int(j[0]), (int(j[1]) + 1)))
             for bp in tempBP:
                 if bp not in breakpoints:
                     breakpoints.append(bp)
@@ -90,42 +90,39 @@ for index, simSeq in simulatedBreakpoints.iterrows():
         None
     
     previousParam = currentParam
-    predictedSeqs = getPredictedSeqs(predictedRec) 
-    # Error thrown if there is a duplicate sequence
+    predictedSeqs = getPredictedSeqs(simSeq, predictedRec) 
     
     if pd.isna(simSeq['breakpoints']):
-        print("- No simulated breakpoints")
+        #print("- No simulated breakpoints")
         
         if simSeq['seq'] not in predictedSeqs:
-            print("- No predicted breakpoints")
+            #print("- No predicted breakpoints")
             TP = 0
             FP = 0
             TN = seqLength
             FN = 0
         
         elif simSeq['seq'] in predictedSeqs:
-            print("- Breakpoints predicted")
-            predictedBreakpoints = getPredictedBPs(predictedRec)
+            #print("- Breakpoints predicted")
+            predictedBreakpoints = getPredictedBPs(simSeq, predictedRec)
             TP = 0
             FP = len(predictedBreakpoints) # Only outputs first row of non-matching seq
             TN = seqLength - len(predictedBreakpoints)
             FN = 0
             
     elif re.findall(':', simSeq['breakpoints']):
-        print("- Breakpoints simulated")
-        
+       # print("- Breakpoints simulated")
         simBP = re.split(':', simSeq['breakpoints'])
         
         if simSeq['seq'] not in predictedSeqs:
-            print("- No breakpoints predicted")
+            #print("- No breakpoints predicted")
             TP = 0
             FP = 0
             TN = seqLength - len(simBP)
             FN = len(simBP)
         
         elif simSeq['seq'] in predictedSeqs:
-            print("- Breakpoints predicted")
-            
+            #print("- Breakpoints predicted")
             falsePos = set(predictedBreakpoints) - set(simBP)
             falseNeg = set(simBP) - set(predictedBreakpoints)
             
@@ -139,12 +136,8 @@ for index, simSeq in simulatedBreakpoints.iterrows():
     simulatedBreakpoints.loc[index, 'FP'] = FP
     simulatedBreakpoints.loc[index, 'TN'] = TN
     simulatedBreakpoints.loc[index, 'FN'] = FN
-        
-    
-    
-    #print('----------')
-    #print(simulatedBreakpoints.loc[index, 'params'] + '\nTN = ' + str(TN) + ' | FN = ' + str(FN))
 
-outputName = "condition_" + ".csv"
-simulatedBreakpoints.to_csv(outputName, header = True, index = False, na_rep = 'NA')
+outputName = 'condition_3seq_simBP_RCP.csv'        
+simulatedBreakpoints.to_csv(outputName, header = True, index = False,
+                            na_rep = 'NA')
 print("Written to " + outputName + "!")
