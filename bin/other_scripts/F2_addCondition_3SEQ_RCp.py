@@ -29,30 +29,39 @@ def readRecFile():
     recFile.columns = newHeader
     return(recFile)
     
-def getPredictedSeqs():
+def getPredictedSeqs(simSeq, predictedRec):
     recAccNum = []
-    for i in list(predictedRec['C_ACCNUM']):
-        seqID = re.findall('seq_\d+', str(i))
-        for j in seqID:
-            if j not in recAccNum:
-                recAccNum.append(j)
-                return(recAccNum)
-            elif j in recAccNum:
-                print("REPEATED PREDICTED SEQUENCE IN: " + 
-                      simSeq['params'])
-                return
+    seqID = re.findall('seq_\d+', str(list(predictedRec['C_ACCNUM'])))
+    for i in seqID:
+        if i not in recAccNum:
+            recAccNum.append(i)
+        elif i in recAccNum:
+            print("ERROR: Duplicate sequences needs to be accounted for! (WIP)\n" +
+                  simSeq['params'] + '\nTerminating at ' + i)
+            return -1
+    return(recAccNum)
     
-def getPredictedBPs(bps): 
+def getPredictedBPs(simSeq, predictedRec): 
     breakpoints = []
-    s = str(bps)
-    pattern = re.compile('\d+-\d+')
-    matches = re.findall(pattern, s) 
-    for i in matches:
-        j = re.split('-', i)
-        tempBP = list(range(int(j[0]), int(j[1])))
-        for bp in tempBP:
-            if bp not in breakpoints:
-                breakpoints.append(bp)
+    simRow = []
+    # Subset matching seq
+    for index, i in predictedRec.iterrows(): #list(predictedRec['C_ACCNUM']):
+        if re.findall(simSeq['seq'], i['C_ACCNUM']):
+            simRow = i
+    if len(simRow) == 0:
+        print('ERROR: Simulated sequences don\'t match predicted sequences!'
+              '\n' + simSeq['params'] + '\n' + simSeq['seq'])
+        return -1
+    else:
+        s = str(list(simRow.iloc[12:]))
+        pattern = re.compile('\d+-\d+')
+        matches = re.findall(pattern, s) 
+        for i in matches:
+            j = re.split('-', i)
+            tempBP = list(range(int(j[0]), int(j[1])))
+            for bp in tempBP:
+                if bp not in breakpoints:
+                    breakpoints.append(bp)
     return(breakpoints)
 '''
 print("Counting conditions for parameters where 3SEQ calculated negatives..." +
@@ -81,7 +90,8 @@ for index, simSeq in simulatedBreakpoints.iterrows():
         None
     
     previousParam = currentParam
-    predictedSeqs = getPredictedSeqs() # Error should be thrown if there is a duplicate
+    predictedSeqs = getPredictedSeqs(predictedRec) 
+    # Error thrown if there is a duplicate sequence
     
     if pd.isna(simSeq['breakpoints']):
         print("- No simulated breakpoints")
@@ -95,9 +105,9 @@ for index, simSeq in simulatedBreakpoints.iterrows():
         
         elif simSeq['seq'] in predictedSeqs:
             print("- Breakpoints predicted")
-            predictedBreakpoints = getPredictedBPs(list(predictedRec.iloc[0,12:]))
+            predictedBreakpoints = getPredictedBPs(predictedRec)
             TP = 0
-            FP = len(predictedBreakpoints)
+            FP = len(predictedBreakpoints) # Only outputs first row of non-matching seq
             TN = seqLength - len(predictedBreakpoints)
             FN = 0
             
@@ -135,6 +145,6 @@ for index, simSeq in simulatedBreakpoints.iterrows():
     #print('----------')
     #print(simulatedBreakpoints.loc[index, 'params'] + '\nTN = ' + str(TN) + ' | FN = ' + str(FN))
 
-outputName = "condition_" + sys.argv[1]
+outputName = "condition_" + ".csv"
 simulatedBreakpoints.to_csv(outputName, header = True, index = False, na_rep = 'NA')
 print("Written to " + outputName + "!")
