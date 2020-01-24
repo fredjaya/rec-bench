@@ -17,7 +17,7 @@ import sys
 def parseSeqNum(fileName):
     n = re.findall('(?<=_n)\d+(?=_)', fileName)
     return(int(n[0]))
-        
+
 print("Counting conditions for parameters where 3SEQ calculated negatives..." +
     "\nReading " + sys.argv[1] + "..." + '\nSequence length = ' + sys.argv[2])
 
@@ -25,10 +25,10 @@ simulatedBreakpoints = pd.read_csv(sys.argv[1])
 seqLength = int(sys.argv[2])
 
 for index, paramRow in simulatedBreakpoints.iterrows():
-    
+
     seqNum = int(parseSeqNum(paramRow.loc['params']))
     totalBases = seqLength * seqNum
-    
+
     if pd.isna(paramRow.loc['bps']):
         FN = 0
         TN = totalBases
@@ -41,8 +41,8 @@ for index, paramRow in simulatedBreakpoints.iterrows():
     simulatedBreakpoints.loc[index, 'TP'] = 0
     simulatedBreakpoints.loc[index, 'FP'] = 0
     simulatedBreakpoints.loc[index, 'TN'] = TN
-    simulatedBreakpoints.loc[index, 'TF'] = FN
-    
+    simulatedBreakpoints.loc[index, 'FN'] = FN
+
     print('----------')
     print(simulatedBreakpoints.loc[index, 'params'] + '\nTN = ' + str(TN) + ' | FN = ' + str(FN))
 

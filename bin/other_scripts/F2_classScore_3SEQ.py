@@ -9,9 +9,7 @@ Calculates scores (i.e. precision, recall etc.) based on parsed phi condition
 outputs.
 """
 
-import sys
 import pandas as pd
-import glob
 import csv
 import re
 import math
@@ -74,7 +72,7 @@ def getF1(PPV, TPR):
         return(float('NaN'))
     else:
         return(2*((PPV*TPR)/(PPV+TPR)))
-        
+
 # Whole population metrics
 def getPre(TP, FP, TN, FN):
     return((TP + FN)/(TP + FP + TN + FN))
@@ -99,37 +97,29 @@ def getDOR(LRP, LRN):
     else:
         return(LRP/LRN)
 
-#path = sys.argv[1]
-#os.chdir(path)
+# Write .csv
+def writeMetrics(RC):
 
-fileNames = []
-
-print("Reading PhiPack (Profile) window conditions...")
-
-for names in glob.glob("F1_phi_profile/*.csv"):
-    fileNames.append(names)
-
-with open('F1_phi_profile_fscore.csv', 'w+') as csvfile:
     writer = csv.writer(csvfile, delimiter = ',')
     header = ['mut', 'rec', 'seqn', 'dualInf', 'rep', 'TP', 'FP', 'TN', 'FN',
     'TPR', 'FPR', 'TNR', 'FNR', 'PPV', 'FDR', 'NPV', 'FOR', 'F1', 'Pre', 'ACC',
     'LR+', 'LR-', 'DOR']
     writer.writerow(header)
 
-    for file in fileNames:
-        print("Calculating " + file + " ...")
-        phiCond = pd.read_csv(file)
+    for index, paramRow in RC.iterrows():
+        print(paramRow)
 
         # Parse parameters
-        params = re.sub('[a-z]+', '', file)
+        params = re.sub('[a-z]+', '', paramRow.params)
+        params = re.sub('\.\.3\.', '', params)
         params = params.split("_")
-        params = params[4:9]
+        params = params[1:6]
 
-        # Count conditions
-        TP = int(phiCond.loc[phiCond.cond == 'TP' , 'cond'].count())
-        FP = int(phiCond.loc[phiCond.cond == 'FP' , 'cond'].count())
-        TN = int(phiCond.loc[phiCond.cond == 'TN' , 'cond'].count())
-        FN = int(phiCond.loc[phiCond.cond == 'FN' , 'cond'].count())
+        # Set conditions
+        TP = paramRow.TP
+        FP = paramRow.FP
+        TN = paramRow.TN
+        FN = paramRow.FN
 
         # Rate of each condition based on total true conditions
         TPR = getTPR(TP, FN)
@@ -157,3 +147,16 @@ with open('F1_phi_profile_fscore.csv', 'w+') as csvfile:
 
         # Write row
         writer.writerow(params + [TP, FP, TN, FN, TPR, FPR, TNR, FNR, PPV, FDR, NPV, FOR, F1, Pre, ACC, LRP, LRN, DOR])
+
+RCp = pd.read_csv("/Users/13444841/Dropbox/Masters/02_working/2001_3seq_conditions/condition_3seq_simBP_RCP.csv")
+RCn = pd.read_csv("/Users/13444841/Dropbox/Masters/02_working/2001_3seq_conditions/condition_3seq_simBP_RCN.csv")
+
+print('Reading 3SEQ window conditions')
+
+# Calculate metrics for RCn
+with open('F2_3SEQ_fscore_RCn.csv', 'w+') as csvfile:
+    writeMetrics(RCn)
+
+# Calculate metrics for RCp
+with open('F2_3SEQ_fscore_RCp.csv', 'w+') as csvfile:
+    writeMetrics(RCp)
