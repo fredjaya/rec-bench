@@ -35,19 +35,7 @@ def getCondition(isSimulated, isSignificant):
             condition = "TN"
     return(condition)
 
-# Set log and system arguments
-log = open("phi_condition_" + sys.argv[1] + ".log", "w")
-sys.stdout = log
-print("Breakpoints: " + sys.argv[2] +
-      "\nPhiPack Profile.csv: " + sys.argv[1] +
-      "\n----------")
-
-# Read inputs - simulated breakpoints and detected files
-phiProfile           = pd.read_csv(sys.argv[1], names = ['position', 'pvalue'])
-simulatedBreakpoints = str(sys.argv[2])
-
-#print("==========\nCalculating conditions for all sequences at " +
-#      simulatedBreakpoints.loc[0]['params'] + "\n==========")
+simulatedBreakpoints = "~/Dro"
 
 # Check if BPs were simulated
 if simulatedBreakpoints == 'NA':

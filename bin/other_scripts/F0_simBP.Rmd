@@ -56,6 +56,19 @@ write.csv(filteredSimBPs, "~/Dropbox/Masters/02_working/1911_precision_recall/19
 ```{r 3seq}
 tseqSimBPs <- filteredSimBPs
 
+# Compare simulation parameters vs. analysed parameters
+simBP_params <- as.data.frame(unique(tseqSimBPs$params))
+ tseq_params <- as.data.frame(list.files("~/Dropbox/Masters/03_results/out_190925/out_190917/B2_3seq/", pattern = '.rec'))
+
+colnames(simBP_params) <- 'params'
+colnames(tseq_params) <- 'params'
+
+joined_params <- setdiff(simBP_params, tseq_params) 
+
+
+
+write.csv(tseqSimBPs, "~/Dropbox/Masters/02_working/2001_3seq_conditions/3seq_simBP_all.csv",
+          row.names = F)
 # 3SEQ prefix and file extension
 tseqSimBPs$rep <- paste('rep', tseqSimBPs$rep, '.fasta.3s.rec', sep = '')
 
@@ -84,12 +97,25 @@ tseqSimBPsN$bps <- gsub(':NA', '', tseqSimBPsN$bps)
 
 write.csv(tseqSimBPsN, "~/Dropbox/Masters/02_working/2001_3seq_conditions/3seq_simBP_RCN.csv",
           row.names = F)
-
 ```
 
 ## PhiPack (Profile)
-
 ```{r phi_profile}
+profileSimBPs     <- filteredSimBPs
+profileSimBPs$rep <- paste('rep', filteredSimBPs$rep, '.fasta_Profile.csv', sep = '')
+
+profileSimBPsSum <- profileSimBPs %>%
+  unite(col = params, mut:rep, sep = '_') %>%
+  group_by(params) %>%
+  summarize(bps = paste(breakpoints, collapse = ":"))
+
+profileSimBPsSum$bps <- gsub('NA:', '', profileSimBPsSum$bps)
+profileSimBPsSum$bps <- gsub(':NA', '', profileSimBPsSum$bps)
+
+write.csv(profileSimBPsSum, "~/Dropbox/Masters/02_working/2002_phi_conditions/profile_simBP.csv")
+```
+
+```{r phi_profileOld, include = F}
 # PhiPack (Profile)-specific prefix and extension 
 filteredSimBPs$rep <- paste('rep', filteredSimBPs$rep, '.fasta_Profile.csv', sep = '')
 
