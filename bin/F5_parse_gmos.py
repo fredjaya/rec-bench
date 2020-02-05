@@ -8,6 +8,7 @@ Created on Tue Feb  4 14:17:56 2020
 
 import re
 import csv 
+import sys
 
 def check_line(line):
     if re.fullmatch("\n", line):
@@ -22,11 +23,10 @@ header = ["query_name", "query_start", "query_end", "significance",
           "query_end_dupe", "score", "E-value", "short_subject_name", 
           "full_subject_name", "subject_start", "subject_end", "subject_strand"]
     
-with open("/Users/13444841/Dropbox/Masters/02_working/2002_gmos_conditions/"
-          "hcv_emp037_gmos_out.txt", 'r') as gmos_in:
+with open(sys.argv[1], 'r') as gmos_in:
     
-    with open("/Users/13444841/Dropbox/Masters/02_working/2002_gmos_conditions/"
-              "gmos_out.csv", 'w') as csv_out:
+    file_name_out = "{}.csv".format(sys.argv[1])
+    with open(file_name_out, 'w') as csv_out:
     
         writer = csv.writer(csv_out)
         writer.writerow(header)

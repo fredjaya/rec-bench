@@ -1,0 +1,30 @@
+#!/bin/bash
+
+qdel 350074.hpcnode0
+qdel 350083.hpcnode0
+qdel 350087.hpcnode0
+qdel 350090.hpcnode0
+qdel 350101.hpcnode0
+qdel 350104.hpcnode0
+qdel 350122.hpcnode0
+qdel 350125.hpcnode0
+qdel 350128.hpcnode0
+qdel 350130.hpcnode0
+qdel 350138.hpcnode0
+qdel 350141.hpcnode0
+qdel 350149.hpcnode0
+qdel 350151.hpcnode0
+qdel 350152.hpcnode0
+qdel 350153.hpcnode0
+qdel 350154.hpcnode0
+qdel 350156.hpcnode0
+qdel 350158.hpcnode0
+qdel 350159.hpcnode0
+qdel 350160.hpcnode0
+qdel 350164.hpcnode0
+qdel 350165.hpcnode0
+qdel 350172.hpcnode0
+qdel 350176.hpcnode0
+qdel 350179.hpcnode0
+qdel 350180.hpcnode0
+qdel 350185.hpcnode0

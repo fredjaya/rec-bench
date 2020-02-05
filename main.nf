@@ -1,4 +1,4 @@
-#!/usr/local/bin nextflow
+#!/usr/local/bi nextflow
 
 //===============================================================
 //===============================================================
@@ -352,7 +352,7 @@ if (params.mode == 'bm') {
     """
 
   }
-
+/*
   process B3_geneconv {
     // TO DO: add to bioconda
 
@@ -373,7 +373,7 @@ if (params.mode == 'bm') {
     """
 
    }
-/*
+
   process B4_uchime_derep {
 
     label "${params.label}"
@@ -618,7 +618,7 @@ if (params.mode == 'emp') {
 // Create simulated breakpoints with *.R
 
 if (params.mode == 'fscore') {
-
+/*
   log.info """
   simbp   = ${params.simbp}
   """.stripIndent()
@@ -650,4 +650,49 @@ if (params.mode == 'fscore') {
 
     }
 
+  process F5_gmos_parse {
+  
+    Channel
+      .fromPath("/shared/homes/13444841/2001_gmos_sim2/B5_gmos/*_gmos.txt")
+      .set{ gmos_out_parse }
+
+    label "${params.label}"
+    publishDir "/shared/homes/13444841/2001_gmos_sim2/parsed_out", mode: 'move'
+
+    input:
+    file gmos_out_parse from gmos_out_parse
+
+    output:
+    file '*.csv' 
+  
+    script:
+    """
+    python3.7 ${baseDir}/bin/F5_parse_gmos.py ${gmos_out_parse} 
+    """
+  
+  }
+
+
+  process F5_gmos_conditions {
+  
+    Channel
+      .fromPath("/shared/homes/13444841/2001_gmos_sim2/B5_gmos/parsed_out")
+      .set{ F5_input }
+
+    label "${params.label}"
+    publishDir "${params.out}/F5_gmos/conditions", mode: 'move'
+
+    input:
+    file F5_input from F5_input
+
+    output:
+    file '*.csv'
+
+    script:
+    """
+    python3.7 ${params.bin}/F5_addConditions_gmos.py ${F5_input}
+    """ 
+    
+  }
+*/
 }
