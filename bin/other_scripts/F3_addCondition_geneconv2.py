@@ -149,6 +149,37 @@ def bp_length(bp):
         return len(bp)
     elif type(bp) is float: 
         return 0
+
+def calc_no_gc(sim_row, writer):
+    TP = 0
+    FP = 0
+    TN = seq_length - bp_length(sim_row['breakpoints'])
+    FN = bp_length(sim_row['breakpoints'])
+    
+    out_row.append(TP)            
+    out_row.append(FP)
+    out_row.append(TN)
+    out_row.append(FN)
+    
+    writer.writerow(out_row)
+    return
+
+def calc_in_gc_no_sim_bp(sim_row, writer):
+    TP = 0
+    FP = bp_length(sim_row['breakpoints'])
+    TN = seq_length - bp_length(sim_row['breakpoints'])
+    FN = 0
+    
+    out_row.append(TP)            
+    out_row.append(FP)
+    out_row.append(TN)
+    out_row.append(FN)
+    
+    writer.writerow(out_row)
+    return
+    
+def calc_in_gc_with_sim_bp(sim_row):
+    return
     
 ### Big functions
 def concat_gc_outputs():
@@ -185,19 +216,12 @@ def count_conditions(sim_bp, gc):
             out_row.append([sim_row['seq']])
             
             if sim_in_gc(sim_row.params, gc.file):
-                
+                if type(sim_row['breakpoints']) is float:
+                    calc_in_gc_no_sim_bp(sim_row, writer)
+                elif type(sim_row['breakpoints']) is set:    
+                    writer.writerow("WIP")
             else:
-                TP = 0
-                FP = 0
-                TN = seq_length - bp_length(sim_row['breakpoints'])
-                FN = bp_length(sim_row['breakpoints'])
-                
-                out_row.append(TP)
-                out_row.append(FP)
-                out_row.append(TN)
-                out_row.append(FN)
-                
-                writer.writerow(out_row)
+                calc_no_gc(sim_row, writer)
 
 ### Arguments -------------------- 
 '''parser = argparse.ArgumentParser()
@@ -206,8 +230,7 @@ parser.add_argument("sim_bp", help = "simulated breakpoint file for each paramet
 args = parser.parse_args()
 '''
 ### Main --------------------
-gc = gc_to_dict()
-sim_bp = prep_sim_file()
-
-#conditions = count_conditions
+#gc = gc_to_dict()
+#sim_bp = prep_sim_file()
+count_conditions(sim_bp, gc)
 
