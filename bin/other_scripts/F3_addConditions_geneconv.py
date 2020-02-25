@@ -12,6 +12,7 @@ import pandas as pd
 import csv
 import argparse
 from functools import reduce
+from collections import OrderedDict
 
 ### Functions --------------------
 def gc_file_names(gc_dir):
@@ -92,11 +93,45 @@ def group_params(df):
     #https://stackoverflow.com/questions/25020595/row-wise-unions-in-pandas-groupby
     cols_stay = ['file', 'mut', 'rec', 'seqLen', 'dualInf', 'rep', 'seq_name']
     my_lambda = lambda x: reduce(set.union, x) 
-    grouped = df.groupby(cols_stay)
-    return grouped.agg({'bp': my_lambda})
+    return df.groupby(cols_stay) \
+             .agg({'bp': my_lambda}) \
+             .reset_index()
 
-def read_sim_file(sim_bp):
-    return(open(sim_bp, 'r'))
+def read_sim_file():
+    print("Reading simulated breakpoint file...")
+    sim_path = "/Users/13444841/Dropbox/Masters/02_working/1911_precision_recall/191112_simbps/sim_bp_f1.csv"
+    return pd.read_csv(sim_path)
+
+def filter_seq_num(sim_bp):
+    #https://stackoverflow.com/questions/28679930/how-to-drop-rows-from-pandas-data-frame-that-contains-a-particular-string-in-a-p/43399866
+    sim_bp = sim_bp[~sim_bp['params'].str.contains("n2500")]
+    sim_bp = sim_bp[~sim_bp['params'].str.contains("n5000")]
+    return sim_bp
+
+def sim_to_dict(sim_bp):
+    print("Writing to dict...")
+    return sim_bp.to_dict('index')
+"""
+def subset_dict():
+    index_list = list(range(0, 999))
+    sub = {k: sim_bp[k] for k in index_list if k in sim_bp}
+    return sub
+"""
+def amend_path(sim_bp):
+    gc_path = "/Users/13444841/Dropbox/Masters/03_results/out_190925/out_190917/B3_geneconv/"
+    for k, v in sim_bp.items():
+        v['params'] = re.sub('fasta_Profile.csv', 'tab', v['params'])
+        v['params'] = re.sub('^', gc_path, v['params'])
+        print("{}/{} paths amended".format(k, len(sim_bp)))
+    return sim_bp
+
+def sim_in_gc(sim_bp, gc):
+    for sim_k, sim_v in sim_bp.items():
+        for gc_k, gc_v in gc.items():
+            if sim_v['params'] in gc_v['file']:
+                print("yes")
+            else:
+                print("no")
 
 ### Big functions
 def concat_gc_outputs():
@@ -109,9 +144,20 @@ def gc_to_dict():
     bp = bp_pairs_to_set(gc)
     gc = append_bps(gc, bp)
     gc = rm_bp_pairs(gc)
-    gc = group_params(gc)
-    gc.to_csv("F3_geneconv_out_groupedBP.csv")  
-    return gc
+    grouped = group_params(gc)
+    grouped.to_csv("F3_geneconv_out_groupedBP.csv")
+    return grouped.to_dict('index')
+
+def prep_sim_file():
+    sim_bp_OG = read_sim_file()
+    sim_bp = filter_seq_num(sim_bp_OG)
+    sim_bp = sim_to_dict(sim_bp)
+    amend_path(sim_bp)
+'''
+def count_conditions(sim_bp, gc):
+    for k, v in sim_bp.items():
+        v
+  '''      
     
 ### Arguments -------------------- 
 '''parser = argparse.ArgumentParser()
@@ -120,4 +166,6 @@ parser.add_argument("sim_bp", help = "simulated breakpoint file for each paramet
 args = parser.parse_args()
 '''
 ### Main --------------------
+gc = gc_to_dict()
+sim_bp = prep_sim_file()
 
