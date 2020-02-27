@@ -132,11 +132,24 @@ def amend_path(sim_bp):
     sim_bp['params'] = gc_path + sim_bp['params'] 
     return sim_bp
 
-def sim_in_gc(sim_row_param, gc_file):
-    if gc_file.str.contains(sim_row_param).any():
-        return True
-    else:
+def match_files_seq(sim_row, gc):
+    """ Check if sim params and seq is present as GC file and seq_name """
+    #https://stackoverflow.com/questions/57208954/select-rows-that-match-values-in-multiple-columns-in-pandas
+    sim_vals = [sim_row['params'], sim_row['seq']]
+    gc_row = gc[(gc[['file', 'seq_name']] == sim_vals).all(1)]
+    return gc_row
+
+def bp_series_to_set(sim_row, gc):
+    gc_row = match_files_seq(sim_row, gc)
+    print(gc_row.iloc[0]['bp'])
+    gc_bp = gc_row.iloc[0]['bp']
+    return gc_bp
+    
+def sim_seq_in_gc(sim_row, gc):
+    if match_files_seq(sim_row, gc).empty:
         return False
+    else:
+        return True
 
 def count_sim_bp(breakpoints):
     if type(breakpoints) == float:
@@ -150,7 +163,23 @@ def bp_length(bp):
     elif type(bp) is float: 
         return 0
 
-def calc_no_gc(sim_row, writer):
+def true_pos(bp_sim, bp_gc):
+    i = bp_sim.intersection(bp_gc)
+    return len(i)
+
+def false_pos(bp_sim, bp_gc):
+    print(bp_sim)
+    d = bp_gc.difference(bp_sim)
+    return len(d)
+
+def false_neg(bp_sim, bp_gc):
+    d = bp_sim.difference(bp_gc) 
+    return len(d)
+
+def true_neg(seq_length, TP, FP, FN):
+    return seq_length - TP - FP - FN
+
+def calc_no_gc(sim_row, seq_length, out_row):
     TP = 0
     FP = 0
     TN = seq_length - bp_length(sim_row['breakpoints'])
@@ -160,14 +189,15 @@ def calc_no_gc(sim_row, writer):
     out_row.append(FP)
     out_row.append(TN)
     out_row.append(FN)
-    
-    writer.writerow(out_row)
-    return
 
-def calc_in_gc_no_sim_bp(sim_row, writer):
+    return out_row
+
+def calc_yes_gc_no_sim(bp_gc, seq_length, out_row):
+    print(bp_gc)
+    #print("gc_row: {}\n gc_row.bp[0]: {} \n seq_length: {} \n bp_length(gc_row.bp): {}".format(gc_row, gc_row.bp, seq_length, bp_length(gc_row.bp)))
     TP = 0
-    FP = bp_length(sim_row['breakpoints'])
-    TN = seq_length - bp_length(sim_row['breakpoints'])
+    FP = bp_length(bp_gc)
+    TN = seq_length - bp_length(bp_gc)
     FN = 0
     
     out_row.append(TP)            
@@ -175,12 +205,21 @@ def calc_in_gc_no_sim_bp(sim_row, writer):
     out_row.append(TN)
     out_row.append(FN)
     
-    writer.writerow(out_row)
-    return
+    return out_row
     
-def calc_in_gc_with_sim_bp(sim_row):
-    return
+def calc_yes_gc_yes_sim(sim_row, gc, seq_length, out_row):
+    TP = true_pos(sim_row['breakpoints'], gc)
+    FP = false_pos(sim_row['breakpoints'], gc)
+    FN = false_neg(sim_row['breakpoints'], gc)
+    TN = true_neg(seq_length, TP, FP, FN)
     
+    out_row.append(TP)            
+    out_row.append(FP)
+    out_row.append(TN)
+    out_row.append(FN)
+
+    return out_row
+
 ### Big functions
 def concat_gc_outputs():
     file_names = gc_file_names(args.gc_dir)
@@ -211,17 +250,32 @@ def count_conditions(sim_bp, gc):
         writer.writerow(csv_header)
         
         for index, sim_row in sim_bp.iterrows():
+            """ Iterate through each simulated sequence """
+            print(sim_row.params)
             out_row = []
-            out_row.append([sim_row['params']]) 
-            out_row.append([sim_row['seq']])
+            out_row.append(sim_row['params']) 
+            out_row.append(sim_row['seq'])
             
-            if sim_in_gc(sim_row.params, gc.file):
+            if sim_seq_in_gc(sim_row, gc):
+                
+                bp_gc = bp_series_to_set(sim_row, gc)
+                
+                """ GENCONV detected recombination at this param + seq """
+                    
                 if type(sim_row['breakpoints']) is float:
-                    calc_in_gc_no_sim_bp(sim_row, writer)
-                elif type(sim_row['breakpoints']) is set:    
-                    writer.writerow("WIP")
+                    """ No breakpoints simulated """                    
+                    calc_yes_gc_no_sim(bp_gc, seq_length, out_row)
+                    writer.writerow(out_row)
+                    
+                elif type(sim_row['breakpoints']) is set: 
+                    """ Breakpoints simulated """
+                    calc_yes_gc_yes_sim(sim_row, bp_gc, seq_length, out_row)
+                    writer.writerow(out_row)
+
             else:
-                calc_no_gc(sim_row, writer)
+                """ GENECONV detected to recombination at this param """
+                calc_no_gc(sim_row, seq_length, out_row)
+                writer.writerow(out_row)
 
 ### Arguments -------------------- 
 '''parser = argparse.ArgumentParser()
@@ -233,4 +287,3 @@ args = parser.parse_args()
 #gc = gc_to_dict()
 #sim_bp = prep_sim_file()
 count_conditions(sim_bp, gc)
-
