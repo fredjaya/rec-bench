@@ -1,12 +1,12 @@
-#!/usr/local/bi nextflow
+#!/usr/local/bin nextflow
 
 //===============================================================
 //===============================================================
 // Define parameters for S3_param_sweep. Edit the following:
-mutrate = Channel.from(10e-7, 10e-5, 10e-3)
-recrate = Channel.from(10e-7, 10e-5, 10e-3)
-seqnum = Channel.from(100, 1000, 2500, 5000)
-dualinf = Channel.from(0, 0.05, 0.5, 1)
+mutrate = Channel.from(10e-8, 10e-7, 10e-6, 10e-5, 10e-4, 10e-3)
+recrate = Channel.from(10e-8, 10e-7, 10e-6, 10e-5, 10e-4, 10e-3)
+seqnum = Channel.from(100, 1000, 5000)
+dualinf = Channel.from(0, 0.05)
 //===============================================================
 //===============================================================
 
@@ -90,6 +90,7 @@ bin       = ${params.bin}
 in        = ${params.in}
 out       = ${params.out}
 trace     = ${params.tracedir}
+xml       = ${params.xml}
 =================================================
 =================================================
 """
@@ -156,7 +157,7 @@ Dual infection rate = ${dualinf}
 
   // Set input for SANTA-SIM
   println "Reading ${params.seq}"
-  seq_temp = "$baseDir/${params.seq}"
+  seq_temp = "${params.seq}"
   seq_file = file(seq_temp)
 
   process S1_filter_fasta {
@@ -185,7 +186,8 @@ Dual infection rate = ${dualinf}
   process S2_santa_xml {
     // Add path of input .fasta to santa.xml
     // TO DO: Add final sequence length from S1
-    xml_in = file("$baseDir/${params.xml}")
+    println "${params.xml}"
+    xml_in = file("${params.xml}")
 
     input:
     file xml_in from xml_in
@@ -204,6 +206,7 @@ Dual infection rate = ${dualinf}
   process S3_param_sweep {
     // Generate .xml files across specified evolutionary parameters
     // TO DO: parameter config file
+    publishDir "${params.out}/S3_param_sweep", mode: 'copy'
 
     input:
     file xml_out from xml_out
@@ -332,6 +335,7 @@ if (params.mode == 'bm') {
   process B2_3seq {
     // TO DO: add to bioconda
 
+    errorStrategy 'ignore'
     label "${params.label}"
     tag "$seq"
     publishDir "${params.out}/B2_3seq", mode: 'move'
@@ -344,7 +348,7 @@ if (params.mode == 'bm') {
     file '*3s.pvalHist' optional true
     file '*s.rec' optional true
     file '*3s.longRec' optional true
-
+   script:
     script:
     """
     echo "Y" |
@@ -452,7 +456,7 @@ if (params.mode == 'bm') {
 if (params.mode == 'emp') {
 
   println "Reading ${params.seq}"
-  seq_temp = "$baseDir/${params.seq}"
+  seq_temp = "${params.seq}"
   seq_file = file(seq_temp)
 
   process E1_phi_profile {
@@ -521,7 +525,7 @@ if (params.mode == 'emp') {
 
   process E4_filter_fasta {
     // TO DO: Derep this process with S1_filter_fasta
-    publishDir "${params.out}/empirical/E0_filter_fasta", mode: 'copy'
+     publishDir "${params.out}/empirical/E0_filter_fasta", mode: 'copy'
 
     input:
     file seq from seq_file
@@ -628,6 +632,7 @@ if (params.mode == 'fscore') {
       .splitCsv(header:true)
       .map { row -> tuple(file(row.params), row.bps) }
       .set { F1_input }
+      .set { F5_input }
 
   process F1_phi_profile {
     // For some reason, params.bin and params.out don't work???
@@ -672,25 +677,20 @@ if (params.mode == 'fscore') {
   
   }
 
-
-  process F5_gmos_conditions {
-  
-    Channel
-      .fromPath("/shared/homes/13444841/2001_gmos_sim2/B5_gmos/parsed_out")
-      .set{ F5_input }
+  process F5_gmos_conditions { 
 
     label "${params.label}"
     publishDir "${params.out}/F5_gmos/conditions", mode: 'move'
 
     input:
-    file F5_input from F5_input
+    set file(params), bps from F5_input
 
     output:
     file '*.csv'
 
     script:
     """
-    python3.7 ${params.bin}/F5_addConditions_gmos.py ${F5_input}
+    python3.7 ${params.bin}/F5_addConditions_gmos.py ${params} ${bps}
     """ 
     
   }
