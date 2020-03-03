@@ -10,10 +10,9 @@ import glob
 import re
 import pandas as pd
 import csv
-import argparse
+#import argparse
 from functools import reduce
 from math import isnan
-from numpy import unique
 
 ### Functions --------------------
 def gc_file_names(gc_dir):
@@ -21,18 +20,27 @@ def gc_file_names(gc_dir):
     gc_file_names = []
     for name in glob.glob("{}*.tab".format(gc_dir)):
         gc_file_names.append(name)
-    return(gc_file_names)
+    return(gc_file_names) 
 
-def parse_params(name):
+def params_resub(subject):
+    r_alphas = re.compile(r'[a-z]+')
+    
+    p = re.sub(r_alphas, '', subject)
+    p = p.split("_")
+    p = p[1:6]
+    return p
+
+def parse_params_gc(name):
     """ Split file name into individual parameters """
     r_dir = re.compile(rf'(?<={args.gc_dir}).*')
-    r_alphas = re.compile(r'[a-z]+')
-
-    p = re.findall(r_dir, name)
+    query = re.findall(r_dir, name)
+    
+    params_resub(query[0], r_alphas)
+        
     p = re.sub(r_alphas, '', p[0])
     p = p.split("_")
     p = p[1:6]
-    return(p)
+    return p
 
 def gc_colnames():
     column_names = ['file', 'mut', 'rec', 'seqLen', 'dualInf', 'rep', \
@@ -44,7 +52,7 @@ def gc_colnames():
     return(column_names)
    
 def gc_prep_row(name, line):
-    params = parse_params(name)
+    params = parse_params_gc(name)
     scores = line.split('\t')
     scores = scores[0:17]
     params.insert(0, name)
@@ -141,7 +149,6 @@ def match_files_seq(sim_row, gc):
 
 def bp_series_to_set(sim_row, gc):
     gc_row = match_files_seq(sim_row, gc)
-    print(gc_row.iloc[0]['bp'])
     gc_bp = gc_row.iloc[0]['bp']
     return gc_bp
     
@@ -168,7 +175,6 @@ def true_pos(bp_sim, bp_gc):
     return len(i)
 
 def false_pos(bp_sim, bp_gc):
-    print(bp_sim)
     d = bp_gc.difference(bp_sim)
     return len(d)
 
@@ -179,47 +185,153 @@ def false_neg(bp_sim, bp_gc):
 def true_neg(seq_length, TP, FP, FN):
     return seq_length - TP - FP - FN
 
+def append_out_row(TP, FP, TN, FN, out_row):
+    out_row.append(TP)            
+    out_row.append(FP)
+    out_row.append(TN)
+    out_row.append(FN)
+    return out_row
+
 def calc_no_gc(sim_row, seq_length, out_row):
     TP = 0
     FP = 0
     TN = seq_length - bp_length(sim_row['breakpoints'])
     FN = bp_length(sim_row['breakpoints'])
-    
-    out_row.append(TP)            
-    out_row.append(FP)
-    out_row.append(TN)
-    out_row.append(FN)
-
-    return out_row
+    return append_out_row(TP, FP, TN, FN, out_row)
 
 def calc_yes_gc_no_sim(bp_gc, seq_length, out_row):
-    print(bp_gc)
-    #print("gc_row: {}\n gc_row.bp[0]: {} \n seq_length: {} \n bp_length(gc_row.bp): {}".format(gc_row, gc_row.bp, seq_length, bp_length(gc_row.bp)))
     TP = 0
     FP = bp_length(bp_gc)
     TN = seq_length - bp_length(bp_gc)
     FN = 0
-    
-    out_row.append(TP)            
-    out_row.append(FP)
-    out_row.append(TN)
-    out_row.append(FN)
-    
-    return out_row
-    
+    return append_out_row(TP, FP, TN, FN, out_row)
+
 def calc_yes_gc_yes_sim(sim_row, gc, seq_length, out_row):
     TP = true_pos(sim_row['breakpoints'], gc)
     FP = false_pos(sim_row['breakpoints'], gc)
     FN = false_neg(sim_row['breakpoints'], gc)
     TN = true_neg(seq_length, TP, FP, FN)
+    return append_out_row(TP, FP, TN, FN, out_row)
+
+def parse_params_out(subject):
+    r_path = re.compile(r'^/Users\/13444841\/Dropbox\/Masters\/03_results\/out_190925\/out_190917\/B3_geneconv')
+    p = re.sub(r_path, '', subject)
+    return params_resub(p)
+
+def rcseq_no_gc(sim_bp):
+    if type(sim_bp) is float:
+        return 'TN'
+    elif type(sim_bp) is set:
+        return 'FN'
+
+def getTPR(TP, FN):
+    if (TP == 0 and FN == 0):
+        return(float('NaN'))
+    else:
+        return(int(TP/(TP + FN)))
+
+def getFPR(FP, TN):
+    if (FP == 0 and TN == 0):
+        return(float('NaN'))
+    else:
+        return(int(FP/(FP + TN)))
+
+def getTNR(TN, FP):
+    if (TN == 0 and FP == 0):
+        return(float('NaN'))
+    else:
+        return(int(TN/(TN + FP)))
+
+def getFNR(FN, TP):
+    if (FN == 0 and TP == 0):
+        return(float('NaN'))
+    else:
+        return(int(FN/(FN + TP)))
+
+def getPPV(TP, FP):
+    if (TP == 0 and FP == 0):
+        return(float('NaN'))
+    else:
+        return(int(TP/(TP + FP)))
+
+def getFDR(TP, FP):
+    if (TP == 0 and FP == 0):
+        return(float('NaN'))
+    else:
+        return(int(FP/(TP + FP)))
+
+def getNPV(TN, FN):
+    if (TN == 0 and FN == 0):
+        return(float('NaN'))
+    else:
+        return(int(TN/(TN + FN)))
+
+def getFOR(TN, FN):
+    if (TN == 0 and FN == 0):
+        return(float('NaN'))
+    else:
+        return(int(FN/(TN + FN)))
+
+def getF1(PPV, TPR):
+    if (isnan(PPV) or isnan(TPR)):
+        return(float('NaN'))
+    if (PPV == 0 and TPR == 0):
+        return(float('NaN'))
+    else:
+        return(2*((PPV*TPR)/(PPV+TPR)))
+        
+def getPre(TP, FP, TN, FN):
+    return((TP + FN)/(TP + FP + TN + FN))
+
+def getACC(TP, FP, TN, FN):
+    return((TP + TN)/(TP + FP + TN + FN))
+
+def getLRP(TPR, FPR):
+    if FPR == 0:
+        return(float('NaN'))
+    return(TPR/FPR)
+
+def getLRN(FNR, TNR):
+    if TNR == 0:
+        return(float('NaN'))
+    return(FNR/TNR)
+
+def getDOR(LRP, LRN):
+    if (LRN == 0):
+        return(float('NaN'))
+    else:
+        return(LRP/LRN)
+
+def binary_measures(out_row):
+    TP  = out_row[7 ]
+    FP  = out_row[8 ]
+    TN  = out_row[9 ]
+    FN  = out_row[10]
+    TPR = getTPR(TP , FN)
+    FPR = getFPR(FP , TN)
+    TNR = getTNR(TN , FP)
+    FNR = getFNR(FN , TP)
+    PPV = getPPV(TP , FP)
+    LRP = getLRP(TPR, FPR)
+    LRN = getLRN(FNR, TNR)    
     
-    out_row.append(TP)            
-    out_row.append(FP)
-    out_row.append(TN)
-    out_row.append(FN)
-
+    out_row.append(TPR)
+    out_row.append(FPR)
+    out_row.append(getTNR(TN, FP))
+    out_row.append(getFNR(FN, TP))
+    out_row.append(PPV)
+    out_row.append(getFDR(TP, FP))
+    out_row.append(getNPV(TN, FN))
+    out_row.append(getFOR(TN, FN))
+    out_row.append(getF1(PPV, TPR))
+    out_row.append(getPre(TP, FP, TN, FN))
+    out_row.append(getACC(TP, FP, TN, FN))
+    out_row.append(LRP)
+    out_row.append(LRN)
+    out_row.append(getDOR(LRP, LRN))
+    
     return out_row
-
+    
 ### Big functions
 def concat_gc_outputs():
     file_names = gc_file_names(args.gc_dir)
@@ -246,36 +358,47 @@ def count_conditions(sim_bp, gc):
     seq_length = 1680
     with open("F3_geneconv_conditions.csv", 'w+') as csv_file:
         writer = csv.writer(csv_file)
-        csv_header = ['params', 'seq', 'TP', 'FP', 'TN', 'FN']
+        csv_header = ['mut', 'rec', 'seqn', 'dualInf', 'rep', 'seq_name', 
+                      'RC_seq', 'TP', 'FP', 'TN', 'FN', 'TPR', 'FPR', 'TNR', 
+                      'FNR', 'PPV', 'FDR', 'NPV', 'FOR', 'F1', 'Pre', 'ACC', 
+                      'LR+', 'LR-', 'DOR']
         writer.writerow(csv_header)
+        counter = 0
         
         for index, sim_row in sim_bp.iterrows():
+            
+            counter += 1
+            print("{}/{}".format(counter, len(sim_bp)))
             """ Iterate through each simulated sequence """
-            print(sim_row.params)
             out_row = []
-            out_row.append(sim_row['params']) 
-            out_row.append(sim_row['seq'])
+            out_row.extend(parse_params_out(sim_row.params))
+            out_row.extend([sim_row['seq']])
             
             if sim_seq_in_gc(sim_row, gc):
-                
+                """ GENCONV detected recombination at this param + seq """                
                 bp_gc = bp_series_to_set(sim_row, gc)
-                
-                """ GENCONV detected recombination at this param + seq """
-                    
+                             
                 if type(sim_row['breakpoints']) is float:
                     """ No breakpoints simulated """                    
+                    rc_seq = 'FP'
+                    out_row.append(rc_seq)
                     calc_yes_gc_no_sim(bp_gc, seq_length, out_row)
-                    writer.writerow(out_row)
                     
                 elif type(sim_row['breakpoints']) is set: 
                     """ Breakpoints simulated """
+                    rc_seq = 'TP'
+                    out_row.append(rc_seq)
                     calc_yes_gc_yes_sim(sim_row, bp_gc, seq_length, out_row)
-                    writer.writerow(out_row)
 
             else:
                 """ GENECONV detected to recombination at this param """
+                rc_seq = rcseq_no_gc(sim_row['breakpoints'])
+                out_row.append(rc_seq)
                 calc_no_gc(sim_row, seq_length, out_row)
-                writer.writerow(out_row)
+            
+            binary_measures(out_row)
+            writer.writerow(out_row) 
+            
 
 ### Arguments -------------------- 
 '''parser = argparse.ArgumentParser()
