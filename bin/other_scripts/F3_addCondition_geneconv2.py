@@ -391,7 +391,7 @@ def count_conditions(sim_bp, gc):
                     calc_yes_gc_yes_sim(sim_row, bp_gc, seq_length, out_row)
 
             else:
-                """ GENECONV detected to recombination at this param """
+                """ GENECONV detected no recombination at this param """
                 rc_seq = rcseq_no_gc(sim_row['breakpoints'])
                 out_row.append(rc_seq)
                 calc_no_gc(sim_row, seq_length, out_row)
