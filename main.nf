@@ -311,7 +311,7 @@ if (params.mode == 'bm') {
   B3_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
   B4_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
   B5_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
-/* 
+/*
   process B1_phi_profile {
 
     label "${params.label}"
@@ -331,7 +331,7 @@ if (params.mode == 'bm') {
     """
 
   }
-*/
+
   process B2_3seq {
     // TO DO: add to bioconda
 
@@ -356,9 +356,8 @@ if (params.mode == 'bm') {
     """
 
   }
-/*
+*/
   process B3_geneconv {
-    // TO DO: add to bioconda
 
     errorStrategy 'ignore'
     label "${params.label}"
@@ -377,7 +376,7 @@ if (params.mode == 'bm') {
     """
 
    }
-
+/*
   process B4_uchime_derep {
 
     label "${params.label}"
