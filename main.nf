@@ -40,7 +40,8 @@ def helpMessage() {
     --xml [.xml]      SANTA-SIM .xml configuration. Defaults to ./santa.xml
 
   2. Visualise/summarise simulation outputs (sequence stats, breakpoints):
-    --mode sim_v
+    --mode sim_v      Summarise output simulation files for sim_bp
+    --simdir [str]    Path to dir which contains folder for simulation files (S4_santa). Default 'baseDir/out'
 
   3. Benchmark recombination detection methods using simulated data:
     --mode div        Move simulated .fasta into subdirs by size. * Use prior to `--mode bm`*
@@ -53,10 +54,11 @@ def helpMessage() {
     --mode emp
     --seq [.fasta]    Path to input .fasta file
 
-  5. Calculating F-Scores - PhiPack (Profile) only:
-    --mode fscore     Determine conditions of simulations vs detected recombination
-    --simbp   [.csv]  Path to .csv containing simulated breakpoints per rep
-    --out     [str]   Name of output folder
+  5. Calculating classification metrics:
+    --mode class       Determine conditions of simulations vs detected recombination
+    --simbp    [.csv]  Path to .csv containing simulated breakpoints per rep
+    --rec_path [str]   Path to folder where output for --mode bm is
+    --out      [str]   Path to write files to
 
    """.stripIndent()
  }
@@ -123,9 +125,8 @@ else if (params.mode == 'sim_v') {
 else if (params.mode == 'div') {
   println "Arranging sequences into dirs by size"
 }
-else if (params.mode == 'fscore') {
-  // Current inputs: (1) simulated breakpoints (2) Profile.csv
-  println "Calculating F-Scores of detected recombination"
+else if (params.mode == 'class') {
+  println "Calculating classification metrics of detected recombination"
 }
 
 else {
@@ -255,25 +256,26 @@ Dual infection rate = ${dualinf}
 
 if (params.mode == 'sim_v') {
   // Set input; S4_santa output dir
-  println "Reading files in ${params.out}/S4_santa"
-  v1_fileDir = "${params.out}/S4_santa"
+  println "Reading files from ${params.simdir}/S4_santa"
+  v1_fileDir = "${params.simdir}/S4_santa"
 
   process V1_santa_stats {
     // Visualise simulation statistics and breakpoints
-    // TO DO: implement Rscript
-    //
+    
+    label 'pbs_small' 
+    publishDir "${params.out}", mode: 'copy'
 
     input:
     val v1_fileDir from v1_fileDir
 
-    //output:
-    //file 'V1_santa_stats.csv'
+    output:
+    file 'V1_santa_stats.csv'
 
     script:
     """
     python3.7 ${params.bin}/V1_santa_stats.py ${v1_fileDir}
-    Rscript ${params.bin}/V1_santa_stats.R
-    mkdir -p ${params.out}/viz
+    #Rscript ${params.bin}/V1_santa_stats.R
+    #mkdir -p ${params.out}/viz
     """
 
   }
@@ -616,11 +618,15 @@ if (params.mode == 'emp') {
 }
 
 /*
- * 4. CALCULATE F-SCORES (SIM VS. DETECTED)
+ * 4. CALCULATE CLASSIFICATION METRICS
  */
+
 // Create simulated breakpoints with *.R
 
-if (params.mode == 'fscore') {
+if (params.mode == 'class') {
+
+  sim_bp = "${params.sim_bp}"
+  rec_path = "${params.rec_path}"
 /*
   log.info """
   simbp   = ${params.simbp}
@@ -653,7 +659,29 @@ if (params.mode == 'fscore') {
     """
 
     }
+*/
 
+  process F2_3seq {
+
+  label "pbs_small" 
+  publishDir "${params.out}/F2_3seq"
+ 
+  input:
+  val sim_bp from sim_bp
+  val rec_path from rec_path
+
+  output:
+  file "F2_3seq_conditions.csv"
+  
+  script:
+  """
+  python3.7 ${baseDir}/bin/other_scripts/F2_addCondition_3SEQ.py \
+            ${sim_bp} \
+            ${rec_path}/B2_3seq
+  """
+  }
+
+/*
   process F5_gmos_parse {
   
     Channel

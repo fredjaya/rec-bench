@@ -14,12 +14,10 @@ import csv
 from math import isnan
 
 # Arguments -----
-"""
 parser = argparse.ArgumentParser()
 parser.add_argument("sim_bp", help = "simulated breakpoint file (individual seqs")
 parser.add_argument("rec_path", help = "path to 3SEQ output files (*.rec)")
 args = parser.parse_args()
-"""
 
 # Functions -----
 def convert_bps(bp):
@@ -34,9 +32,7 @@ def convert_bps(bp):
     
 def bp_to_set(sim_bp):
     d = []
-    length = len(sim_bp)
     for index, sim_row in sim_bp.iterrows():
-        print("{}/{}".format(index, length))
         bp = convert_bps(sim_row['breakpoints']) 
         d.append(bp)
     return d
@@ -273,7 +269,7 @@ def binary_measures(out_row):
     return out_row
 
 def prep_sim_file():
-    sim_bp = pd.read_csv("/Users/13444841/Dropbox/Masters/02_working/2001_3seq_conditions/3seq_simBP_all.csv")
+    sim_bp = pd.read_csv(args.sim_bp)
     sim_bp['breakpoints'] = bp_to_set(sim_bp)
     return sim_bp
 
@@ -347,6 +343,6 @@ def count_conditions(sim_bp, rec_path):
             writer.writerow(out_row)
     return
 # Main -----
-rec_path = "/Users/13444841/Dropbox/Masters/02_working/2001_3seq_conditions/B2_3seq/RCall"
-#sim_bp = prep_sim_file()
+rec_path = args.rec_path
+sim_bp = prep_sim_file()
 count_conditions(sim_bp, rec_path)

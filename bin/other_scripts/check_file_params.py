@@ -48,9 +48,12 @@ def get_file_names(path_to_dir, process_out):
     return file_names
 
 def params_regex(subject):
-    p = re.sub(r'[a-z]+', '', subject)
+    print(subject)
+    p = re.sub(r'^.*(?=msa)', '', subject)
+    p = re.sub(r'[a-z]+', '', p)
     p = p.split("_")
 
+    """
     if args.process_out == "S4_santa":
         return p[4:9]
 
@@ -65,6 +68,9 @@ def params_regex(subject):
     
     else:
         print("fail")
+    """
+    
+    return p[1:6]
 
 def list_to_dict(subject):
     param_names = ['mut', 'rec', 'seqn', 'dualInf', 'rep']

@@ -17,5 +17,7 @@ dependencies:
   - phipack=1.1
   # B4_uchime
   - vsearch=2.14
+  # Class metrics
+  - pandas
   # Pipeline tracing and reporting
   #- graphviz=2.40.1 # Nextflow still outputs 'install graphviz' error
