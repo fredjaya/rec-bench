@@ -255,27 +255,44 @@ Dual infection rate = ${dualinf}
 }
 
 if (params.mode == 'sim_v') {
-  // Set input; S4_santa output dir
+  
   println "Reading files from ${params.simdir}/S4_santa"
-  v1_fileDir = "${params.simdir}/S4_santa"
+  sim_path = "${params.simdir}/S4_santa"
 
   process V1_santa_stats {
-    // Visualise simulation statistics and breakpoints
-    
+    // Summarise population stats
+
     label 'pbs_small' 
     publishDir "${params.out}", mode: 'copy'
 
     input:
-    val v1_fileDir from v1_fileDir
+    val sim_path from sim_path
 
     output:
     file 'V1_santa_stats.csv'
 
     script:
     """
-    python3.7 ${params.bin}/V1_santa_stats.py ${v1_fileDir}
-    #Rscript ${params.bin}/V1_santa_stats.R
-    #mkdir -p ${params.out}/viz
+    python3.7 ${params.bin}/V1_santa_stats.py ${sim_path}
+    """
+
+  }
+
+  process V2_santa_bp {
+    // Summarise simulated breakpoints per output .fasta    
+    
+    label 'pbs_small' 
+    publishDir "${params.out}", mode: 'copy'
+
+    input:
+    val sim_path from sim_path
+
+    output:
+    file 'V2_santa_bp.csv'
+
+    script:
+    """
+    python3.7 ${params.bin}/V2_santa_bp.py ${sim_path}
     """
 
   }
