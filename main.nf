@@ -662,23 +662,30 @@ if (params.mode == 'emp') {
 // Create simulated breakpoints with *.R
 
 if (params.mode == 'class') {
-
   
   log.info """
+  -- F0_cp_outputs_by_method --
   bm_files = ${params.bm_files}
   out = ${params.out}
+
+  -- addConditions --
+  sim_bp = ${params.sim_bp}
+  rec_path = ${params.rec_path}
+
+
   """.stripIndent()
 
-"""
+  sim_bp = "${params.sim_bp}"
+  rec_path = "${params.rec_path}"
+
+/*
   Channel
       .fromPath(params.simbp)
       .splitCsv(header:true)
       .map { row -> tuple(file(row.params), row.bps) }
       .set { F1_input }
       .set { F5_input }
-"""
   process F0_cp_outputs_by_method {
-  // have to terminate this manually?
 
   bm_files = "${params.bm_files}" // Path to full_analysis
   out = "${params.out}" // Path to copy files to
@@ -720,7 +727,6 @@ if (params.mode == 'class') {
   """
   }
 
-/*
   process F1_phi_profile {
     // For some reason, params.bin and params.out don't work???
     // https://github.com/fredjaya/rec-bench/issues/22
@@ -731,7 +737,7 @@ if (params.mode == 'class') {
     input:
     set file(params), bps from F1_input
 
-    output:
+   output:
     file 'condition_*'
     file '*.log'
 
@@ -748,7 +754,7 @@ if (params.mode == 'class') {
     publishDir "${params.out}/F2_3seq"
  
     input:
-    file sim_bp from F2_sim_bp
+    val sim_bp from sim_bp 
     val rec_path from rec_path
 
     output:
@@ -757,32 +763,32 @@ if (params.mode == 'class') {
     script:
     """
     python3.7 ${baseDir}/bin/F2_addCondition_3SEQ.py \
-              ${sim_bp} \
-              ${rec_path}/B2_3seq
+              ${sim_bp}/V3_3seq_sim_bp.csv \
+              ${rec_path}/F2_3seq
     """
   }
-
+*/
   process F3_geneconv {
   
-  label "pbs_small" 
-  publishDir "${params.out}/F3_geneconv"
+    label "pbs_small" 
+    publishDir "${params.out}/F3_geneconv"
  
-  input:
-  file sim_bp from F3_sim_bp
-  val rec_path from rec_path
+    input:
+    file sim_bp from sim_bp 
+    val rec_path from rec_path
 
-  output:
-  file "F2_3seq_conditions.csv"
-  
-  script:
-  """
-  python3.7 ${baseDir}/bin/other_scripts/F3_addCondition_geneconv.py \
-            ${sim_bp} \
-            ${rec_path}/B3_geneconv
-  """
+    output:
+    file "F3_gc_conditions.csv"
+    
+    script:
+    """
+    python3.7 ${baseDir}/bin/F3_addCondition_geneconv.py \
+              ${sim_bp}/V3_gc_sim_bp.csv \
+              ${rec_path}/F3_geneconv
+    """
   
   }
-
+/*
   process F5_gmos_parse {
   
     Channel
