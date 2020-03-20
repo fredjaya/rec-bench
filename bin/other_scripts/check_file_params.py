@@ -33,11 +33,7 @@ def get_file_names(path_to_dir, process_out):
 
     if process_out == "B3_geneconv":
         for name in glob.glob("{}/*.tab".format(path_to_dir)):
-            file_names.append(name)
-    
-    if process_out == "B3_geneconv":
-        for name in glob.glob("{}/*.tab".format(path_to_dir)):
-            file_names.append(name)
+            file_names.append(name) 
     
     if process_out == "B4_uchime":
         for name in glob.glob("{}/*.rc".format(path_to_dir)):

@@ -288,13 +288,34 @@ if (params.mode == 'sim_v') {
     val sim_path from sim_path
 
     output:
-    file 'V2_santa_bp.csv'
+    file 'V2_santa_bp.csv' into V3_santa
 
     script:
     """
     python3.7 ${params.bin}/V2_santa_bp.py ${sim_path}
     """
 
+  }
+  
+  process V3_sim_bp {
+    // Parse santa_bp for classification metrics sim_bp
+
+    label "${params.label}"
+    publishDir "${params.out}/V3_sim_bp", mode: 'copy'
+
+    input:
+    val santa_bp from V3_santa 
+
+    output:
+    file 'V3_profile_sim_bp.csv'
+    file 'V3_3seq_sim_bp.csv'
+    file 'V3_gc_sim_bp.csv'
+
+    script:
+    """
+    Rscript "${params.bin}/V3_sim_bp.R" ${santa_bp} 
+    """
+  
   }
 
 }
@@ -642,25 +663,69 @@ if (params.mode == 'emp') {
 
 if (params.mode == 'class') {
 
-  sim_bp = "${params.sim_bp}"
-  rec_path = "${params.rec_path}"
-/*
+  
   log.info """
-  simbp   = ${params.simbp}
+  bm_files = ${params.bm_files}
+  out = ${params.out}
   """.stripIndent()
 
+"""
   Channel
       .fromPath(params.simbp)
       .splitCsv(header:true)
       .map { row -> tuple(file(row.params), row.bps) }
       .set { F1_input }
       .set { F5_input }
+"""
+  process F0_cp_outputs_by_method {
+  // have to terminate this manually?
 
+  bm_files = "${params.bm_files}" // Path to full_analysis
+  out = "${params.out}" // Path to copy files to
+  
+  PROFILE="${params.out}/F1_phi_profile"
+  TSEQ="${params.out}/F2_3seq"
+  GC="${params.out}/F3_geneconv"
+  
+  label "local"
+  
+  input:
+  val bm_files from bm_files
+  val out from out
+  val PROFILE from PROFILE
+  val TSEQ from TSEQ
+  val GC from GC
+
+  script:
+  """
+  mkdir -p $PROFILE
+  mkdir -p $TSEQ
+  mkdir -p $GC
+   
+  # Profile
+  cp -v ${bm_files}/3_bm_n100/B1_phi_profile/*_Profile.csv $PROFILE
+  cp -v ${bm_files}/4_bm_n1000/B1_phi_profile/*_Profile.csv $PROFILE  
+  cp -v ${bm_files}/5_bm_n5000_phi_uchime_gmos/B1_phi_profile/*_Profile.csv $PROFILE
+
+  # 3SEQ
+  cp -v ${bm_files}/3_bm_n100/B2_3seq/*.rec $TSEQ
+  cp -v ${bm_files}/4_bm_n1000/B2_3seq/*.rec $TSEQ  
+  cp -v ${bm_files}/6_bm_n5000_3seq/B2_3seq/*.rec $TSEQ
+
+  # GENECONV
+  cp -v ${bm_files}/3_bm_n100/B3_geneconv/*.tab $GC
+  cp -v ${bm_files}/4_bm_n1000/B3_geneconv/*.tab $GC
+  cp -v ${bm_files}/7_bm_n5000_gc/B3_geneconv/*.tab $GC 
+  
+  """
+  }
+
+/*
   process F1_phi_profile {
     // For some reason, params.bin and params.out don't work???
     // https://github.com/fredjaya/rec-bench/issues/22
 
-    label "${params.label}"
+    label "pbs_small"
     publishDir "/Users/13444841/Dropbox/Masters/02_working/2001_precision_recall/2001_profile_nf/F1_phi_profile", mode: 'move'
 
     input:
@@ -676,15 +741,34 @@ if (params.mode == 'class') {
     """
 
     }
-*/
 
   process F2_3seq {
 
+    label "pbs_small" 
+    publishDir "${params.out}/F2_3seq"
+ 
+    input:
+    file sim_bp from F2_sim_bp
+    val rec_path from rec_path
+
+    output:
+    file "F2_3seq_conditions.csv"
+    
+    script:
+    """
+    python3.7 ${baseDir}/bin/F2_addCondition_3SEQ.py \
+              ${sim_bp} \
+              ${rec_path}/B2_3seq
+    """
+  }
+
+  process F3_geneconv {
+  
   label "pbs_small" 
-  publishDir "${params.out}/F2_3seq"
+  publishDir "${params.out}/F3_geneconv"
  
   input:
-  val sim_bp from sim_bp
+  file sim_bp from F3_sim_bp
   val rec_path from rec_path
 
   output:
@@ -692,13 +776,13 @@ if (params.mode == 'class') {
   
   script:
   """
-  python3.7 ${baseDir}/bin/other_scripts/F2_addCondition_3SEQ.py \
+  python3.7 ${baseDir}/bin/other_scripts/F3_addCondition_geneconv.py \
             ${sim_bp} \
-            ${rec_path}/B2_3seq
+            ${rec_path}/B3_geneconv
   """
+  
   }
 
-/*
   process F5_gmos_parse {
   
     Channel
