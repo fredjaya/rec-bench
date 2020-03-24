@@ -751,7 +751,7 @@ if (params.mode == 'class') {
   process F2_3seq {
 
     label "pbs_small" 
-    publishDir "${params.out}/F2_3seq"
+    publishDir "${params.out}/F2_3seq", mode: 'move'
  
     input:
     val sim_bp from sim_bp 
@@ -768,6 +768,25 @@ if (params.mode == 'class') {
     """
   }
 */
+  
+  process F3_concat_gc {
+  
+  label "pbs_small"
+  publishDir "${params.out}", mode: 'move'
+  
+  input:
+  val rec_path from rec_path
+  
+  output:
+  file "F3_geneconv_summarised.csv" into F3_geneconv 
+ 
+  script:
+  """
+  python3.7 ${baseDir}/bin/F3_concat_gc_outputs.py \
+            ${rec_path}/F3_geneconv/
+  """
+  }
+/*
   process F3_geneconv {
   
     label "pbs_small" 
@@ -775,7 +794,7 @@ if (params.mode == 'class') {
  
     input:
     file sim_bp from sim_bp 
-    val rec_path from rec_path
+    file gc from F3_geneconv
 
     output:
     file "F3_gc_conditions.csv"
@@ -784,11 +803,11 @@ if (params.mode == 'class') {
     """
     python3.7 ${baseDir}/bin/F3_addCondition_geneconv.py \
               ${sim_bp}/V3_gc_sim_bp.csv \
-              ${rec_path}/F3_geneconv
+              ${gc}  
     """
   
   }
-/*
+
   process F5_gmos_parse {
   
     Channel

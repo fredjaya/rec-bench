@@ -51,7 +51,7 @@ def gc_prep_row(name, line):
     return(row)
 
 def gc_to_csv(file_names):
-    with open("F3_geneconv_out.csv", "w+") as csv_file:
+    with open("F3_gc_conditions.csv", "w+") as csv_file:
         writer = csv.writer(csv_file, delimiter = ',')
         writer.writerow(gc_colnames())
         for name in file_names:
@@ -97,9 +97,8 @@ def group_params(df):
              .agg({'bp': my_lambda}) \
              .reset_index()
 
-def read_sim_file():
+def read_sim_file(sim_path):
     print("Reading simulated breakpoint file...")
-    sim_path = "/Users/13444841/Dropbox/Masters/02_working/1911_precision_recall/191112_simbps/sim_bp_f1.csv"
     return pd.read_csv(sim_path)
 
 def filter_seq_num(sim_bp):
@@ -149,7 +148,7 @@ def gc_to_dict():
     return grouped.to_dict('index')
 
 def prep_sim_file():
-    sim_bp_OG = read_sim_file()
+    sim_bp_OG = read_sim_file(args.sim_bp)
     sim_bp = filter_seq_num(sim_bp_OG)
     sim_bp = sim_to_dict(sim_bp)
     amend_path(sim_bp)
@@ -160,11 +159,11 @@ def count_conditions(sim_bp, gc):
   '''      
     
 ### Arguments -------------------- 
-'''parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser()
 parser.add_argument("gc_dir", help = "path to dir containing geneconv output ()*.tab) files")
 parser.add_argument("sim_bp", help = "simulated breakpoint file for each parameter and sequence")
 args = parser.parse_args()
-'''
+
 ### Main --------------------
 gc = gc_to_dict()
 sim_bp = prep_sim_file()
