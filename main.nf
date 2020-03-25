@@ -767,7 +767,6 @@ if (params.mode == 'class') {
               ${rec_path}/F2_3seq
     """
   }
-*/
   
   process F3_concat_gc {
   
@@ -778,7 +777,7 @@ if (params.mode == 'class') {
   val rec_path from rec_path
   
   output:
-  file "F3_geneconv_summarised.csv" into F3_geneconv 
+  file "F3_geneconv_summarised.csv" //into F3_separate_seq_pairs 
  
   script:
   """
@@ -786,24 +785,41 @@ if (params.mode == 'class') {
             ${rec_path}/F3_geneconv/
   """
   }
+*/
+  process F3_separate_seq_pairs {
+    // IN: F3_geneconv_summary
+    // OUT: F3_geneconv_unpaired
+    label 'pbs_small'
+    publishDir "${params.out}", mode: 'copy'
+    
+    output:
+    file "F3_geneconv_unpaired.csv"
+ 
+    script:
+    """
+    Rscript ${params.bin}/F3_separate_seq_pairs.R \
+            ${params.out}/F3_geneconv_summarised.csv
+    """
+  
+}
 /*
   process F3_geneconv {
   
     label "pbs_small" 
-    publishDir "${params.out}/F3_geneconv"
+    publishDir "${params.out}", mode: 'copy'
  
     input:
     file sim_bp from sim_bp 
-    file gc from F3_geneconv
+    //file gc from F3_geneconv
 
     output:
     file "F3_gc_conditions.csv"
     
     script:
     """
-    python3.7 ${baseDir}/bin/F3_addCondition_geneconv.py \
+    python3.7 ${baseDir}/bin/F3_addCondition_geneconv2.py \
               ${sim_bp}/V3_gc_sim_bp.csv \
-              ${gc}  
+              ${params.out}/F3_geneconv_summarised.csv  
     """
   
   }
