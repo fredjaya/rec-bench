@@ -19,17 +19,11 @@ from math import isnan
 def read_gc_file(gc_summary_file):
     return pd.read_csv(gc_summary_file)
 
-def rm_cols(df):
-    return df.drop(columns =
-                 ['sim_pval', 'BC_KA_pval', 'aligned_start', 'aligned_end', \
-                  'aligned_length', 'num_poly', 'total_diffs', 'bp_length'])
-
 def bp_pairs_to_set(df):
     bp = []
     df = df[['start_bp', 'end_bp']]
     for index, row in df.iterrows():
         bp.append({row['start_bp'], row['end_bp']})
-        print(len(bp))
     return bp
 
 def append_bps(df, bp):
@@ -51,7 +45,6 @@ def group_params(df):
 
 def read_sim_file(sim_path):
     print("Reading simulated breakpoint file...")
-    sim_path = "/Users/134dd44841/Dropbox/Masters/02_working/1911_precision_recall/191112_simbps/sim_bp_f1.csv"
     return pd.read_csv(sim_path)
 
 def filter_seq_num(sim_bp):
@@ -73,8 +66,7 @@ def bp_to_set(sim_bp):
     d = []
     length = len(sim_bp)
     for index, sim_row in sim_bp.iterrows():
-        print("{}/{}".format(index, length))
-        d.append(match_breakpoints(sim_row['breakpoints']))
+        d.append(match_breakpoints(sim_row['bps']))
     return d
     
 def amend_path(sim_bp):
@@ -138,8 +130,8 @@ def append_out_row(TP, FP, TN, FN, out_row):
 def calc_no_gc(sim_row, seq_length, out_row):
     TP = 0
     FP = 0
-    TN = seq_length - bp_length(sim_row['breakpoints'])
-    FN = bp_length(sim_row['breakpoints'])
+    TN = seq_length - bp_length(sim_row['bps'])
+    FN = bp_length(sim_row['bps'])
     return append_out_row(TP, FP, TN, FN, out_row)
 
 def calc_yes_gc_no_sim(bp_gc, seq_length, out_row):
@@ -150,16 +142,14 @@ def calc_yes_gc_no_sim(bp_gc, seq_length, out_row):
     return append_out_row(TP, FP, TN, FN, out_row)
 
 def calc_yes_gc_yes_sim(sim_row, gc, seq_length, out_row):
-    TP = true_pos(sim_row['breakpoints'], gc)
-    FP = false_pos(sim_row['breakpoints'], gc)
-    FN = false_neg(sim_row['breakpoints'], gc)
+    TP = true_pos(sim_row['bps'], gc)
+    FP = false_pos(sim_row['bps'], gc)
+    FN = false_neg(sim_row['bps'], gc)
     TN = true_neg(seq_length, TP, FP, FN)
     return append_out_row(TP, FP, TN, FN, out_row)
 
 def parse_params_out(subject):
-    r_path = re.compile(r'^/Users\/13444841\/Dropbox\/Masters\/03_results\/out_190925\/out_190917\/B3_geneconv')
-    p = re.sub(r_path, '', subject)
-    return params_resub(p)
+    return re.sub('^.*(?=msa)', '', subject)
 
 def rcseq_no_gc(sim_bp):
     if type(sim_bp) is float:
@@ -246,6 +236,7 @@ def getDOR(LRP, LRN):
         return(LRP/LRN)
 
 def binary_measures(out_row):
+    print(out_row)
     TP  = out_row[7 ]
     FP  = out_row[8 ]
     TN  = out_row[9 ]
@@ -280,21 +271,20 @@ def binary_measures(out_row):
 def gc_to_dict(gc_summary_file): 
     """ Parse F3_geneconv_summarised.csv for calculation """
     gc = read_gc_file(gc_summary_file)
-    gc = rm_cols(gc)
     
     bp = bp_pairs_to_set(gc)
     gc = append_bps(gc, bp)
     gc = rm_bp_pairs(gc)
     
     grouped = group_params(gc)
-    grouped.to_csv("F3_geneconv_out_groupedBP.csv")
+    #grouped.to_csv("F3_geneconv_out_groupedBP.csv")
     return grouped
 
-def prep_sim_file():
-    sim_bp = read_sim_file()
+def prep_sim_file(sim_path):
+    sim_bp = read_sim_file(sim_path)
     sim_bp = filter_seq_num(sim_bp)
     sim_bp = amend_path(sim_bp)
-    sim_bp['breakpoints'] = bp_to_set(sim_bp)
+    sim_bp['bps'] = bp_to_set(sim_bp)
     return sim_bp
     
 def count_conditions(sim_bp, gc):
@@ -311,7 +301,6 @@ def count_conditions(sim_bp, gc):
         for index, sim_row in sim_bp.iterrows():
             
             counter += 1
-            print("{}/{}".format(counter, len(sim_bp)))
             """ Iterate through each simulated sequence """
             out_row = []
             out_row.extend(parse_params_out(sim_row.params))
@@ -321,13 +310,13 @@ def count_conditions(sim_bp, gc):
                 """ GENCONV detected recombination at this param + seq """                
                 bp_gc = bp_series_to_set(sim_row, gc)
                              
-                if type(sim_row['breakpoints']) is float:
+                if type(sim_row['bps']) is float:
                     """ No breakpoints simulated """                    
                     rc_seq = 'FP'
                     out_row.append(rc_seq)
                     calc_yes_gc_no_sim(bp_gc, seq_length, out_row)
                     
-                elif type(sim_row['breakpoints']) is set: 
+                elif type(sim_row['bps']) is set: 
                     """ Breakpoints simulated """
                     rc_seq = 'TP'
                     out_row.append(rc_seq)
@@ -335,7 +324,7 @@ def count_conditions(sim_bp, gc):
 
             else:
                 """ GENECONV detected no recombination at this param """
-                rc_seq = rcseq_no_gc(sim_row['breakpoints'])
+                rc_seq = rcseq_no_gc(sim_row['bps'])
                 out_row.append(rc_seq)
                 calc_no_gc(sim_row, seq_length, out_row)
             

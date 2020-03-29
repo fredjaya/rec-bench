@@ -751,7 +751,7 @@ if (params.mode == 'class') {
   process F2_3seq {
 
     label "pbs_small" 
-    publishDir "${params.out}/F2_3seq", mode: 'move'
+    publishDir "${params.out}", mode: 'move'
  
     input:
     val sim_bp from sim_bp 
@@ -785,7 +785,7 @@ if (params.mode == 'class') {
             ${rec_path}/F3_geneconv/
   """
   }
-*/
+
   process F3_separate_seq_pairs {
     // IN: F3_geneconv_summary
     // OUT: F3_geneconv_unpaired
@@ -802,14 +802,14 @@ if (params.mode == 'class') {
     """
   
 }
-/*
+*/
   process F3_geneconv {
   
     label "pbs_small" 
     publishDir "${params.out}", mode: 'copy'
  
     input:
-    file sim_bp from sim_bp 
+    val sim_bp from sim_bp 
     //file gc from F3_geneconv
 
     output:
@@ -819,11 +819,11 @@ if (params.mode == 'class') {
     """
     python3.7 ${baseDir}/bin/F3_addCondition_geneconv2.py \
               ${sim_bp}/V3_gc_sim_bp.csv \
-              ${params.out}/F3_geneconv_summarised.csv  
+              ${params.out}/F3_geneconv_unpaired.csv
     """
   
   }
-
+/*
   process F5_gmos_parse {
   
     Channel
