@@ -6,7 +6,6 @@ Created on Mon Feb 24 18:04:18 2020
 @author: 13444841
 """
 
-import glob
 import re
 import pandas as pd
 import csv
@@ -43,16 +42,6 @@ def group_params(df):
              .agg({'bp': my_lambda}) \
              .reset_index()
 
-def read_sim_file(sim_path):
-    print("Reading simulated breakpoint file...")
-    return pd.read_csv(sim_path)
-
-def filter_seq_num(sim_bp):
-    #https://stackoverflow.com/questions/28679930/how-to-drop-rows-from-pandas-data-frame-that-contains-a-particular-string-in-a-p/43399866
-    sim_bp = sim_bp[~sim_bp['params'].str.contains("n2500")]
-    sim_bp = sim_bp[~sim_bp['params'].str.contains("n5000")]
-    return sim_bp
-
 def match_breakpoints(bp):
     if type(bp) is str:
         s = set()
@@ -64,22 +53,21 @@ def match_breakpoints(bp):
     
 def bp_to_set(sim_bp):
     d = []
-    length = len(sim_bp)
     for index, sim_row in sim_bp.iterrows():
         d.append(match_breakpoints(sim_row['bps']))
     return d
     
-def amend_path(sim_bp):
-    gc_path = "/Users/13444841/Dropbox/Masters/03_results/out_190925/out_190917/B3_geneconv/"
-    sim_bp['params'] = sim_bp['params'].str.replace('fasta_Profile.csv', 'tab')
-    sim_bp['params'] = gc_path + sim_bp['params'] 
-    return sim_bp
-
+def remove_gc_path(gc):
+    """ Removes full path prefix, retain only msa...fasta to match sim """
+    gc['file_short'] = gc['file'].str.replace('^.*(?=msa)', '')
+    return gc
+    
 def match_files_seq(sim_row, gc):
     """ Check if sim params and seq is present as GC file and seq_name """
     #https://stackoverflow.com/questions/57208954/select-rows-that-match-values-in-multiple-columns-in-pandas
     sim_vals = [sim_row['params'], sim_row['seq']]
-    gc_row = gc[(gc[['file', 'seq_name']] == sim_vals).all(1)]
+
+    gc_row = gc[(gc[['file_short', 'seq_name']] == sim_vals).all(1)] 
     return gc_row
 
 def bp_series_to_set(sim_row, gc):
@@ -148,8 +136,11 @@ def calc_yes_gc_yes_sim(sim_row, gc, seq_length, out_row):
     TN = true_neg(seq_length, TP, FP, FN)
     return append_out_row(TP, FP, TN, FN, out_row)
 
-def parse_params_out(subject):
-    return re.sub('^.*(?=msa)', '', subject)
+def parse_params(subject):
+    p = re.sub(r'^.*(?=msa)', '', subject)
+    p = re.sub(r'[a-z]+', '', p)
+    p = p.split("_")
+    return p[1:6]
 
 def rcseq_no_gc(sim_bp):
     if type(sim_bp) is float:
@@ -236,7 +227,6 @@ def getDOR(LRP, LRN):
         return(LRP/LRN)
 
 def binary_measures(out_row):
-    print(out_row)
     TP  = out_row[7 ]
     FP  = out_row[8 ]
     TN  = out_row[9 ]
@@ -265,6 +255,7 @@ def binary_measures(out_row):
     out_row.append(getDOR(LRP, LRN))
     
     return out_row
+
     
 ### Big functions
 
@@ -281,9 +272,7 @@ def gc_to_dict(gc_summary_file):
     return grouped
 
 def prep_sim_file(sim_path):
-    sim_bp = read_sim_file(sim_path)
-    sim_bp = filter_seq_num(sim_bp)
-    sim_bp = amend_path(sim_bp)
+    sim_bp = pd.read_csv(sim_path)
     sim_bp['bps'] = bp_to_set(sim_bp)
     return sim_bp
     
@@ -296,14 +285,11 @@ def count_conditions(sim_bp, gc):
                       'FNR', 'PPV', 'FDR', 'NPV', 'FOR', 'F1', 'Pre', 'ACC', 
                       'LR+', 'LR-', 'DOR']
         writer.writerow(csv_header)
-        counter = 0
         
         for index, sim_row in sim_bp.iterrows():
-            
-            counter += 1
             """ Iterate through each simulated sequence """
             out_row = []
-            out_row.extend(parse_params_out(sim_row.params))
+            out_row.extend(parse_params(sim_row.params))
             out_row.extend([sim_row['seq']])
             
             if sim_seq_in_gc(sim_row, gc):
@@ -331,14 +317,21 @@ def count_conditions(sim_bp, gc):
             binary_measures(out_row)
             writer.writerow(out_row) 
             
+    return
+            
 
 ### Arguments -------------------- 
-parser = argparse.ArgumentParser()
+"""parser = argparse.ArgumentParser()
 parser.add_argument("sim_bp", help = "simulated breakpoint file for each parameter and sequence")
-parser.add_argument("gc_summary", help = "Summary of all positive GC predictions, output from F3_concat_gc_outputs (F3_geneconv_summarised.csv)")
+parser.add_argument("gc_summary", help = "Transformed summary of all positive GC predictions, output from F3_separate_bp_pairs (F3_geneconv_unpaired.csv)")
 args = parser.parse_args()
-
+"""
 ### Main --------------------
-gc = gc_to_dict(args.gc_summary)
+"""gc = gc_to_dict(args.gc_summary)
 sim_bp = prep_sim_file(args.sim_bp)
 count_conditions(sim_bp, gc)
+"""
+gc = gc_to_dict("/Users/13444841/Dropbox/Masters/02_working/2003_geneconv_conditions/F3_geneconv_unpaired.csv")
+gc_short_path = remove_gc_path(gc)
+sim_bp = prep_sim_file("/Users/13444841/Dropbox/Masters/02_working/2003_geneconv_conditions/V3_gc_sim_bp.csv")
+count_conditions(sim_bp, gc_short_path)
