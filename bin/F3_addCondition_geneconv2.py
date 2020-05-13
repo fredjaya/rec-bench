@@ -148,6 +148,7 @@ def rcseq_no_gc(sim_bp):
     elif type(sim_bp) is set:
         return 'FN'
 
+
 def getTPR(TP, FN):
     if (TP == 0 and FN == 0):
         return(float('NaN'))
