@@ -1,8 +1,9 @@
 .DS_Store
-.nextflow.log*
-.nextflow/*
-out/
+.n*
 .RData
 .Rhistory
 work
 pval700
+conda
+*.swp
+*.csv

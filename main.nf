@@ -3,10 +3,10 @@
 //===============================================================
 //===============================================================
 // Define parameters for S3_param_sweep. Edit the following:
-mutrate = Channel.from(10e-7, 10e-5, 10e-3)
-recrate = Channel.from(10e-7, 10e-5, 10e-3)
-seqnum = Channel.from(100, 1000, 2500, 5000)
-dualinf = Channel.from(0, 0.05, 0.5, 1)
+mutrate = Channel.from(10e-8, 10e-7, 10e-6, 10e-5, 10e-4, 10e-3)
+recrate = Channel.from(10e-8, 10e-7, 10e-6, 10e-5, 10e-4, 10e-3)
+seqnum = Channel.from(100, 1000, 5000)
+dualinf = Channel.from(0, 0.05)
 //===============================================================
 //===============================================================
 
@@ -15,28 +15,50 @@ dualinf = Channel.from(0, 0.05, 0.5, 1)
  * INPUT OPTIONS / PARAMETERS
  */
 
- def helpMessage() {
-   log.info"""
-   Usage:
+def helpMessage() {
+  log.info"""
+  Usage:
 
-   The typical command for running the pipeline is as follows:
+  The typical command for running the pipeline is as follows:
 
-   nextflow run fredjaya/rec-bench --mode [sim/rdm/emp]
+  nextflow run main.nf --mode [sim/rdm/emp...] --other_options
 
-   Mandatory arguments:
-     --mode sim      Generate simulation datasets
-     --mode bm       Detect recombination in simulated datasets and benchmark methods
-     --mode emp      Detect recombination in empirical sequence alignments
-     --mode sim_v    Visualise simulation outputs (sequence stats, breakpoints)
-     --mode div      Divide sequence simulations by size for `--mode bm`
-     --seq [.fasta]  Path to input .fasta file
+  Example scripts can be found in rec-bench/example_runscripts
 
-   Optional arguments:
-     --seqn  [int]     Required for '--mode bm'. Sequence number for benchmark analysis
-     --label [str]     Specify process label for `-- mode bm` e.g. 'pbs_small/pbs_med/local'
-     --out   [str]     Name of output folder
-     --xml   [.xml]    SANTA-SIM .xml configuration. Defaults to santa.xml
-     --label ['str']   PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
+  Process arguments:
+    --out   [str]     Name of output folder. Default 'baseDir/out'
+    --label [str]     PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
+
+    Recommended --label options (based on seq length < 2000 nt):
+    --label pbs_small for sample size < 1001
+    --label pbs_med   for sample size > 1000
+
+  1. Generate simulation datasets:
+    * Please define evolutionary parameters in main.nf *
+    --mode sim
+    --seq [.fasta]    Path to input .fasta file
+    --xml [.xml]      SANTA-SIM .xml configuration. Defaults to ./santa.xml
+
+  2. Visualise/summarise simulation outputs (sequence stats, breakpoints):
+    --mode sim_v      Summarise output simulation files for sim_bp
+    --simdir [str]    Path to dir which contains folder for simulation files (S4_santa). Default 'baseDir/out'
+
+  3. Benchmark recombination detection methods using simulated data:
+    --mode div        Move simulated .fasta into subdirs by size. * Use prior to `--mode bm`*
+
+    --mode bm         Detect recombination in simulated datasets and benchmark methods
+    --seqn   [int]    Sample size (number of sequences in alignment) to analyse. * Required for `--mode bm` *
+    --simdir [str]    Path to dir which contains folder for simulation files (S4_santa). Default 'baseDir/out'
+
+  4. Detect recombination in empirical sequence alignments:
+    --mode emp
+    --seq [.fasta]    Path to input .fasta file
+
+  5. Calculating classification metrics:
+    --mode class       Determine conditions of simulations vs detected recombination
+    --simbp    [.csv]  Path to .csv containing simulated breakpoints per rep
+    --rec_path [str]   Path to folder where output for --mode bm is
+    --out      [str]   Path to write files to
 
    """.stripIndent()
  }
@@ -67,22 +89,13 @@ log.info """
 DIRECTORIES / PATHS
 base      = ${baseDir}
 bin       = ${params.bin}
+in        = ${params.in}
 out       = ${params.out}
 trace     = ${params.tracedir}
+xml       = ${params.xml}
 =================================================
 =================================================
 """
-/*
-PARAMETERS
-Mutation rate       = ${mutrate}
-Recombination rate  = ${recrate}
-Sequence number     = ${seqnum}
-Dual infection rate = ${dualinf}
-=================================================
-=================================================
-"""
-=======
-*/
 
 // Decide which analysis to run and set channels for input files
 if (params.mode == 'sim') {
@@ -112,6 +125,10 @@ else if (params.mode == 'sim_v') {
 else if (params.mode == 'div') {
   println "Arranging sequences into dirs by size"
 }
+else if (params.mode == 'class') {
+  println "Calculating classification metrics of detected recombination"
+}
+
 else {
   log.info"""
   ERROR: '--mode' not selected.
@@ -126,9 +143,22 @@ else {
  */
 
 if (params.mode == 'sim') {
+
+/*
+PARAMETERS
+Mutation rate       = ${mutrate}
+Recombination rate  = ${recrate}
+Sequence number     = ${seqnum}
+Dual infection rate = ${dualinf}
+=================================================
+=================================================
+"""
+=======
+*/
+
   // Set input for SANTA-SIM
   println "Reading ${params.seq}"
-  seq_temp = "$baseDir/${params.seq}"
+  seq_temp = "${params.seq}"
   seq_file = file(seq_temp)
 
   process S1_filter_fasta {
@@ -157,7 +187,8 @@ if (params.mode == 'sim') {
   process S2_santa_xml {
     // Add path of input .fasta to santa.xml
     // TO DO: Add final sequence length from S1
-    xml_in = file("$baseDir/${params.xml}")
+    println "${params.xml}"
+    xml_in = file("${params.xml}")
 
     input:
     file xml_in from xml_in
@@ -176,6 +207,7 @@ if (params.mode == 'sim') {
   process S3_param_sweep {
     // Generate .xml files across specified evolutionary parameters
     // TO DO: parameter config file
+    publishDir "${params.out}/S3_param_sweep", mode: 'copy'
 
     input:
     file xml_out from xml_out
@@ -223,28 +255,67 @@ if (params.mode == 'sim') {
 }
 
 if (params.mode == 'sim_v') {
-  // Set input; S4_santa output dir
-  println "Reading files in ${params.out}/S4_santa"
-  v1_fileDir = "${params.out}/S4_santa"
+  
+  println "Reading files from ${params.simdir}/S4_santa"
+  sim_path = "${params.simdir}/S4_santa"
 
   process V1_santa_stats {
-    // Visualise simulation statistics and breakpoints
-    // TO DO: implement Rscript
-    //
+    // Summarise population stats
+
+    label 'pbs_small' 
+    publishDir "${params.out}", mode: 'copy'
 
     input:
-    val v1_fileDir from v1_fileDir
+    val sim_path from sim_path
 
-    //output:
-    //file 'V1_santa_stats.csv'
+    output:
+    file 'V1_santa_stats.csv'
 
     script:
     """
-    python3.7 ${params.bin}/V1_santa_stats.py ${v1_fileDir}
-    Rscript ${params.bin}/V1_santa_stats.R
-    mkdir -p ${params.out}/viz
+    python3.7 ${params.bin}/V1_santa_stats.py ${sim_path}
     """
 
+  }
+
+  process V2_santa_bp {
+    // Summarise simulated breakpoints per output .fasta    
+    
+    label 'pbs_small' 
+    publishDir "${params.out}", mode: 'copy'
+
+    input:
+    val sim_path from sim_path
+
+    output:
+    file 'V2_santa_bp.csv' into V3_santa
+
+    script:
+    """
+    python3.7 ${params.bin}/V2_santa_bp.py ${sim_path}
+    """
+
+  }
+  
+  process V3_sim_bp {
+    // Parse santa_bp for classification metrics sim_bp
+
+    label "${params.label}"
+    publishDir "${params.out}/V3_sim_bp", mode: 'copy'
+
+    input:
+    val santa_bp from V3_santa 
+
+    output:
+    file 'V3_profile_sim_bp.csv'
+    file 'V3_3seq_sim_bp.csv'
+    file 'V3_gc_sim_bp.csv'
+
+    script:
+    """
+    Rscript "${params.bin}/V3_sim_bp.R" ${santa_bp} 
+    """
+  
   }
 
 }
@@ -274,12 +345,13 @@ if (params.mode == 'bm') {
 
   // INPUT CHANNELS
   // TO DO: select sequence number -> queue settings for all
-  // TO DO: change below to look nicer `Channel.formPath.set{}...`
-  B1_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
-  B2_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
-  B3_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
-  B4_input = Channel.fromPath( "${params.out}/S4_santa/n${params.seqn}/*.fasta" )
-
+  // TO DO: change below to look nicer `Channel.fromPath.set{}...`
+  B1_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
+  B2_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
+  B3_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
+  B4_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
+  B5_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
+/*
   process B1_phi_profile {
 
     label "${params.label}"
@@ -303,6 +375,7 @@ if (params.mode == 'bm') {
   process B2_3seq {
     // TO DO: add to bioconda
 
+    errorStrategy 'ignore'
     label "${params.label}"
     tag "$seq"
     publishDir "${params.out}/B2_3seq", mode: 'move'
@@ -315,7 +388,7 @@ if (params.mode == 'bm') {
     file '*3s.pvalHist' optional true
     file '*s.rec' optional true
     file '*3s.longRec' optional true
-
+   script:
     script:
     """
     echo "Y" |
@@ -323,9 +396,8 @@ if (params.mode == 'bm') {
     """
 
   }
-
+*/
   process B3_geneconv {
-    // TO DO: add to bioconda
 
     errorStrategy 'ignore'
     label "${params.label}"
@@ -344,7 +416,7 @@ if (params.mode == 'bm') {
     """
 
    }
-
+/*
   process B4_uchime_derep {
 
     label "${params.label}"
@@ -390,6 +462,30 @@ if (params.mode == 'bm') {
 
   }
 
+  process B5_gmos {
+
+    label "${params.label}"
+    tag "$seq"
+    publishDir "${params.out}/B5_gmos", mode: 'move', saveAs: { filename -> "${seq}_$filename" }
+
+    input:
+    file seq from B5_input.flatten()
+
+    output:
+    file '*.fasta'
+    file '*.len'
+    file '*.txt'
+
+    script:
+    """
+    ${params.bin}/gmos -i ${seq} \
+                       -j ${seq} \
+                       -o gmos.txt \
+                       -t   
+    """
+
+  }
+*/
 }
 
 /*
@@ -399,7 +495,7 @@ if (params.mode == 'bm') {
 if (params.mode == 'emp') {
 
   println "Reading ${params.seq}"
-  seq_temp = "$baseDir/${params.seq}"
+  seq_temp = "${params.seq}"
   seq_file = file(seq_temp)
 
   process E1_phi_profile {
@@ -446,90 +542,326 @@ if (params.mode == 'emp') {
 
   }
 
- process E3_geneconv {
+  process E3_geneconv {
 
-   errorStrategy 'ignore'
-   label "${params.label}"
-   tag "$seq"
-   publishDir "${params.out}/empirical", mode: 'move'
+    errorStrategy 'ignore'
+    label "${params.label}"
+    tag "$seq"
+    publishDir "${params.out}/empirical", mode: 'move'
 
-   input:
-   file seq from seq_file
+    input:
+    file seq from seq_file
+
+    output:
+    file '*.tab'
+
+    script:
+    """
+    ${params.bin}/geneconv $seq -nolog -Dumptab -Fancy
+    """
+
+  }
+
+  process E4_filter_fasta {
+    // TO DO: Derep this process with S1_filter_fasta
+     publishDir "${params.out}/empirical/E0_filter_fasta", mode: 'copy'
+
+    input:
+    file seq from seq_file
+
+    output:
+    file 'seqLength*.png' optional true
+    file '*_m'
+    file '*_n'
+    file '*_n_filtered' into E4_input_uchime_derep
+    file '*_removed'
+    file '*_log.txt'
+
+    script:
+    """
+    python3.7 ${params.bin}/S1_filter_fasta.py $seq
+    """
+
+  }
+
+  process E4_uchime_derep {
+
+    label "${params.label}"
+    tag "$seq"
+    publishDir "${params.out}/empirical/E4_uchime_derep", mode: 'symlink'
+
+    input:
+    file seq from E4_input_uchime_derep
+
+    output:
+    file 'derep_*' into E4_input_uchime
+
+    script:
+    """
+    vsearch --derep_fulllength ${seq} \
+            --output derep_${seq} \
+            --sizeout
+    """
+
+  }
+
+  process E4_uchime {
+
+    label "${params.label}"
+    tag "$seq"
+    publishDir "${params.out}/empirical", mode: 'move'
+
+    input:
+    file seq from E4_input_uchime
+
+    output:
+    file '*.rc'
+    file '*.nonrc'
+    file '*.log'
+
+    script:
+    """
+    vsearch --uchime_denovo ${seq} \
+            --chimeras ${seq}.rc \
+            --nonchimeras ${seq}.nonrc \
+            --log ${seq}.log
+    """
+
+  }
+
+  process E5_gmos {
+
+    label "${params.label}"
+    tag "$seq"
+    publishDir "${params.out}/empirical", mode: 'move'
+
+    input:
+    file seq from seq_file
+
+    output:
+    file '*.fasta'
+    file '*.len'
+    file '*.txt'
+
+    script:
+    """
+    ${params.bin}/gmos -i ${seq} \
+                       -j ${seq} \
+                       -o gmos_${seq} \
+                       -t   
+    """
+
+  }
+
+}
+
+/*
+ * 4. CALCULATE CLASSIFICATION METRICS
+ */
+
+// Create simulated breakpoints with *.R
+
+if (params.mode == 'class') {
+  
+  log.info """
+  -- F0_cp_outputs_by_method --
+  bm_files = ${params.bm_files}
+  out = ${params.out}
+
+  -- addConditions --
+  sim_bp = ${params.sim_bp}
+  rec_path = ${params.rec_path}
+
+
+  """.stripIndent()
+
+  sim_bp = "${params.sim_bp}"
+  rec_path = "${params.rec_path}"
+
+/*
+  Channel
+      .fromPath(params.simbp)
+      .splitCsv(header:true)
+      .map { row -> tuple(file(row.params), row.bps) }
+      .set { F1_input }
+      .set { F5_input }
+  process F0_cp_outputs_by_method {
+
+  bm_files = "${params.bm_files}" // Path to full_analysis
+  out = "${params.out}" // Path to copy files to
+  
+  PROFILE="${params.out}/F1_phi_profile"
+  TSEQ="${params.out}/F2_3seq"
+  GC="${params.out}/F3_geneconv"
+  
+  label "local"
+  
+  input:
+  val bm_files from bm_files
+  val out from out
+  val PROFILE from PROFILE
+  val TSEQ from TSEQ
+  val GC from GC
+
+  script:
+  """
+  mkdir -p $PROFILE
+  mkdir -p $TSEQ
+  mkdir -p $GC
+   
+  # Profile
+  cp -v ${bm_files}/3_bm_n100/B1_phi_profile/*_Profile.csv $PROFILE
+  cp -v ${bm_files}/4_bm_n1000/B1_phi_profile/*_Profile.csv $PROFILE  
+  cp -v ${bm_files}/5_bm_n5000_phi_uchime_gmos/B1_phi_profile/*_Profile.csv $PROFILE
+
+  # 3SEQ
+  cp -v ${bm_files}/3_bm_n100/B2_3seq/*.rec $TSEQ
+  cp -v ${bm_files}/4_bm_n1000/B2_3seq/*.rec $TSEQ  
+  cp -v ${bm_files}/6_bm_n5000_3seq/B2_3seq/*.rec $TSEQ
+
+  # GENECONV
+  cp -v ${bm_files}/3_bm_n100/B3_geneconv/*.tab $GC
+  cp -v ${bm_files}/4_bm_n1000/B3_geneconv/*.tab $GC
+  cp -v ${bm_files}/7_bm_n5000_gc/B3_geneconv/*.tab $GC 
+  
+  """
+  }
+
+  process F1_phi_profile {
+    // For some reason, params.bin and params.out don't work???
+    // https://github.com/fredjaya/rec-bench/issues/22
+
+    label "pbs_small"
+    publishDir "/Users/13444841/Dropbox/Masters/02_working/2001_precision_recall/2001_profile_nf/F1_phi_profile", mode: 'move'
+
+    input:
+    set file(params), bps from F1_input
 
    output:
-   file '*.tab'
+    file 'condition_*'
+    file '*.log'
 
-   script:
-   """
-   ${params.bin}/geneconv $seq -nolog -Dumptab -Fancy
-   """
+    script:
+    """
+    python3.7 ${baseDir}/bin/F1_addCondition_phiProfile.py ${params} ${bps}
+    """
 
- }
+    }
 
- process E4_filter_fasta {
-   // TO DO: Derep this process with S1_filter_fasta
-   publishDir "${params.out}/empirical/E0_filter_fasta", mode: 'copy'
+  process F2_3seq {
 
-   input:
-   file seq from seq_file
+    label "pbs_small" 
+    publishDir "${params.out}", mode: 'move'
+ 
+    input:
+    val sim_bp from sim_bp 
+    val rec_path from rec_path
 
-   output:
-   file 'seqLength*.png' optional true
-   file '*_m'
-   file '*_n'
-   file '*_n_filtered' into E4_input_uchime_derep
-   file '*_removed'
-   file '*_log.txt'
+    output:
+    file "F2_3seq_conditions.csv"
+    
+    script:
+    """
+    python3.7 ${baseDir}/bin/F2_addCondition_3SEQ.py \
+              ${sim_bp}/V3_3seq_sim_bp.csv \
+              ${rec_path}/F2_3seq
+    """
+  }
+  
+  process F3_concat_gc {
+  
+  label "pbs_small"
+  publishDir "${params.out}", mode: 'move'
+  
+  input:
+  val rec_path from rec_path
+  
+  output:
+  file "F3_geneconv_summarised.csv" //into F3_separate_seq_pairs 
+ 
+  script:
+  """
+  python3.7 ${baseDir}/bin/F3_concat_gc_outputs.py \
+            ${rec_path}/F3_geneconv/
+  """
+  }
 
-   script:
-   """
-   python3.7 ${params.bin}/S1_filter_fasta.py $seq
-   """
+  process F3_separate_seq_pairs {
+    // IN: F3_geneconv_summary
+    // OUT: F3_geneconv_unpaired
+    label 'pbs_small'
+    publishDir "${params.out}", mode: 'copy'
+    
+    output:
+    file "F3_geneconv_unpaired.csv"
+ 
+    script:
+    """
+    Rscript ${params.bin}/F3_separate_seq_pairs.R \
+            ${params.out}/F3_geneconv_summarised.csv
+    """
+  
+}
+*/
+  process F3_geneconv {
+  
+    label "pbs_small" 
+    publishDir "${params.out}", mode: 'copy'
+ 
+    input:
+    val sim_bp from sim_bp 
+    //file gc from F3_geneconv
 
- }
- process E4_uchime_derep {
+    output:
+    file "F3_gc_conditions.csv"
+    
+    script:
+    """
+    python3.7 ${baseDir}/bin/F3_addCondition_geneconv2.py \
+              ${sim_bp}/V3_gc_sim_bp.csv \
+              ${params.out}/F3_geneconv_unpaired.csv
+    """
+  
+  }
+/*
+  process F5_gmos_parse {
+  
+    Channel
+      .fromPath("/shared/homes/13444841/2001_gmos_sim2/B5_gmos/*_gmos.txt")
+      .set{ gmos_out_parse }
 
-   label "${params.label}"
-   tag "$seq"
-   publishDir "${params.out}/empirical/E4_uchime_derep", mode: 'symlink'
+    label "${params.label}"
+    publishDir "/shared/homes/13444841/2001_gmos_sim2/parsed_out", mode: 'move'
 
-   input:
-   file seq from E4_input_uchime_derep
+    input:
+    file gmos_out_parse from gmos_out_parse
 
-   output:
-   file 'derep_*' into E4_input_uchime
+    output:
+    file '*.csv' 
+  
+    script:
+    """
+    python3.7 ${baseDir}/bin/F5_parse_gmos.py ${gmos_out_parse} 
+    """
+  
+  }
 
-   script:
-   """
-   vsearch --derep_fulllength ${seq} \
-           --output derep_${seq} \
-           --sizeout
-   """
+  process F5_gmos_conditions { 
 
- }
+    label "${params.label}"
+    publishDir "${params.out}/F5_gmos/conditions", mode: 'move'
 
- process E4_uchime {
+    input:
+    set file(params), bps from F5_input
 
-   label "${params.label}"
-   tag "$seq"
-   publishDir "${params.out}/empirical", mode: 'move'
+    output:
+    file '*.csv'
 
-   input:
-   file seq from E4_input_uchime
-
-   output:
-   file '*.rc'
-   file '*.nonrc'
-   file '*.log'
-
-   script:
-   """
-   vsearch --uchime_denovo ${seq} \
-           --chimeras ${seq}.rc \
-           --nonchimeras ${seq}.nonrc \
-           --log ${seq}.log
-   """
-
- }
-
+    script:
+    """
+    python3.7 ${params.bin}/F5_addConditions_gmos.py ${params} ${bps}
+    """ 
+    
+  }
+*/
 }
