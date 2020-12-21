@@ -8,18 +8,19 @@ args <- commandArgs(trailingOnly = T)
 santa_bp <- read.csv(args[1], na.strings = c("", NA))
 
 # Amend sci notation to match RDM output file names
-santa_bp$mut <- gsub('0.001', '0.0010'   , santa_bp$mut)
-santa_bp$mut <- gsub('0.01' , '0.010'    , santa_bp$mut)
 santa_bp$mut <- gsub('1e-07', '1.0E-7'   , santa_bp$mut)
 santa_bp$mut <- gsub('1e-06', '0.0000010', santa_bp$mut)
 santa_bp$mut <- gsub('1e-05', '0.000010' , santa_bp$mut)
 santa_bp$mut <- gsub('1e-04', '0.00010'  , santa_bp$mut)
-santa_bp$rec <- gsub('0.001', '0.0010'   , santa_bp$rec)
-santa_bp$rec <- gsub('0.01' , '0.010'    , santa_bp$rec)
+santa_bp$mut <- gsub('0.001', '0.0010'   , santa_bp$mut)
+santa_bp$mut <- gsub('0.01' , '0.010'    , santa_bp$mut)
+
 santa_bp$rec <- gsub('1e-07', '1.0E-7'   , santa_bp$rec)
 santa_bp$rec <- gsub('1e-06', '0.0000010', santa_bp$rec)
 santa_bp$rec <- gsub('1e-05', '0.000010' , santa_bp$rec)
 santa_bp$rec <- gsub('1e-04', '0.00010'  , santa_bp$rec)
+santa_bp$rec <- gsub('0.001', '0.0010'   , santa_bp$rec)
+santa_bp$rec <- gsub('0.01' , '0.010'    , santa_bp$rec)
 
 # Sanity check
 paste("Mutation rate: "     , unique(santa_bp$mut   ))

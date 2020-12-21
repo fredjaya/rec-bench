@@ -3,10 +3,10 @@
 //===============================================================
 //===============================================================
 // Define parameters for S3_param_sweep. Edit the following:
-mutrate = Channel.from(10e-8, 10e-7, 10e-6, 10e-5, 10e-4, 10e-3)
-recrate = Channel.from(10e-8, 10e-7, 10e-6, 10e-5, 10e-4, 10e-3)
-seqnum = Channel.from(100, 1000, 5000)
-dualinf = Channel.from(0, 0.05)
+mutrate = Channel.from(0, 10e-8, 10e-7, 10e-6, 10e-5, 10e-4, 10e-3)
+recrate = Channel.from(0, 10e-6, 10e-5, 10e-4, 10e-3, 10e-2, 10e-1)
+seqnum = Channel.from(100)
+dualinf = Channel.from(0.05)
 //===============================================================
 //===============================================================
 
@@ -54,9 +54,8 @@ def helpMessage() {
     --mode emp
     --seq [.fasta]    Path to input .fasta file
 
-  5. Calculating classification metrics:
+  5. Calculate classification metrics:
     --mode class       Determine conditions of simulations vs detected recombination
-    --simbp    [.csv]  Path to .csv containing simulated breakpoints per rep
     --rec_path [str]   Path to folder where output for --mode bm is
     --out      [str]   Path to write files to
 
@@ -351,12 +350,14 @@ if (params.mode == 'bm') {
   B3_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
   B4_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
   B5_input = Channel.fromPath( "${params.simdir}/S4_santa/n${params.seqn}/*.fasta" )
-/*
+  
   process B1_phi_profile {
-
+    
     label "${params.label}"
     tag "$seq"
     publishDir "${params.out}/B1_phi_profile", mode: 'move', saveAs: { filename -> "${seq}_$filename" }
+    conda '/shared/homes/13444841/miniconda3/envs/fredjaya-rec-bench-0.1.0'
+    errorStrategy 'ignore'
 
     input:
     file seq from B1_input.flatten()
@@ -388,7 +389,7 @@ if (params.mode == 'bm') {
     file '*3s.pvalHist' optional true
     file '*s.rec' optional true
     file '*3s.longRec' optional true
-   script:
+    
     script:
     """
     echo "Y" |
@@ -396,7 +397,7 @@ if (params.mode == 'bm') {
     """
 
   }
-*/
+  
   process B3_geneconv {
 
     errorStrategy 'ignore'
@@ -416,12 +417,13 @@ if (params.mode == 'bm') {
     """
 
    }
-/*
+  
   process B4_uchime_derep {
 
     label "${params.label}"
     tag "$seq"
     publishDir "${params.out}/B4_uchime/derep", mode: 'symlink'
+    conda '/shared/homes/13444841/miniconda3/envs/fredjaya-rec-bench-0.1.0'
 
     input:
     file seq from B4_input.flatten()
@@ -443,6 +445,7 @@ if (params.mode == 'bm') {
     label "${params.label}"
     tag "$seq"
     publishDir "${params.out}/B4_uchime", mode: 'move'
+    conda '/shared/homes/13444841/miniconda3/envs/fredjaya-rec-bench-0.1.0'
 
     input:
     file seq from B4_input_uchime.flatten()
@@ -467,6 +470,7 @@ if (params.mode == 'bm') {
     label "${params.label}"
     tag "$seq"
     publishDir "${params.out}/B5_gmos", mode: 'move', saveAs: { filename -> "${seq}_$filename" }
+    errorStrategy 'ignore' 
 
     input:
     file seq from B5_input.flatten()
@@ -485,7 +489,7 @@ if (params.mode == 'bm') {
     """
 
   }
-*/
+
 }
 
 /*
@@ -664,80 +668,37 @@ if (params.mode == 'emp') {
 if (params.mode == 'class') {
   
   log.info """
-  -- F0_cp_outputs_by_method --
-  bm_files = ${params.bm_files}
-  out = ${params.out}
-
-  -- addConditions --
-  sim_bp = ${params.sim_bp}
   rec_path = ${params.rec_path}
-
-
+  out = ${params.out}
   """.stripIndent()
 
-  sim_bp = "${params.sim_bp}"
+  // Deleted process F0_cp_outputs_by_method
+  // It was used to sort files by size for time purposes
+  // Refer to previous commits if required
+  
   rec_path = "${params.rec_path}"
 
 /*
-  Channel
-      .fromPath(params.simbp)
-      .splitCsv(header:true)
-      .map { row -> tuple(file(row.params), row.bps) }
-      .set { F1_input }
-      .set { F5_input }
-  process F0_cp_outputs_by_method {
-
-  bm_files = "${params.bm_files}" // Path to full_analysis
-  out = "${params.out}" // Path to copy files to
-  
-  PROFILE="${params.out}/F1_phi_profile"
-  TSEQ="${params.out}/F2_3seq"
-  GC="${params.out}/F3_geneconv"
-  
-  label "local"
-  
-  input:
-  val bm_files from bm_files
-  val out from out
-  val PROFILE from PROFILE
-  val TSEQ from TSEQ
-  val GC from GC
-
-  script:
-  """
-  mkdir -p $PROFILE
-  mkdir -p $TSEQ
-  mkdir -p $GC
-   
-  # Profile
-  cp -v ${bm_files}/3_bm_n100/B1_phi_profile/*_Profile.csv $PROFILE
-  cp -v ${bm_files}/4_bm_n1000/B1_phi_profile/*_Profile.csv $PROFILE  
-  cp -v ${bm_files}/5_bm_n5000_phi_uchime_gmos/B1_phi_profile/*_Profile.csv $PROFILE
-
-  # 3SEQ
-  cp -v ${bm_files}/3_bm_n100/B2_3seq/*.rec $TSEQ
-  cp -v ${bm_files}/4_bm_n1000/B2_3seq/*.rec $TSEQ  
-  cp -v ${bm_files}/6_bm_n5000_3seq/B2_3seq/*.rec $TSEQ
-
-  # GENECONV
-  cp -v ${bm_files}/3_bm_n100/B3_geneconv/*.tab $GC
-  cp -v ${bm_files}/4_bm_n1000/B3_geneconv/*.tab $GC
-  cp -v ${bm_files}/7_bm_n5000_gc/B3_geneconv/*.tab $GC 
-  
-  """
-  }
-
   process F1_phi_profile {
     // For some reason, params.bin and params.out don't work???
     // https://github.com/fredjaya/rec-bench/issues/22
-
+  
+    // MANUALLY ADD rec_path TO row.params
+  
+    Channel
+        .fromPath(params.rec_path + '/V3_profile_sim_bp_m.csv')
+        .splitCsv(header:true)
+        .map { row -> tuple(file(row.params), row.bps) }
+        .set { F1_input }
+    
     label "pbs_small"
-    publishDir "/Users/13444841/Dropbox/Masters/02_working/2001_precision_recall/2001_profile_nf/F1_phi_profile", mode: 'move'
+    publishDir "/shared/homes/13444841/2012_new_sims/F1_phi_profile", mode: 'move'
+    conda '/shared/homes/13444841/miniconda3/envs/fredjaya-rec-bench-0.1.0'
 
     input:
-    set file(params), bps from F1_input
+    tuple file(params), val(bps) from F1_input
 
-   output:
+    output:
     file 'condition_*'
     file '*.log'
 
@@ -748,13 +709,14 @@ if (params.mode == 'class') {
 
     }
 
+*/ 
   process F2_3seq {
 
+    conda '/shared/homes/13444841/miniconda3/envs/fredjaya-rec-bench-0.1.0'
     label "pbs_small" 
     publishDir "${params.out}", mode: 'move'
  
     input:
-    val sim_bp from sim_bp 
     val rec_path from rec_path
 
     output:
@@ -763,35 +725,37 @@ if (params.mode == 'class') {
     script:
     """
     python3.7 ${baseDir}/bin/F2_addCondition_3SEQ.py \
-              ${sim_bp}/V3_3seq_sim_bp.csv \
+              ${rec_path}/V3_3seq_sim_bp.csv \
               ${rec_path}/F2_3seq
     """
   }
-  
+/*
   process F3_concat_gc {
   
-  label "pbs_small"
-  publishDir "${params.out}", mode: 'move'
+    label "pbs_small"
+    publishDir "${params.out}", mode: 'move'
   
-  input:
-  val rec_path from rec_path
-  
-  output:
-  file "F3_geneconv_summarised.csv" //into F3_separate_seq_pairs 
+    input:
+    val rec_path from rec_path
+    
+    output:
+    file "F3_geneconv_summarised.csv" into F3_separate_seq_pairs 
  
-  script:
-  """
-  python3.7 ${baseDir}/bin/F3_concat_gc_outputs.py \
-            ${rec_path}/F3_geneconv/
-  """
+    script:
+    """
+    python3.7 ${baseDir}/bin/F3_concat_gc_outputs.py \
+              ${rec_path}/F3_geneconv/
+    """
   }
 
   process F3_separate_seq_pairs {
-    // IN: F3_geneconv_summary
-    // OUT: F3_geneconv_unpaired
+    
     label 'pbs_small'
     publishDir "${params.out}", mode: 'copy'
     
+    input:
+    file gc_summary f    
+
     output:
     file "F3_geneconv_unpaired.csv"
  
@@ -802,7 +766,7 @@ if (params.mode == 'class') {
     """
   
 }
-*/
+  
   process F3_geneconv {
   
     label "pbs_small" 
@@ -810,7 +774,7 @@ if (params.mode == 'class') {
  
     input:
     val sim_bp from sim_bp 
-    //file gc from F3_geneconv
+    file gc from F3_geneconv
 
     output:
     file "F3_gc_conditions.csv"
@@ -823,7 +787,7 @@ if (params.mode == 'class') {
     """
   
   }
-/*
+  
   process F5_gmos_parse {
   
     Channel
@@ -847,7 +811,7 @@ if (params.mode == 'class') {
   }
 
   process F5_gmos_conditions { 
-
+  
     label "${params.label}"
     publishDir "${params.out}/F5_gmos/conditions", mode: 'move'
 

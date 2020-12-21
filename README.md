@@ -1,44 +1,35 @@
 # rec-bench
-automated benchmarking of recombination detection methods
+Automated benchmarking of recombination detection methods
 
-### This branch contains most analyses conducted
+Eternally a WIP - many things are hardcoded
 
-[![https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/3131)
+## Dependencies
+Nextflow
+conda
 
+## Installation
 ```
-nextflow run fredjaya/rec-bench --help
-```
-
-The typical command for running the pipeline is as follows:
-```
-nextflow run fredjaya/rec-bench --mode [sim/rdm/emp]
+git clone https://github.com/fredjaya/rec-bench.git
 ```
 
-Mandatory arguments:
+Nextflow doesn't appear to create the conda environment properly. Create manually.
+
 ```
-  --mode sim      Generate simulation datasets
-  --mode bm       Detect recombination in simulated datasets and benchmark methods
-  --mode emp      Detect recombination in empirical sequence alignments
-  --mode viz      Parse simulation and analysis outputs for analysis
-  --mode div      Divide sequence simulations by size for `--mode bm`
-  --seq [.fasta]  Path to input .fasta file
+conda env create -f environment.yml
+conda activate fredjaya-rec-bench-0.1.0
 ```
 
-Optional arguments:
-```
-  --seqn  [int]     Required for '--mode bm'. Sequence number for benchmark analysis
-  --out   [str]     Name of output folder
-  --xml   [.xml]    SANTA-SIM .xml configuration. Defaults to santa.xml
-  --label ['str']   PBS queue label for '--mode bm' e.g. 'pbs_small' 'pbs_med'
-  --trace [t/f]     Enables/disables tracing. Disable for testing and non `--mode bm`
-```
+Note: conda processes currently hardcoded in `main.nf`
 
-Example `run.sh` for `--mode bm`
-```
-nextflow run main.nf --mode bm \
-                     --seqn 100 \                              # Analyses all n = 100
-                     --label pbs_small \                       # Submits jobs to the small queue (PBS)
-                     --out /shared/homes/13444841/out_190917 \ # Specifies dir for sim outputs
-                      -profile conda \
-                     --trace false
-```
+## Usage
+`rec-bench` has five modes that must be specified with `--mode` as follows:
+
+`--mode sim`	Generate simulation datasets
+`--mode sim_v`	Visualise/summarise simulation outputs
+`--mode div`	Benchmark recombination detection methods using simulated data
+`--mode emp`	Detect recombination in empirical sequence alignments
+`--mode class`	Calculate classification metrics
+
+`nextflow run main.nf --help`
+
+- [ ] Update readme
