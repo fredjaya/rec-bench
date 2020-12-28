@@ -67,7 +67,7 @@ def match_files_seq(sim_row, gc):
     #https://stackoverflow.com/questions/57208954/select-rows-that-match-values-in-multiple-columns-in-pandas
     sim_vals = [sim_row['params'], sim_row['seq']]
 
-    gc_row = gc[(gc[['file_short', 'seq_name']] == sim_vals).all(1)] 
+    gc_row = gc[(gc[['file', 'seq_name']] == sim_vals).all(1)] 
     return gc_row
 
 def bp_series_to_set(sim_row, gc):
@@ -320,19 +320,16 @@ def count_conditions(sim_bp, gc):
             
     return
             
-
-### Arguments -------------------- 
-"""parser = argparse.ArgumentParser()
-parser.add_argument("sim_bp", help = "simulated breakpoint file for each parameter and sequence")
-parser.add_argument("gc_summary", help = "Transformed summary of all positive GC predictions, output from F3_separate_bp_pairs (F3_geneconv_unpaired.csv)")
-args = parser.parse_args()
-"""
-### Main --------------------
-"""gc = gc_to_dict(args.gc_summary)
-sim_bp = prep_sim_file(args.sim_bp)
-count_conditions(sim_bp, gc)
-"""
-gc = gc_to_dict("/Users/13444841/Dropbox/Masters/02_working/2003_geneconv_conditions/F3_geneconv_unpaired.csv")
-gc_short_path = remove_gc_path(gc)
-sim_bp = prep_sim_file("/Users/13444841/Dropbox/Masters/02_working/2003_geneconv_conditions/V3_gc_sim_bp.csv")
-count_conditions(sim_bp, gc_short_path)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("sim_bp", help = "simulated breakpoint file for each parameter and sequence")
+    parser.add_argument("gc_summary", help = "Transformed summary of all positive GC predictions, output from F3_separate_bp_pairs (F3_geneconv_unpaired.csv)")
+    args = parser.parse_args()
+    
+    ### Main --------------------
+    print("Converting .csv to dictionary")
+    gc = gc_to_dict(args.gc_summary)
+    print("Preparing sim_bp file (converting bps to set)")
+    sim_bp = prep_sim_file(args.sim_bp)
+    print("Evaluating conditions")
+    count_conditions(sim_bp, gc)

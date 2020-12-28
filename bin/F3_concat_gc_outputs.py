@@ -52,10 +52,12 @@ def gc_to_csv(file_names):
                 for line in gc:
                     if re.findall('^GI', line):
                         row = prep_row(f, line)
+                        print("[GI]", row)
                         writer.writerow(row)
 
                     if re.findall('^GO', line):
                         row = prep_row(f, line)
+                        print("[GO]", row)
                         writer.writerow(row)
     return
 

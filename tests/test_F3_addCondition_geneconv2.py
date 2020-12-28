@@ -9,6 +9,7 @@ Created on Mon Feb 24 18:38:02 2020
 import unittest
 import pandas as pd
 from math import isnan
+from bin.F3_addCondition_geneconv2 import bp_length, bp_to_set, false_neg, false_pos, match_breakpoints, match_files_seq, sim_seq_in_gc, true_neg, true_pos
 
 class TestGeneconvConditions(unittest.TestCase):
     

@@ -21,6 +21,7 @@ def get_file_names(gmos_dir):
 def parse_params(name):
     """ Split file name into individual parameters """
     p = re.sub('^.*(?=msa)', '', name)
+    print(p)
     p = re.sub('[a-z]+', '', p) 
     p = p.split("_")
     return p[1:6]
@@ -64,11 +65,9 @@ def gmos_to_csv(file_names):
 
 # Arguments ----------
 parser = argparse.ArgumentParser()
-parser.add_argument("gmos", help = "path to gmos output files (*_gmos.txt)")
+parser.add_argument("gmos_dir", help = "path to gmos output files (*_gmos.txt)")
 args = parser.parse_args()
-"""
 
 # Main ----------
-gmos_path = "/Users/13444841/Dropbox/Masters/03_results/2002_full_analysis/4_bm_n1000/B5_gmos/"
-file_names = get_file_names(gmos_path)
+file_names = get_file_names(args.gmos_dir)
 gmos_to_csv(file_names)

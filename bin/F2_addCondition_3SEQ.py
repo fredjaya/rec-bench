@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python4
 # -*- coding: utf-8 -*-
 """
 Created on Wed Mar  4 09:14:12 2020
@@ -15,7 +15,7 @@ from math import isnan
 
 # Arguments -----
 parser = argparse.ArgumentParser()
-parser.add_argument("sim_bp", help = "simulated breakpoint file (individual seqs")
+parser.add_argument("sim_bp", help = "simulated breakpoint file (individual seqs. e.g. V3_3seq_sim_bp.csv")
 parser.add_argument("rec_path", help = "path to 3SEQ output files (*.rec)")
 args = parser.parse_args()
 
@@ -59,13 +59,17 @@ def read_rec_file(current_param, rec_path):
         rec_file.columns = new_header
         
     except FileNotFoundError:
-        """ Missing file due to sequences too similar for 3SEQ analysis """
+        """
+        Missing file due to sequences too similar for 3SEQ analysis 
+        """
         rec_file = None
     
     return rec_file
 
 def iterate_rec_files(previous_param, current_param, seq, rec_path):
-    """ Check if new 3SEQ file needs to be read """    
+    """
+    Check if new 3SEQ file needs to be read 
+    """
     if previous_param is None:
         return read_rec_file(current_param, rec_path)
     elif current_param is not previous_param:
@@ -74,7 +78,9 @@ def iterate_rec_files(previous_param, current_param, seq, rec_path):
         None 
 
 def match_seq(sim_row, predicted_rec):
-    """ Check if sim seq is present in 3SEQ output """
+    """
+    Check if sim seq is present in 3SEQ output 
+    """
     #https://stackoverflow.com/questions/57208954/select-rows-that-match-values-in-multiple-columns-in-pandas
     rec_row = predicted_rec[(predicted_rec['C_ACCNUM'] == sim_row['seq'])]
     return rec_row
@@ -86,7 +92,9 @@ def sim_seq_in_pred_rec(sim_row, predicted_rec):
         return True
     
 def predicted_bp_to_set(sim_row, predicted_rec):
-    """ Get 3SEQ breakpoints that match simulated seq """
+    """
+    Get 3SEQ breakpoints that match simulated seq 
+    """
     breakpoints = set()
     rec_row = match_seq(sim_row, predicted_rec)
     
@@ -274,8 +282,10 @@ def prep_sim_file():
     return sim_bp
 
 def count_conditions(sim_bp, rec_path):
+    """
+    Prep output .csv 
+    """
     seq_length = 1680
-    """ Prep output .csv """
     with open("F2_3seq_conditions.csv", "w+") as csv_file:
         writer = csv.writer(csv_file)
         csv_header = ['mut', 'rec', 'seqn', 'dualInf', 'rep', 'seq_name',
@@ -289,36 +299,48 @@ def count_conditions(sim_bp, rec_path):
         for index, sim_row in sim_bp.iterrows():
             out_row = []
             
-            """ Read in 3SEQ file """
+            """
+            Read in 3SEQ file 
+            """
             current_param = sim_row['params']
             predicted_rec = iterate_rec_files(previous_param, 
                                               current_param, 
                                               sim_row, 
                                               rec_path)
             
-            """ Parse parameters """
+            """
+            Parse parameters 
+            """
             out_row.extend(parse_params(sim_row.params))
             out_row.extend([sim_row['seq']])
             
             if predicted_rec is None:
-                """ Sequences too similar for 3SEQ analysis - return NaNs """
+                """
+                Sequences too similar for 3SEQ analysis - return NaNs 
+                """
                 out_row.extend(['nan'] * 19)
 
             elif predicted_rec.empty:
-                """ 3SEQ detected no recombination at this param """
+                """
+                3SEQ detected no recombination at this param 
+                """
                 rc_seq = rcseq_no_pred_rec(sim_row['bps'])
                 out_row.append(rc_seq)
                 calc_no_pred_rec(sim_row, seq_length, out_row)
                 binary_measures(out_row)
             
             elif sim_seq_in_pred_rec(sim_row, predicted_rec):
-                """ Recombination detected at this param; check if bps match"""
+                """
+                Recombination detected at this param; check if bps match
+                """
                 bp_3seq = predicted_bp_to_set(sim_row, predicted_rec)
                 print("Param: {}\n{}\nSim BP: {}\nSim Type: {}" \
                       .format(current_param, sim_row.seq, sim_row.bps, type(sim_row.bps)))
 
                 if type(sim_row['bps']) is set:
-                    """ Breakpoints simulated """
+                    """
+                    Breakpoints simulated 
+                    """
                     rc_seq = 'TP'
                     out_row.append(rc_seq)
                     calc_yes_pred_rec_yes_sim(
@@ -326,14 +348,18 @@ def count_conditions(sim_bp, rec_path):
                     binary_measures(out_row)
                     
                 elif type(sim_row['bps']) is float:
-                    """ No breakpoints simulated """
+                    """
+                    No breakpoints simulated 
+                    """
                     rc_seq = 'FP'
                     out_row.append(rc_seq)
                     calc_yes_pred_rec_no_sim(bp_3seq, seq_length, out_row)
                     binary_measures(out_row)
 
             else:
-                """ No breakpoints detected at this param """
+                """
+                No breakpoints detected at this param 
+                """
                 rc_seq = rcseq_no_pred_rec(sim_row['bps'])
                 out_row.append(rc_seq)
                 calc_no_pred_rec(sim_row, seq_length, out_row)
@@ -342,6 +368,7 @@ def count_conditions(sim_bp, rec_path):
             #print(out_row)
             writer.writerow(out_row)
     return
+
 # Main -----
 rec_path = args.rec_path
 sim_bp = prep_sim_file()
