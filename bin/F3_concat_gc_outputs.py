@@ -68,4 +68,5 @@ args = parser.parse_args()
 
 # Main ----------
 file_names = get_file_names(args.gc_dir)
+print(file_names)
 gc_to_csv(file_names)

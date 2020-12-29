@@ -66,8 +66,7 @@ def match_files_seq(sim_row, gc):
     """ Check if sim params and seq is present as GC file and seq_name """
     #https://stackoverflow.com/questions/57208954/select-rows-that-match-values-in-multiple-columns-in-pandas
     sim_vals = [sim_row['params'], sim_row['seq']]
-
-    gc_row = gc[(gc[['file', 'seq_name']] == sim_vals).all(1)] 
+    gc_row = gc[(gc[['file_short', 'seq_name']] == sim_vals).all(1)] 
     return gc_row
 
 def bp_series_to_set(sim_row, gc):
@@ -270,6 +269,9 @@ def gc_to_dict(gc_summary_file):
     
     grouped = group_params(gc)
     #grouped.to_csv("F3_geneconv_out_groupedBP.csv")
+    
+    """ Add column with only file name for match_files_seq """
+    grouped = remove_gc_path(grouped)
     return grouped
 
 def prep_sim_file(sim_path):
@@ -319,7 +321,7 @@ def count_conditions(sim_bp, gc):
             writer.writerow(out_row) 
             
     return
-            
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("sim_bp", help = "simulated breakpoint file for each parameter and sequence")
