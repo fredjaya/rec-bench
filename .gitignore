@@ -7,3 +7,5 @@ pval700
 conda
 *.swp
 *.csv
+bin/__pycache__*
+tests/__pycache__*
