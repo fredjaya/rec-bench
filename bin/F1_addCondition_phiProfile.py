@@ -7,11 +7,11 @@ Created on Mon Dec 16 13:54:57 2019
 
 Compares simulated breakpoints with detected breakpoints from PhiPack (Profile)
 to determine the detected condition (i.e. FP/TP/FN/TN) across the sequence, per
-window
+window. 
 
-TODO:
-    * Add full path to file name
-    * Refactor bpPerWindow into function
+Previously, this script was run only for one Profile.csv via nextflow.
+
+Now it is run via the command-line, processing all Profile.csvs in a directory.
 """
 
 import argparse
@@ -23,9 +23,18 @@ from math import isnan
 import sys
 
 # Functions
-
+def set_csv_fieldsize():
+    """
+    In case there are hundred of breakpoints in the .csv per param
+    """
+    csv.field_size_limit(999999)
+    return
 
 def get_condition(is_simulated, is_significant):
+    """
+    Determine the condition of a detection window based on the presence
+    of simulated breakpoints within the window and if p-value is significant
+    """
     if is_simulated:
         if is_significant:
             condition = "TP"
@@ -38,11 +47,11 @@ def get_condition(is_simulated, is_significant):
             condition = "TN"
     return condition
 
-def concat_full_path(sim_row, path):
+def concat_full_path(path, file_name):
     """
     Append full path to read in individual Profile.csvs
     """
-    return os.path.join(path, sim_row[0])
+    return os.path.join(path, file_name)
 
 def sim_bps_exist(bps):
     if bps == 'NA':
@@ -54,7 +63,19 @@ def sim_bps_exist(bps):
 def get_significance(pval):
     return(pval <= 0.05)
 
-def process_no_simbp(phi_reader):
+def write_output_row(params, position, condition, writer):
+    """
+    Write a complete .csv row with parsed params, position of detection window,
+    and the condition of the detection in the window
+    """
+    out_row = []
+    out_row.extend(params)
+    out_row.append(position)
+    out_row.append(condition)
+    writer.writerow(out_row)
+    return
+
+def process_no_simbp(phi_reader, params, writer):
     """
     Iterate through windows to determine conditions 
     when no breakpoints are simulated
@@ -62,42 +83,88 @@ def process_no_simbp(phi_reader):
     is_simulated = False
 
     for phi_row in phi_reader:
+        position = int(phi_row[0])
         window_pval = float(phi_row[1])
+    
         is_significant = get_significance(window_pval)
         condition = get_condition(is_simulated, is_significant)
-        print(condition)
-    """
-        # Set detection window size
-        windowStart = int(phiRow[0])
-        windowEnd   = int(phiRow[0] + 99)
-
-        # Check for significance within that window region and determine cond.
-        isSignificant = getSignificance(phiRow[1])
-        condition = getCondition(isSimulated, isSignificant)
-
-        # Write condition to column in Profile.csv
-        phiProfile.loc[index, "cond"] = condition
-        print("At window " + str(windowStart) + "-" + str(windowEnd) +
-              "\nSimulated breakpoints = " + simulatedBreakpoints +
-              "\nSignificant p-value  = " + str(isSignificant) +
-              "\nCONDITION = " + condition + "\n----------")
-    """
+    
+        write_output_row(params, position, condition, writer)   
     return
 
-def process_profile_row(sim_row, path):
+def check_simbp_in_window(position, bp):
+    """
+    Determine if simulated breakpoints are present within a window
+    Default Profile window size == 1000 nt
+    """
+    window_start = position - 499
+    window_end = position + 500
+    
+    if window_start <= int(bp) <= window_end:
+        return True
+    else:
+        return False
+
+def iterate_bp(position, breakpoints):
+    """
+    Iterate through all simulated breakpoints to determine 
+    if any fall within the detection window
+    """
+    for bp in breakpoints:
+        if check_simbp_in_window(position, bp):
+            return True
+        else:
+            pass
+    return False
+    
+def process_with_simbp(phi_reader, breakpoints, params, writer):
+    """
+    Iterate through windows to determine conditions
+    when breakpoints are simulated
+    """
+    for phi_row in phi_reader:
+        position = int(phi_row[0])
+        window_pval = float(phi_row[1])
+        
+        is_significant = get_significance(window_pval)
+        is_simulated = iterate_bp(position, breakpoints)
+        condition = get_condition(is_simulated, is_significant)
+        
+        write_output_row(params, position, condition, writer)   
+    return
+
+def parse_params(file_name):
+    """
+    Extract the simulation parameters from file names
+    """
+    p = re.sub(r'^.*(?=msa)', '', file_name)
+    p = re.sub(r'[a-z]+', '', p)
+    p = p.split('_')
+    return p[1:6]
+
+def process_profile_row(sim_row, path, writer):
     """
     Calculate conditions per row in V3_profile_sim_bp.csv
     """
-    full_path = concat_full_path(sim_row, path)
+    full_path = concat_full_path(path, sim_row[0])
+    params = parse_params(sim_row[0])
+    breakpoints = sim_row[1]
     
-    with open(full_path, 'r+') as phi_file:
-        phi_reader = csv.reader(phi_file)
-        
-        if sim_bps_exist(sim_row[1]):
-            print("Simulated breakpoints")
-        else:
-            process_no_simbp(phi_reader)
+    try:
+        with open(full_path, 'r+') as phi_file:
+            phi_reader = csv.reader(phi_file)
+            
+            if sim_bps_exist(breakpoints):
+                breakpoints = breakpoints.split(":")
+                process_with_simbp(phi_reader, breakpoints, params, writer) 
+            else:
+                process_no_simbp(phi_reader, params, writer)
+    
+    except FileNotFoundError:
+        print("File not found:", sim_row[0])
+
     return
+
 
 def profile_conditions(sim_bp, path):
     """
@@ -106,7 +173,7 @@ def profile_conditions(sim_bp, path):
     with open("F1_profile_conditions.csv", 'w+') as csv_file:
         writer = csv.writer(csv_file)
         csv_header = ['mut', 'rec', 'seqn', 'dualInf', 'rep',
-                        'position', 'condition', 'missed_bps']
+                        'position', 'condition']
         writer.writerow(csv_header)
 
         with open (sim_bp, 'r+') as f:
@@ -114,94 +181,14 @@ def profile_conditions(sim_bp, path):
             next(sim_bp_reader, None) # Skip header ['params', 'bps']
             
             for sim_row in sim_bp_reader:
-                process_profile_row(sim_row, path)
-                """
-# Check if BPs were simulated
-if simulatedBreakpoints == 'NA':
-
-    isSimulated = False
-
-    # Iterate through Profile.csv positions to determine condition
-    for index, phiRow in phiProfile.iterrows():
-        condition   = []
-
-        # Set detection window size
-        windowStart = int(phiRow[0])
-        windowEnd   = int(phiRow[0] + 99)
-
-        # Check for significance within that window region and determine cond.
-        isSignificant = getSignificance(phiRow[1])
-        condition = getCondition(isSimulated, isSignificant)
-
-        # Write condition to column in Profile.csv
-        phiProfile.loc[index, "cond"] = condition
-        print("At window " + str(windowStart) + "-" + str(windowEnd) +
-              "\nSimulated breakpoints = " + simulatedBreakpoints +
-              "\nSignificant p-value  = " + str(isSignificant) +
-              "\nCONDITION = " + condition + "\n----------")
-
-else:
-    # Create list of  breakpoints if multiple BPs
-    multipleSimBP = []
-    if re.findall(':', str(simulatedBreakpoints)):
-        multipleSimBP  = True
-        breakpointList = re.split(':', simulatedBreakpoints)
-    else:
-        multipleSimBP  = False
-        breakpointList = simulatedBreakpoints
-
-    # Iterate through Profile.csv positions to determine condition
-    for index, phiRow in phiProfile.iterrows():
-        condition     = []
-        isSignificant = []
-        isSimulated   = []
-
-        # Set detection window size
-        windowStart = int(phiRow[0])
-        windowEnd   = int(phiRow[0] + 99)
-
-        # Check if any breakpoints were simulated within each window position
-        bpPerWindow = []
-        if multipleSimBP:
-            for bp in breakpointList:
-                if windowStart <= int(bp) <= windowEnd:
-                    bpPerWindow.append(True)
-                else:
-                    bpPerWindow.append(False)
-
-        elif not multipleSimBP:
-            bp = breakpointList
-            if windowStart <= int(bp) <= windowEnd:
-                bpPerWindow.append(True)
-            else:
-                bpPerWindow.append(False)
-
-        if True in bpPerWindow:
-            isSimulated = True
-        else:
-            isSimulated = False
-
-        # Check for significance within that window region and determine cond.
-        isSignificant = getSignificance(phiRow[1])
-        condition = getCondition(isSimulated, isSignificant)
-
-        # Write condition to column in Profile.csv
-        phiProfile.loc[index, "cond"] = condition
-        print("At window " + str(windowStart) + "-" + str(windowEnd) +
-              "\nSimulated breakpoint = " + str(isSimulated) +
-              "\nSignificant p-value  = " + str(isSignificant) +
-              "\nCONDITION = " + condition + "\n----------")
-
-# Write to .csv
-outputName = "condition_" + sys.argv[1]
-phiProfile.to_csv(outputName, header = True, index = False)
-print("Writing to " + outputName)
-"""
+                process_profile_row(sim_row, path, writer)
+                
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("sim_bp", help = "simulated breakpoint file for each parameter and sequence (V3_profile_sim_bp.csv")
     parser.add_argument("profile_path", help = "path to *Profile.csvs")
     args = parser.parse_args()
-
+    
+    set_csv_fieldsize()
     profile_conditions(args.sim_bp, args.profile_path) 
