@@ -63,7 +63,7 @@ def sim_bps_exist(bps):
 def get_significance(pval):
     return(pval <= 0.05)
 
-def write_output_row(params, position, condition, writer):
+def write_output_row(params, position, condition):
     """
     Write a complete .csv row with parsed params, position of detection window,
     and the condition of the detection in the window
@@ -72,10 +72,9 @@ def write_output_row(params, position, condition, writer):
     out_row.extend(params)
     out_row.append(position)
     out_row.append(condition)
-    writer.writerow(out_row)
-    return
+    return out_row
 
-def process_no_simbp(phi_reader, params, writer):
+def process_no_simbp(phi_reader, params):
     """
     Iterate through windows to determine conditions 
     when no breakpoints are simulated
@@ -89,8 +88,8 @@ def process_no_simbp(phi_reader, params, writer):
         is_significant = get_significance(window_pval)
         condition = get_condition(is_simulated, is_significant)
     
-        write_output_row(params, position, condition, writer)   
-    return
+        out_row = write_output_row(params, position, condition)
+    return out_row
 
 def check_simbp_in_window(position, bp):
     """
@@ -117,7 +116,7 @@ def iterate_bp(position, breakpoints):
             pass
     return False
     
-def process_with_simbp(phi_reader, breakpoints, params, writer):
+def process_with_simbp(phi_reader, breakpoints, params):
     """
     Iterate through windows to determine conditions
     when breakpoints are simulated
@@ -130,8 +129,8 @@ def process_with_simbp(phi_reader, breakpoints, params, writer):
         is_simulated = iterate_bp(position, breakpoints)
         condition = get_condition(is_simulated, is_significant)
         
-        write_output_row(params, position, condition, writer)   
-    return
+        out_row = write_output_row(params, position, condition)
+    return out_row
 
 def parse_params(file_name):
     """
@@ -149,17 +148,19 @@ def process_profile_row(sim_row, path, writer):
     full_path = concat_full_path(path, sim_row[0])
     params = parse_params(sim_row[0])
     breakpoints = sim_row[1]
-    
+    print(sim_row[0])
     try:
         with open(full_path, 'r+') as phi_file:
             phi_reader = csv.reader(phi_file)
             
             if sim_bps_exist(breakpoints):
                 breakpoints = breakpoints.split(":")
-                process_with_simbp(phi_reader, breakpoints, params, writer) 
+                out_row = process_with_simbp(phi_reader, breakpoints, params) 
             else:
-                process_no_simbp(phi_reader, params, writer)
-    
+                out_row = process_no_simbp(phi_reader, params)
+                
+        writer.writerow(out_row)
+
     except FileNotFoundError:
         print("File not found:", sim_row[0])
 
@@ -170,19 +171,21 @@ def profile_conditions(sim_bp, path):
     """
     For each line in V3_profile_sim_bp.csv, read in file and calculate conditions
     """
-    with open("F1_profile_conditions.csv", 'w+') as csv_file:
-        writer = csv.writer(csv_file)
-        csv_header = ['mut', 'rec', 'seqn', 'dualInf', 'rep',
-                        'position', 'condition']
-        writer.writerow(csv_header)
+    csv_out = open("F1_profile_conditions.csv", 'w+')
+    writer = csv.writer(csv_out)
+    
+    csv_header = ['mut', 'rec', 'seqn', 'dualInf', 'rep', 'position', 'condition']
+    writer.writerow(csv_header)
 
-        with open (sim_bp, 'r+') as f:
-            sim_bp_reader = csv.reader(f)
-            next(sim_bp_reader, None) # Skip header ['params', 'bps']
-            
-            for sim_row in sim_bp_reader:
-                process_profile_row(sim_row, path, writer)
-                
+    with open (sim_bp, 'r+') as f:
+        sim_bp_reader = csv.reader(f)
+        next(sim_bp_reader, None) # Skip header ['params', 'bps']
+        
+        for sim_row in sim_bp_reader:
+            process_profile_row(sim_row, path, writer)
+    
+    csv_out.close()
+    return
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
