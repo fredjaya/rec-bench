@@ -63,7 +63,7 @@ def sim_bps_exist(bps):
 def get_significance(pval):
     return(pval <= 0.05)
 
-def write_output_row(params, position, condition):
+def write_output_row(params, position, condition, writer):
     """
     Write a complete .csv row with parsed params, position of detection window,
     and the condition of the detection in the window
@@ -72,9 +72,10 @@ def write_output_row(params, position, condition):
     out_row.extend(params)
     out_row.append(position)
     out_row.append(condition)
-    return out_row
+    writer.writerow(out_row)
+    return
 
-def process_no_simbp(phi_reader, params):
+def process_no_simbp(phi_reader, params, writer):
     """
     Iterate through windows to determine conditions 
     when no breakpoints are simulated
@@ -88,8 +89,8 @@ def process_no_simbp(phi_reader, params):
         is_significant = get_significance(window_pval)
         condition = get_condition(is_simulated, is_significant)
     
-        out_row = write_output_row(params, position, condition)
-    return out_row
+        write_output_row(params, position, condition, writer)
+    return
 
 def check_simbp_in_window(position, bp):
     """
@@ -116,7 +117,7 @@ def iterate_bp(position, breakpoints):
             pass
     return False
     
-def process_with_simbp(phi_reader, breakpoints, params):
+def process_with_simbp(phi_reader, breakpoints, params, writer):
     """
     Iterate through windows to determine conditions
     when breakpoints are simulated
@@ -129,8 +130,8 @@ def process_with_simbp(phi_reader, breakpoints, params):
         is_simulated = iterate_bp(position, breakpoints)
         condition = get_condition(is_simulated, is_significant)
         
-        out_row = write_output_row(params, position, condition)
-    return out_row
+        write_output_row(params, position, condition, writer)
+    return 
 
 def parse_params(file_name):
     """
@@ -155,11 +156,9 @@ def process_profile_row(sim_row, path, writer):
             
             if sim_bps_exist(breakpoints):
                 breakpoints = breakpoints.split(":")
-                out_row = process_with_simbp(phi_reader, breakpoints, params) 
+                process_with_simbp(phi_reader, breakpoints, params, writer) 
             else:
-                out_row = process_no_simbp(phi_reader, params)
-                
-        writer.writerow(out_row)
+                process_no_simbp(phi_reader, params, writer)
 
     except FileNotFoundError:
         print("File not found:", sim_row[0])
