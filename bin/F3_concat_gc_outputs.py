@@ -11,7 +11,7 @@ import csv
 # Functions ----------
 def get_file_names(gc_dir):
     file_names = []
-    for name in glob.glob("{}*.tab".format(gc_dir)):
+    for name in glob.glob("{}/*.tab".format(gc_dir)):
         file_names.append(name)
     return file_names
 
@@ -63,7 +63,7 @@ def gc_to_csv(file_names):
 
 # Arguments ----------
 parser = argparse.ArgumentParser()
-parser.add_argument("gc_dir", help = "path to geneconv output files (*.tab)")
+parser.add_argument("gc_dir", help = "path to geneconv output files (*.tab) e.g. project/B3_geneconv")
 args = parser.parse_args()
 
 # Main ----------
