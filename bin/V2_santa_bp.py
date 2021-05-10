@@ -19,7 +19,7 @@ args = parser.parse_args()
 
 # Functions ----------
 def set_path(sim_path):
-    return os.path.join(sim_path, "**/*.fasta")
+    return os.path.join(sim_path, "*.fasta")
 
 def get_file_names(joined_path):
     file_names = []

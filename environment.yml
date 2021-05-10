@@ -1,17 +1,22 @@
 name: fredjaya-rec-bench-0.1.0
 channels:
-  - bioconda
-  - conda-forge
-  - defaults
+        - bioconda
+        - conda-forge
+        - defaults
 dependencies:
-  # S1_filter_fasta
-  - python=3.7.3
-  - matplotlib=3.1.0
-  # S4_santa-sim
-  - java-jdk=8.0.92
-  # B1_phi_profile
-  - phipack=1.1
-  # B4_uchime
-  - vsearch=2.14
-  # Class metrics
-  - pandas
+        # S1_filter_fasta
+        - python=3.7.3
+        - matplotlib=3.1.0
+        # S4_santa-sim
+        - java-jdk=8.0.92
+        # B1_phi_profile
+        - phipack=1.1
+        # B4_uchime
+        - vsearch=2.14
+        # Sim stats
+        - r=3.6.0
+        - r-dplyr=0.8.0.1
+        - r-tidyr=0.8.3
+          #- r-stringi=1.4.3
+        # Class metrics
+        - pandas 

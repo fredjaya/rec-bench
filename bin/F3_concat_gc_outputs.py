@@ -1,3 +1,5 @@
+#!/usr/bin/env python3 
+
 """
 Summarise all geneconv outputs (*.tab) into one file to use as input for calculating
 classification metrics

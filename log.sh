@@ -1,6 +1,23 @@
-## Generate new simulated dataset where:
+# Making a note of all scripts required:
+#V1_santa_stats.py 
+#V2_santa_bp.py 
+#V3_sim_bp.R 
+#F1_addCondition_phiProfile.py
+#F2_addCondition_3SEQ.py
+#F3_concat_gc_outputs.py
+#F3_separate_seq_pairs.R
+#F3_addCondition_geneconv2.py
+
+###################
+### Simulations ###
+###################
+
+# Git: dba966f94174019b410e5c8330a0b11bca8c3e66
+
+### Generate new simulated dataset where:
 # 1. 99 generations of mutation only (m = 0, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3)
 # 2. 1 generation of recombination only (r = 0, 0.001, 0.005, 0.01, 0.05, 0.1; d = 0, 1)
+# and all files process by all five RDMs
 
 # On UTS HPCC
 mkdir -p /shared/homes/13444841/2104_pub
@@ -13,3 +30,18 @@ nextflow run ${NF}/sim.nf \
 	--xml ${NF}/data/neutral.xml \
 	--out ${OUT}
 
+#######################################
+### Simulation stats and conditions ###
+#######################################
+
+# Git: 
+
+# Activate conda environment 
+# conda env create --file ${NF}/environment.yml
+conda activate fredjaya-rec-bench-0.1.0
+
+# Generate simulation statistics
+${NF}/src/1_sim_stats.sh
+
+# Calculate conditions
+${NF}/src/2_conditions.sh
