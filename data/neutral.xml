@@ -1,0 +1,97 @@
+<santa xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="santa.xsd">
+	<replicates>5</replicates>
+
+        <!-- Envelope coding sequence from Ho et al. (2017) -->
+	<simulation>
+		<genome>
+		    <length>1680</length>
+			<sequences file = 'SEQPATH'>
+			</sequences>
+
+			<feature>
+				<name>E1E2</name>
+				<type>nucleotide</type>
+				<coordinates>1-1680</coordinates>
+			</feature>
+		</genome>
+
+		<population>
+		    <populationSize>SEQNUM</populationSize>
+		    <inoculum>random</inoculum>
+		</population>
+		
+		<!-- Neutral fitness -->
+		<fitnessFunction>
+		</fitnessFunction>
+
+		<mutator>
+		       <nucleotideMutator>
+			       <mutationRate>MUTRATE</mutationRate>
+			       <transitionBias>0</transitionBias>
+		       </nucleotideMutator>
+	       </mutator>
+	       
+	       <replicator>
+		       <clonalReplicator/>
+	       </replicator>
+
+		<!-- Epoch 1 - clonal rep and mutation only -->
+		<epoch>
+			<name>clonal_mutation</name>
+			<generationCount>99</generationCount>
+		</epoch>
+
+		<!-- Epoch 2 - recombination only -->
+		<epoch>
+			<name>recombination</name>
+			<generationCount>1</generationCount>
+		
+			<replicator>
+				<recombinantReplicator>
+					<dualInfectionProbability>DUALRATE</dualInfectionProbability>
+					<recombinationProbability>RECRATE</recombinationProbability>
+				</recombinantReplicator>
+			</replicator>
+
+			<mutator>
+				<nucleotideMutator>
+					<mutationRate>0</mutationRate>
+					<transitionBias>0</transitionBias>
+				</nucleotideMutator>
+			</mutator>
+		</epoch>
+
+		<!-- Sampling -->
+		<samplingSchedule>
+			<sampler>
+				<atFrequency>100</atFrequency>
+				<fileName>msa_mMUTRATE_rcRECRATE_nSEQNUM_dualDUALRATE_rep%r.fasta</fileName>
+				<alignment>
+					<sampleSize>SEQNUM</sampleSize>
+					<format>FASTA</format>
+					<label>seq_%s</label>
+          				<breakpoints>TRUE</breakpoints>
+				</alignment>
+			</sampler>
+
+			<sampler>
+				<atFrequency>100</atFrequency>
+				<fileName>stats_mMUTRATE_rcRECRATE_nSEQNUM_dualDUALRATE_rep%r.csv</fileName>
+				<statistics/>
+			</sampler>
+
+			<sampler>
+				<atFrequency>100</atFrequency>
+				<fileName>tree_mMUTRATE_rcRECRATE_nSEQNUM_dualDUALRATE_rep%r.trees</fileName>
+					<tree>
+						<sampleSize>SEQNUM</sampleSize>
+						<format>NEWICK</format>
+						<label>seq_%s</label>
+					</tree>
+			</sampler>
+		</samplingSchedule>
+
+	</simulation>
+
+</santa>
