@@ -17,6 +17,6 @@ dependencies:
         - r=3.6.0
         - r-dplyr=0.8.0.1
         - r-tidyr=0.8.3
-          #- r-stringi=1.4.3
+        - r-seqinr=3.4_5
         # Class metrics
         - pandas 

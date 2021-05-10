@@ -34,7 +34,7 @@ nextflow run ${NF}/sim.nf \
 ### Simulation stats and conditions ###
 #######################################
 
-# Git: 
+# Git: a899ddd63a78408c762a9cf6552583d1ebbfae75
 
 # Activate conda environment 
 # conda env create --file ${NF}/environment.yml
