@@ -20,12 +20,15 @@
 # and all files process by all five RDMs
 
 # Set env variables (UTS HPCC)
-mkdir -p /shared/homes/13444841/2104_pub
-export OUT=/shared/homes/13444841/2104_pub
+mkdir -p /shared/homes/13444841/2104_performance
+export OUT=/shared/homes/13444841/2104_performance
 export NF=/shared/homes/13444841/rec-bench
 cd $OUT
+# May need to run the following to fix matplotlib qt error
+# export QT_QPA_PLATFORM='offscreen'
 
 nextflow run ${NF}/sim.nf \
+	--mode performance \
 	--seq ${NF}/data/FP7_patient_037_allseqs.fasta \
 	--xml ${NF}/data/neutral.xml \
 	--out ${OUT}
@@ -34,7 +37,7 @@ nextflow run ${NF}/sim.nf \
 ### Simulation stats and conditions ###
 #######################################
 
-# Git: a899ddd63a78408c762a9cf6552583d1ebbfae75
+# Git: 
 
 # Activate conda environment 
 # conda env create --file ${NF}/environment.yml
@@ -50,7 +53,7 @@ ${NF}/src/2_conditions.sh
 ### Scalability ###
 ###################
 
-# Git:
+# Git: 5e899eae77cea2584bd96e309be7356178e45821
 
 # Set env variables (UTS HPCC)
 mkdir -p /shared/homes/13444841/2104_scale

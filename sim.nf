@@ -28,7 +28,7 @@ xml       = ${params.xml}
 
 // Define parameters for S3_param_sweep
 if (params.mode == 'performance') {
-    mutrate = Channel.from(0, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3)
+    mutrate = Channel.from(0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1)
     recrate = Channel.from(0, 0.001, 0.005, 0.01, 0.05, 0.1)
     dualinf = Channel.from(0, 1)
     seqnum = Channel.from(100) 
