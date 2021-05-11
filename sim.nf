@@ -4,16 +4,11 @@
  * INPUT OPTIONS AND PARAMETERS
  */
 
-// Define parameters for S3_param_sweep
-mutrate = Channel.from(0, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3)
-recrate = Channel.from(0, 0.001, 0.005, 0.01, 0.05, 0.1)
-dualinf = Channel.from(0, 1)
-seqnum = Channel.from(100)
-
 // Define paths
 params.out = "${baseDir}/out"
 params.bin = "${baseDir}/bin"
-params.trace = "{params.out}/tracing"
+params.trace = "${params.out}/tracing"
+params.mode = 'none'
 params.seq = 'none'
 params.xml = 'none'
 
@@ -24,16 +19,31 @@ log.info """
 base      = ${baseDir}
 bin       = ${params.bin}
 out       = ${params.out}
-trace     = ${params.tracedir}
+trace     = ${params.trace}
+mode      = ${params.mode}
 seq       = ${params.seq}
 xml       = ${params.xml}
 
-===== SIMULATION PARAMETERS =====
-mutation rate       = ${mutrate}.view()
-recombination rate  = ${recrate}.view()
-dual infection rate = ${dualinf}.view()
-
 """
+
+// Define parameters for S3_param_sweep
+if (params.mode == 'performance') {
+    mutrate = Channel.from(0, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3)
+    recrate = Channel.from(0, 0.001, 0.005, 0.01, 0.05, 0.1)
+    dualinf = Channel.from(0, 1)
+    seqnum = Channel.from(100) 
+}
+
+else if (params.mode == 'scalability') {
+    mutrate = Channel.from(0, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3)
+    recrate = Channel.from(0, 0.1)
+    dualinf = Channel.from(1)
+    seqnum = Channel.from(100, 1000, 5000, 10000, 50000, 100000) 
+}
+
+else {
+    println "ERROR: Please specify either --mode 'performance' or 'scalability'"
+}
 
 def helpMessage() {
     log.info"""
@@ -45,6 +55,7 @@ def helpMessage() {
         nextflow run sim.nf [options]
     
     Options:
+        --mode [str]    'performance' or 'scalability' 
         --seq [.fasta]  Path to input .fasta file
         --xml [.xml]    SANTA-SIM configuration file 
         --out [path]    Path to working directory
@@ -135,8 +146,9 @@ process S4_santa {
     
     executor 'pbs'
     cpus 2
-    memory '8.GB'
+    memory { 8.GB * task.attempt }
     time '10m'
+    errorStrategy 'retry'
 
     conda 'bioconda::java-jdk=8.0.92'
 

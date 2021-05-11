@@ -19,7 +19,7 @@
 # 2. 1 generation of recombination only (r = 0, 0.001, 0.005, 0.01, 0.05, 0.1; d = 0, 1)
 # and all files process by all five RDMs
 
-# On UTS HPCC
+# Set env variables (UTS HPCC)
 mkdir -p /shared/homes/13444841/2104_pub
 export OUT=/shared/homes/13444841/2104_pub
 export NF=/shared/homes/13444841/rec-bench
@@ -45,3 +45,21 @@ ${NF}/src/1_sim_stats.sh
 
 # Calculate conditions
 ${NF}/src/2_conditions.sh
+
+###################
+### Scalability ###
+###################
+
+# Git:
+
+# Set env variables (UTS HPCC)
+mkdir -p /shared/homes/13444841/2104_scale
+export OUT=/shared/homes/13444841/2104_scale
+export NF=/shared/homes/13444841/rec-bench
+cd $OUT
+
+nextflow run ${NF}/sim.nf \
+	--mode scalability \
+	--seq ${NF}/data/FP7_patient_037_allseqs.fasta \
+	--xml ${NF}/data/neutral.xml \
+	--out ${OUT}
