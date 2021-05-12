@@ -12,7 +12,7 @@
 ### Simulations ###
 ###################
 
-# Git: dba966f94174019b410e5c8330a0b11bca8c3e66
+# Git: 
 
 ### Generate new simulated dataset where:
 # 1. 99 generations of mutation only (m = 0, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3)
@@ -37,8 +37,6 @@ nextflow run ${NF}/sim.nf \
 ### Simulation stats and conditions ###
 #######################################
 
-# Git: 
-
 # Activate conda environment 
 # conda env create --file ${NF}/environment.yml
 conda activate fredjaya-rec-bench-0.1.0
@@ -47,13 +45,11 @@ conda activate fredjaya-rec-bench-0.1.0
 ${NF}/src/1_sim_stats.sh
 
 # Calculate conditions
-${NF}/src/2_conditions.sh
+#${NF}/src/2_conditions.sh
 
 ###################
 ### Scalability ###
 ###################
-
-# Git: 5e899eae77cea2584bd96e309be7356178e45821
 
 # Set env variables (UTS HPCC)
 mkdir -p /shared/homes/13444841/2104_scale

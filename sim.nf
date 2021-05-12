@@ -28,17 +28,17 @@ xml       = ${params.xml}
 
 // Define parameters for S3_param_sweep
 if (params.mode == 'performance') {
-    mutrate = Channel.from(0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1)
+    mutrate = Channel.from(0, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1)
     recrate = Channel.from(0, 0.001, 0.005, 0.01, 0.05, 0.1)
     dualinf = Channel.from(0, 1)
     seqnum = Channel.from(100) 
 }
 
 else if (params.mode == 'scalability') {
-    mutrate = Channel.from(0, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3)
+    mutrate = Channel.from(0, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1)
     recrate = Channel.from(0, 0.1)
     dualinf = Channel.from(1)
-    seqnum = Channel.from(100, 1000, 5000, 10000, 50000, 100000) 
+    seqnum = Channel.from(100, 1000, 5000, 10000, 50000, 100000)
 }
 
 else {
@@ -77,7 +77,7 @@ process S1_filter_fasta {
     // Retain full-length sequences only as SANTA-SIM can't handle gaps
     
     conda 'python=3.7.3 matplotlib=3.1.0'
-    publishDir "${params.out}/S1_filter_fasta", mode: 'copy'
+    publishDir "${params.out}/S1_filter_fasta"
     
     input:
         path seq from params.seq
@@ -119,7 +119,7 @@ process S3_param_sweep {
     
     // Generate .xml files across specified evolutionary parameters
     
-    publishDir "${params.out}/S3_param_sweep", mode: 'copy'
+    publishDir "${params.out}/S3_param_sweep"
     
     input:
         path xml_out from xml_out
@@ -147,7 +147,7 @@ process S4_santa {
     executor 'pbs'
     cpus 2
     memory { 8.GB * task.attempt }
-    time '10m'
+    time '30m'
     errorStrategy 'retry'
 
     conda 'bioconda::java-jdk=8.0.92'
@@ -178,7 +178,7 @@ process B1_phi_profile {
 
     label "sim_benchmark"
     tag "$seq"
-    publishDir "${params.out}/B1_phi_profile", mode: 'move', 
+    publishDir "${params.out}/B1_phi_profile",
         saveAs: { filename -> "${seq}_$filename" }
     conda 'bioconda::phipack=1.1'
    // errorStrategy 'ignore'
@@ -201,7 +201,7 @@ process B2_3seq {
 
     label "sim_benchmark"
     tag "$seq"
-    publishDir "${params.out}/B2_3seq", mode: "move"
+    publishDir "${params.out}/B2_3seq"
     
     input:
         path seq from tseq_fa
@@ -225,7 +225,7 @@ process B3_geneconv {
 
     label "sim_benchmark"                           
     tag "$seq"                                      
-    publishDir "${params.out}/B3_geneconv", mode: "move"
+    publishDir "${params.out}/B3_geneconv"
     errorStrategy 'ignore'
 
     input:
@@ -246,7 +246,7 @@ process B4_uchime_derep {
 
     label "sim_benchmark"                               
     tag "$seq"                                          
-    publishDir "${params.out}/B4_uchime/derep", mode: "symlink"
+    publishDir "${params.out}/B4_uchime/derep"
     conda 'bioconda::vsearch=2.14'
 
     input:
@@ -268,7 +268,7 @@ process B4_uchime {
 
     label "sim_benchmark"                               
     tag "$seq"                                          
-    publishDir "${params.out}/B4_uchime", mode: "move"
+    publishDir "${params.out}/B4_uchime"
     conda 'bioconda::vsearch=2.14'
 
     input:
@@ -293,7 +293,7 @@ process B5_gmos {
 
     label "sim_benchmark"                             
     tag "$seq"                                        
-    publishDir "${params.out}/B5_gmos", mode: "move",
+    publishDir "${params.out}/B5_gmos",
         saveAs: { filename -> "${seq}_$filename" }
 
     input:
