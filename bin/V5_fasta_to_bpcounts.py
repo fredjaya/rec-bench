@@ -29,7 +29,7 @@ def parse_params(name):
     return p[1:6]
 
 def make_bp_csv(file_names):
-    with open("V4_bp_stats.csv", 'w') as csv_file:
+    with open("V5_bp_stats.csv", 'w') as csv_file:
         writer = csv.writer(csv_file, delimiter = ',')
         writer.writerow(['mut', 'rec', 'seqnum', 'dualInf', 'rep', 'seq', 'bps'])
 
