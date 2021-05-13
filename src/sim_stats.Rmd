@@ -1,0 +1,159 @@
+---
+title: "Simulation Statistics"
+author: "Fred Jaya"
+output: 
+  html_document:
+    theme: spacelab
+    code_folding: hide
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = F,
+  warning = F,
+  fig.width = 8,
+  dev = 'png',
+  fig.path = "/Users/13444841/GitHub/rec-bench/figs/")
+
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(ggplot2)
+library(viridis)
+library(scales)
+library(cowplot)
+
+theme_fj <- theme_minimal() +
+  theme(panel.border = element_rect(fill = NA, color = 'grey'),
+        panel.grid = element_blank(), axis.title = element_text(size = 10),
+        legend.title = element_text(size = 10))
+```
+
+## Data prep  
+
+```{r diversity_prep, echo = F}
+sqrt_dist <- 
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/V4_sim_distances.csv", header = F) %>%
+  rename('file' = V1) %>%
+  mutate(file = gsub('.*\\/', '', file)) %>%
+  mutate(file = gsub('^msa_', '', file)) %>%
+  mutate(file = gsub('\\.fasta$', '', file)) %>%
+  mutate(file = gsub('[a-z]', '', file)) %>%
+  separate(col = file, sep = '_',
+           into = c('mut', 'rec', 'seqn', 'dualInf', 'rep')) %>%
+  pivot_longer(cols = V2:V4951) %>%
+  select(-name, 'sqrt_pair_dist' = value) %>%
+  mutate(mut = as.numeric(mut),
+         rec = as.numeric(rec))
+
+dist_medians <- 
+  sqrt_dist %>%
+  group_by(mut) %>%
+  summarise(median = median(sqrt_pair_dist))
+```
+
+```{r bp_counts_prep, echo = F}
+# Open in excel and save again to add commas
+bp_counts <- read.csv("~/Dropbox/Masters/02_working/2105_pub/V5_bp_stats.csv", header = T)
+
+# Sum number of breakpoints per run 
+bp_counts <- bp_counts %>%
+  mutate(num_bp = 
+           rowSums(
+             !is.na(
+               select(., -c("mut", "rec", "seqnum", "dualInf", "rep", "seq")))))
+
+# Pivot breakpoints into one column
+bp_pivot <- bp_counts %>%
+  select(-num_bp) %>%
+  pivot_longer(cols = 7:ncol(.),
+               values_to = 'bp_position', 
+               values_drop_na = T) %>%
+  select(-name)
+
+# Subset for plotting
+num_bp <-
+  bp_counts %>%
+  select(mut, rec, rep, seq, dualInf, num_bp) %>%
+  mutate(rec = scientific(rec)) %>%
+  add_row(rec = '0') %>%
+  mutate(rec = factor(rec, levels = c('0', '1e-03', '5e-03', '1e-02', '5e-02', '1e-01')))
+
+num_rec <-
+  num_bp %>%
+  group_by(mut, rec, rep) %>%
+  tally()
+```
+
+## Plots prep  
+
+```{r diversity_density, fig.width=8, fig.height=2.5}
+a <- 
+  sqrt_dist %>%
+  ggplot(aes(sqrt_pair_dist, ..scaled.., col = as.factor(mut), fill = as.factor(mut))) +
+  geom_density(alpha = 0.1) +
+  geom_vline(data = dist_medians, aes(xintercept = median, color = as.factor(mut)), linetype = 'dashed') +
+  scale_x_continuous(breaks = seq(0, 1, 0.1)) +
+  scale_fill_viridis(discrete = T) +
+  scale_color_viridis(discrete = T) +
+  theme_fj +
+  labs(x = 'Pairwise sequence distance per population', y = 'Density', fill = "Mutation rate", col = "Mutation rate")
+```
+
+```{r bp_per_seq, fig.width=3.5, fig.height=3}
+b <- 
+  num_bp %>%
+  ggplot(aes(x = as.factor(rec), y = num_bp)) +
+  geom_boxplot(position = position_dodge2(preserve = 'single'), alpha = 0.6, shape = 16) +
+  theme_fj +
+  labs(x = "Recombination rate", y = "Number of breakpoints\nper sequence")
+```
+
+```{r rc_per_pop, fig.width=3.5, fig.height=3}
+c <- 
+  num_rec %>%
+  ggplot(aes(x = as.factor(rec), y = n)) +
+  geom_boxplot(position = position_dodge2(preserve = 'single'), alpha = 0.6, shape = 16) +
+  theme_fj +
+  labs(x = "Recombination rate", y = "Number of recombinant\nsequences per population")
+```
+
+## Figures  
+
+```{r fig2}
+top <- plot_grid(a, labels = 'a)', label_size = 10)
+bot <- plot_grid(b, c, nrow = 1, labels = c('b)', 'c)'), label_size = 10)
+plot_grid(top, bot, nrow = 2)
+```
+
+## Supplementary  
+```{r diversity_per_rec, fig.width=8, fig.height=3}
+sqrt_dist %>%
+  ggplot(aes(x = as.factor(mut), y = sqrt_pair_dist, fill = as.factor(rec))) +
+  geom_boxplot(position = position_dodge2(preserve = 'single'), alpha = 0.6, shape = 16) +
+  theme_fj +
+  scale_fill_viridis(discrete = T) +
+  labs(x = "Mutation rate", y = "Number of breakpoints\nper sequence", fill = "Recombination rate")
+```
+
+```{r bp_per_seq_mut, fig.width=8, fig.height=3}
+num_bp %>%
+  ggplot(aes(x = as.factor(rec), y = num_bp, fill = as.factor(mut))) +
+  geom_boxplot(position = position_dodge2(preserve = 'single'), alpha = 0.6, shape = 16) +
+  theme_fj +
+  scale_fill_viridis(discrete = T) +
+  labs(x = "Recombination rate", y = "Pairwise sequence\ndistance per population", fill = "Mutation rate")
+```
+
+```{r rc_per_pop_mut, fig.width=8, fig.height=3}
+ggplot(num_rec, 
+       aes(x = as.factor(rec), y = n, fill = as.factor(mut))) +
+  geom_boxplot(position = position_dodge2(preserve = 'single'), alpha = 0.6) +
+  theme_fj +
+  scale_fill_viridis(discrete = T) +
+  labs(x = "Recombination rate", y = "Number of recombinant\nsequences per population",
+       fill = "Mutation rate")
+```
+
+
+
