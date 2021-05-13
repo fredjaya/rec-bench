@@ -8,11 +8,11 @@
 #F3_separate_seq_pairs.R
 #F3_addCondition_geneconv2.py
 
+# Git: e43781f756f9fc6d576c296228c0b9c4e40e057f
+
 ###################
 ### Simulations ###
 ###################
-
-# Git: 
 
 ### Generate new simulated dataset where:
 # 1. 99 generations of mutation only (m = 0, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3)
@@ -33,9 +33,9 @@ nextflow run ${NF}/sim.nf \
 	--xml ${NF}/data/neutral.xml \
 	--out ${OUT}
 
-#######################################
-### Simulation stats and conditions ###
-#######################################
+########################
+### Simulation stats ###
+########################
 
 # Activate conda environment 
 # conda env create --file ${NF}/environment.yml
@@ -44,8 +44,20 @@ conda activate fredjaya-rec-bench-0.1.0
 # Generate simulation statistics
 ${NF}/src/1_sim_stats.sh
 
+##################
+### Conditions ###
+##################
+
 # Calculate conditions
-#${NF}/src/2_conditions.sh
+${NF}/src/2_conditions.sh
+
+# 3SEQ - not detecting true positives correctly, need to update scripts and unit tests
+
+# GENECONV - need to transfer trace folder to determine which runs failed
+
+# UCHIME - no detections (all false or true negatives)
+
+# gmos - identical sequences are recombinant, not assessed further
 
 ###################
 ### Scalability ###
