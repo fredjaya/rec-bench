@@ -51,11 +51,7 @@ ${NF}/src/1_sim_stats.sh
 # Calculate conditions
 ${NF}/src/2_conditions.sh
 
-# 3SEQ - not detecting true positives correctly, need to update scripts and unit tests
-
-# GENECONV - need to transfer trace folder to determine which runs failed
-
-# UCHIME - no detections (all false or true negatives)
+# UCHIME - no detections (all false or true negatives), use 3SEQ as template
 
 # gmos - identical sequences are recombinant, not assessed further
 
