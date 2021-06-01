@@ -1,0 +1,63 @@
+---
+title: "Empirical analyses"
+author: "Fred Jaya"
+output: 
+   html_document:
+     theme: spacelab
+     code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = T,
+  warning = F,
+  fig.width = 8,
+  fig.path = "/Users/13444841/GitHub/rec-bench/figs/")
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(viridis)
+library(seqinr)
+
+theme_fj <- theme_minimal() +
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(fill = NA, colour = "darkgrey"),
+        axis.title = element_text(size = 10))
+```
+
+```{r}
+hcv <- read.alignment("../data/FP7_patient_037_allseqs.fasta", format = "fasta")
+hcv <- 
+  as.vector(dist.alignment(hcv, matrix = 'identity')) %>%
+  as.data.frame() %>%
+  mutate(virus = "HCV")
+
+bcov <- read.alignment("../data/bcov.fasta", format = "fasta")
+bcov <- 
+  as.vector(dist.alignment(bcov, matrix = 'identity')) %>%
+  as.data.frame() %>%
+  mutate(virus = "BCoV")
+
+bvdv <- read.alignment("../data/bvdv.fasta", format = "fasta")
+bvdv <- 
+  as.vector(dist.alignment(bvdv, matrix = 'identity')) %>%
+  as.data.frame() %>%
+  mutate(virus = "BVDV")
+
+emp <- rbind(hcv, bcov, bvdv) %>% rename(distance = ".")
+```
+
+```{r, fig.height=2}
+emp %>%
+  ggplot(aes(distance, ..scaled.., fill = as.factor(virus), col = as.factor(virus))) +
+  geom_density(alpha = 0.4) + 
+  theme_fj +
+  labs(x = "Pairwise sequence distance",
+       y = "Density",
+       fill = "Virus",
+       col = "Virus")
+
+# Todo - add medians
+```
+

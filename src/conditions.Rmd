@@ -1,0 +1,238 @@
+---
+title: "Detection condition proportions"
+author: "Fred Jaya"
+output: 
+  html_document:
+    theme: spacelab
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = T,
+  warning = F,
+  fig.width = 8,
+  fig.path = "/Users/13444841/GitHub/rec-bench/figs/")
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(viridis)
+library(cowplot)
+library(scales)
+
+theme_fj <- theme_minimal() +
+  theme(panel.grid = element_blank(), 
+        axis.title = element_text(size = 10),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 10))
+
+# Set colour pallete
+pal <- c(TP = '#054A91', FP = '#6BA3DB', TN = '#BB342F', FN = '#DE6C68')
+```
+
+## Data prep  
+
+```{r phi_table}
+phi <- 
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/F1_profile_conditions.csv") %>%
+  mutate(condition = factor(condition, levels = c("TP", "FP", "TN", "FN"))) %>%
+  mutate(rec = scientific(rec))
+
+# Frequency of each condition, per sequence
+table(phi$condition)
+```
+
+```{r 3seq_table}
+# Read in condition data from rec-bench --class
+tseq <-
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/F2_3seq_conditions.csv") %>%
+  mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN"))) %>%
+  mutate(rec = scientific(rec))
+
+# Frequency of each condition per sequence
+table(tseq$RC_seq, useNA = "ifany") 
+```
+
+```{r gc_table}
+# Read gc conditions
+gc <- 
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/F3_geneconv_conditions.csv") %>%
+  mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN")))
+
+# Read in traces to identify GENECONV runs that were not successful (too few polymorphisms)
+gc_trace <-
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/tracing/trace.csv") %>%
+  filter(status == "FAILED") %>%
+  # Separate method and parameters into individual columns
+  separate(col = name, into = c('name', 'params'), sep = ' \\(')
+
+# Clean parameters for plotting
+gc_trace$params <- gsub('[a-z]', '', gc_trace$params)
+gc_trace$params <- gsub('^_'   , '', gc_trace$params)
+gc_trace$params <- gsub('\\.\\)'   , '', gc_trace$params)
+
+# Separate parameters into individual columns
+gc_trace <- 
+  gc_trace %>%
+  separate(col = params, into = c('mut', 'rec', 'seqn', 'dualInf', 'rep'), 
+           sep = '_', remove = T) %>%
+  select(c('mut', 'rec', 'seqn', 'dualInf', 'rep')) %>%
+  # IDGAF
+  mutate(mut = as.numeric(mut),
+         rec = as.numeric(rec),
+         seqn = as.integer(seqn),
+         dualInf = as.integer(dualInf),
+         rep = as.numeric(rep))
+
+# Get non-fails
+pass <- 
+  gc %>%
+  anti_join(gc_trace, by = c('mut', 'rec', 'rep'))
+
+# Get fails
+fail <- 
+  gc_trace %>%
+  left_join(gc, by = c('mut', 'rec', 'rep', 'seqn', 'dualInf'))
+
+fail2 <- fail
+
+# Replace conditions with NAs
+fail[7:ncol(fail)] <- NA
+
+# Merge all traces
+gc_merged <- rbind(pass, fail) %>%
+  mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN"))) %>%
+  mutate(rec = scientific(rec))
+
+rm(gc, gc_trace, pass)
+table(gc_merged$RC_seq, useNA = 'ifany')
+```
+
+```{r uchime_table}
+# Modify geneconv conditions to reflect UCHIMEs, where no recombination was detected
+uchime <- 
+  gc_merged %>%
+  mutate(RC_seq = gsub('TP', 'FN', RC_seq)) %>%
+  mutate(RC_seq = gsub('FP', 'TN', RC_seq)) %>%
+  filter(!is.na(RC_seq))
+
+uchime2 <- 
+  fail2 %>%
+  mutate(rec = scientific(rec)) %>%
+  rbind(uchime)
+
+write.csv(uchime2, "~/Dropbox/Masters/02_working/2105_pub/F4_uchime.csv",
+          row.names = F)
+
+table(uchime2$RC_seq, useNA = 'ifany')
+```
+
+## Plot prep  
+
+```{r phi_pies, fig.height=6, fig.width=5}
+phi_pies <- 
+  phi %>%
+  mutate(mut = factor(mut, levels = c(1, 0.1, 0.01, 0.001, 1e-04, 1e-05, 0))) %>%
+  mutate(rec = factor(rec, levels = c('0e+00', '1e-03', '5e-03', '1e-02', '5e-02', '1e-01'))) %>%
+  ggplot(aes(x = factor(1), fill = condition)) +
+  theme_fj +
+  geom_bar(stat = 'count') +
+  facet_grid(cols = vars(rec), rows = vars(mut), switch = 'both') +
+  coord_polar(theta = 'y') +
+  scale_fill_manual(na.value = "#F0F0F0", values = pal) +
+  theme(axis.text = element_blank(),
+        legend.position = 'bottom',
+        axis.title.x = element_blank(),
+        strip.text.y.left = element_text(angle = 0),
+        plot.tag.position = c(0.57, 0.09),
+        plot.tag = element_text(size = 10),
+        plot.margin = unit(c(5.5, 20, 5.5, 5.5), 'pt')) +
+  labs(x = "Mutation rate", 
+       fill = "Per-window conditions",
+       tag = "Recombination rate")
+
+plot_grid(phi_pies, labels = "PhiPack (Profile)", label_size = 10)
+```
+
+```{r 3seq_pie, fig.height=6, fig.width=5}
+tseq_pies <- 
+  tseq %>%
+  mutate(mut = factor(mut, levels = c(1, 0.1, 0.01, 0.001, 1e-04, 1e-05, 0))) %>%
+  mutate(rec = factor(rec, levels = c('0e+00', '1e-03', '5e-03', '1e-02', '5e-02', '1e-01'))) %>%
+  ggplot(aes(x = factor(1), fill = RC_seq)) +
+  theme_fj +
+  geom_bar(stat = 'count') +
+  facet_grid(cols = vars(rec), rows = vars(mut), switch = 'both') +
+  coord_polar(theta = 'y') +
+  scale_fill_manual(na.value = "#F0F0F0", values = pal) +
+  theme(axis.text = element_blank(),
+        legend.position = 'right',
+        axis.title.x = element_blank(),
+        strip.text.y.left = element_text(angle = 0),
+        plot.tag.position = c(0.57, 0),
+        plot.tag = element_text(size = 10),
+        plot.margin = unit(c(5.5, 20, 5.5, 5.5), 'pt')) +
+  guides(fill = guide_legend(title.position = "top")) +
+  labs(x = "Mutation rate", 
+       fill = "Per-sequence\nconditions",
+       tag = "Recombination rate")
+```
+
+```{r gc_pie, fig.height=6, fig.width=5}
+gc_pies <- 
+  gc_merged %>%
+  mutate(mut = factor(mut, levels = c(1, 0.1, 0.01, 0.001, 1e-04, 1e-05, 0))) %>%
+  mutate(rec = factor(rec, levels = c('0e+00', '1e-03', '5e-03', '1e-02', '5e-02', '1e-01'))) %>%
+  ggplot(aes(x = factor(1), fill = RC_seq)) +
+  theme_fj +
+  geom_bar(stat = 'count') +
+  facet_grid(cols = vars(rec), rows = vars(mut), switch = 'both') +
+  coord_polar(theta = 'y') +
+  scale_fill_manual(na.value = "#F0F0F0", values = pal) +
+  theme(axis.text = element_blank(),
+        legend.position = 'bottom',
+        axis.title.x = element_blank(),
+        strip.text.y.left = element_text(angle = 0),
+        plot.tag.position = c(0.57, 0),
+        plot.tag = element_text(size = 10),
+        plot.margin = unit(c(5.5, 20, 5.5, 5.5), 'pt')) +
+  labs(x = "Mutation rate", 
+       fill = "Per-sequence conditions",
+       tag = "Recombination rate")
+```
+
+```{r uc_pie, fig.height=6, fig.width=5}
+uc_pies <- 
+  uchime2 %>%
+  mutate(mut = factor(mut, levels = c(1, 0.1, 0.01, 0.001, 1e-04, 1e-05, 0))) %>%
+  mutate(rec = factor(rec, levels = c('0e+00', '1e-03', '5e-03', '1e-02', '5e-02', '1e-01'))) %>%
+  ggplot(aes(x = factor(1), fill = RC_seq)) +
+  theme_fj +
+  geom_bar(stat = 'count') +
+  facet_grid(cols = vars(rec), rows = vars(mut), switch = 'both') +
+  coord_polar(theta = 'y') +
+  scale_fill_manual(na.value = "#F0F0F0", values = pal) +
+  theme(axis.text = element_blank(),
+        legend.position = 'bottom',
+        axis.title.x = element_blank(),
+        strip.text.y.left = element_text(angle = 0),
+        plot.tag.position = c(0.57, 0),
+        plot.tag = element_text(size = 10),
+        plot.margin = unit(c(5.5, 20, 5.5, 5.5), 'pt')) +
+  labs(x = "Mutation rate", 
+       fill = "Per-sequence conditions",
+       tag = "Recombination rate")
+```
+
+```{r main_pies, fig.width=10, fig.height=11}
+leg <- plot_grid(get_legend(tseq_pies), NULL, NULL, NULL, rel_widths = c(1, 2), rel_heights = c(1, 2))
+
+plot_grid(tseq_pies + theme(legend.position = 'none'),
+          gc_pies + theme(legend.position = 'none'),
+          uc_pies + theme(legend.position = 'none'),
+          leg,
+          labels = c("a) 3SEQ", "b) GENECONV", "c) VSEARCH (UCHIME)"), 
+          label_size = 10)
+```
+

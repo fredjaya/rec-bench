@@ -1,0 +1,760 @@
+---
+title: "Performance of recombination detection methods"
+author: "Fred Jaya"
+output: 
+  html_document:
+    theme: spacelab
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = T,
+  warning = F,
+  fig.width = 8,
+  fig.path = "/Users/13444841/GitHub/rec-bench/figs/")
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(viridis)
+#library(gridExtra)
+library(cowplot)
+library(scales)
+#library(plotly)
+library(stringr)
+
+theme_fj <- theme_minimal() +
+  theme(panel.border = element_rect(fill = NA, color = 'grey'),
+        panel.grid = element_blank(), axis.title = element_text(size = 10),
+        legend.title = element_text(size = 10))
+```
+
+## Data preparation
+
+```{r phi_prep}
+phi <- 
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/F1_profile_conditions.csv") %>%
+  mutate(condition = factor(condition, levels = c("TP", "FP", "TN", "FN"))) %>%
+  mutate(rec = scientific(rec))
+
+# Calculate evaluation metrics
+phi_power <- 
+  phi %>%
+  select(mut, rec, rep, condition) %>%
+  group_by(mut, rec, condition, rep) %>%
+  tally() %>%
+  pivot_wider(names_from = condition, values_from = n) 
+
+phi_power[is.na(phi_power)] <- 0
+
+phi_power <- 
+  phi_power %>%
+  # True condition
+  mutate(TPR = TP / (TP + FN)) %>%
+  mutate(FPR = FP / (FP + TN)) %>%
+  mutate(TNR = TN / (TN + FP)) %>%
+  mutate(FNR = FN / (TP + FN)) %>%
+  # Predicted condition positive
+  mutate(PPV = TP / (TP + FP)) %>%
+  mutate(FDR = FP / (TP + FP)) %>%
+  # Predicted condition negative
+  mutate(FOR = FN / (TN + FN)) %>%
+  mutate(NPV = TN / (TN + FN)) %>%
+  # Total population
+  mutate(Pre = (TP + FN) / (TP + FP + TN + FN)) %>%
+  mutate(ACC = (TP + TN) / (TP + FP + TN + FN)) %>%
+  # F-score
+  mutate(Fscore = 2 * ((PPV * TPR) / (PPV + TPR))) %>%
+  # MCC
+  mutate(MCC = ((TP*TN) - (FP*FN)) / sqrt((TP+FP) * (TP+FN) * (TN+FP) * (TN+FN))) %>%
+  pivot_longer(cols = TN:MCC, names_to = 'metric', values_to = 'score') %>%
+  mutate(metric = factor(metric, levels = c('TPR', 'FPR', 'TNR', 'FNR', 'PPV',
+                                            'FDR', 'FOR', 'NPV', 'Pre', 'ACC',
+                                            'Fscore', 'MCC', 'TP', 'FP', 'TN', 'FN'))) %>%
+  mutate(score = gsub('NaN', 1, score)) %>%
+  mutate(score = as.numeric(score))
+
+# MCC
+phi_mcc <- 
+  phi %>%
+  select(mut, rec, rep, condition) %>%
+  group_by(mut, rec, condition, rep) %>%
+  tally() %>%
+  pivot_wider(names_from = condition, values_from = n)
+
+phi_mcc[is.na(phi_mcc)] <- 0
+
+# Add MCC
+phi_mcc <- 
+  phi_mcc %>%
+  mutate(MCC = ((TP*TN) - (FP*FN)) / sqrt((TP+FP) * (TP+FN) * (TN+FP) * (TN+FN)))
+
+## Correct for NaNs
+# Count the number of zero-cases per row
+phi_mcc$zero_cases <- 
+  apply(phi_mcc[4:7], MARGIN = 1, function(x) length(which(x == 0)))
+
+# Subset rows where there are three zero-cases and correct
+phi_mcc_onecase <-
+  phi_mcc %>%
+  filter(MCC == 'NaN' & zero_cases == 3) %>%
+  mutate(MCC = case_when(TP != 0 | TN != 0 ~ 1,
+                         FP != 0 | FN != 0 ~ -1))
+# Subset rows where there are two zero-cases and correct 
+phi_mcc_twocase <- 
+  phi_mcc %>%
+  filter(MCC == 'NaN' & zero_cases == 2) %>%
+  mutate(MCC = 0)
+
+# Remove all rows that were subset for correction and re-join corrected
+phi_mcc <- 
+  phi_mcc %>%
+  filter(MCC != 'NaN') %>%
+  rbind(phi_mcc_onecase, phi_mcc_twocase) %>%
+  select(-zero_cases)
+
+rm(phi_mcc_onecase, phi_mcc_twocase)
+
+# add normalised MCC
+phi_mcc <- 
+  phi_mcc %>%
+  mutate(normMCC = (MCC +1) / 2) %>%
+  mutate(Method = 'PhiPack (Profile)')
+```
+
+
+```{r 3seq_prep}
+# Read in condition data from rec-bench --class
+tseq <-
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/F2_3seq_conditions.csv") %>%
+  mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN"))) %>%
+  mutate(rec = scientific(rec))
+
+# Calculate evaluation metrics
+tseq_power <- 
+  tseq %>%
+  select(mut, rec, rep, seq_name, RC_seq) %>%
+  group_by(mut, rec, RC_seq, rep) %>%
+  tally() %>%
+  pivot_wider(names_from = RC_seq, values_from = n) %>%
+  mutate(TP = 0) 
+
+tseq_power[is.na(tseq_power)] <- 0
+
+# Subset failed runs and rejoin later
+tseq_power_na <- 
+  tseq_power %>%
+  filter(`NA` == 100)
+
+# Calculate evaluation metrics for successful runs
+tseq_power <- 
+  tseq_power %>%
+  filter(`NA` == 0) %>%
+  select(-`NA`) %>%
+  # True condition
+  mutate(TPR = TP / (TP + FN)) %>%
+  mutate(FPR = FP / (FP + TN)) %>%
+  mutate(TNR = TN / (TN + FP)) %>%
+  mutate(FNR = FN / (TP + FN)) %>%
+  # Predicted condition positive
+  mutate(PPV = TP / (TP + FP)) %>%
+  mutate(FDR = FP / (TP + FP)) %>%
+  # Predicted condition negative
+  mutate(FOR = FN / (TN + FN)) %>%
+  mutate(NPV = TN / (TN + FN)) %>%
+  # Total population
+  mutate(Pre = (TP + FN) / (TP + FP + TN + FN)) %>%
+  mutate(ACC = (TP + TN) / (TP + FP + TN + FN)) %>%
+  mutate(Fscore = 2 * ((PPV * TPR) / (PPV + TPR))) %>%
+  pivot_longer(cols = TN:Fscore, names_to = 'metric', values_to = 'score') %>%
+  mutate(metric = factor(metric, levels = c('TPR', 'FPR', 'TNR', 'FNR', 'PPV',
+                                            'FDR', 'FOR', 'NPV', 'Pre', 'ACC',
+                                            'Fscore', 'TP', 'FP', 'TN', 'FN'))) %>%
+  # Augment NaNs
+  mutate(score = gsub('NaN', 1, score)) %>%
+  mutate(score = as.numeric(score))
+  # TODO: Rejoin failed runs
+
+## MCC
+tseq_mcc <- 
+  tseq %>%
+  select(mut, rec, rep, RC_seq) %>%
+  group_by(mut, rec, RC_seq, rep) %>%
+  tally() %>%
+  pivot_wider(names_from = RC_seq, values_from = n) %>%
+  mutate(TP = 0)
+
+tseq_mcc[is.na(tseq_mcc)] <- 0
+
+# Subset failed runs to rejoin later
+tseq_mcc_nas <- 
+  tseq_mcc %>%
+  filter(`NA` == 100)
+
+# Add MCC
+tseq_mcc <- 
+  tseq_mcc %>%
+  filter(`NA` == 0) %>%
+  select(-`NA`) %>%
+  mutate(MCC = ((TP*TN) - (FP*FN)) / sqrt((TP+FP) * (TP+FN) * (TN+FP) * (TN+FN)))
+
+## Correct for NaNs
+# Count the number of zero-cases per row
+tseq_mcc$zero_cases <- 
+  apply(tseq_mcc[4:7], MARGIN = 1, function(x) length(which(x == 0)))
+
+# Subset rows where there are three zero-cases and correct
+tseq_mcc_onecase <-
+  tseq_mcc %>%
+  filter(MCC == 'NaN' & zero_cases == 3) %>%
+  mutate(MCC = case_when(TP != 0 | TN != 0 ~ 1,
+                         FP != 0 | FN != 0 ~ -1))
+# Subset rows where there are two zero-cases and correct 
+tseq_mcc_twocase <- 
+  tseq_mcc %>%
+  filter(MCC == 'NaN' & zero_cases == 2) %>%
+  mutate(MCC = 0)
+
+# Remove all rows that were subset for correction and re-join corrected
+tseq_mcc <- 
+  tseq_mcc %>%
+  filter(MCC != 'NaN') %>%
+  rbind(tseq_mcc_onecase, tseq_mcc_twocase) %>%
+  select(-zero_cases)
+
+rm(tseq_mcc_onecase, tseq_mcc_twocase)
+
+# add normalised MCC
+tseq_mcc <- 
+  tseq_mcc %>%
+  mutate(normMCC = (MCC +1) / 2) %>%
+  mutate(Method = "3SEQ")
+```
+
+```{r gc_prep}
+# Read gc conditions
+gc_conditions <- 
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/F3_geneconv_conditions.csv") %>%
+  mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN")))
+
+# Read in traces to identify GENECONV runs that were not successful (too few polymorphisms)
+gc_trace <-
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/tracing/trace.csv") %>%
+  filter(status == "FAILED") %>%
+  # Separate method and parameters into individual columns
+  separate(col = name, into = c('name', 'params'), sep = ' \\(')
+
+# Clean parameters for plotting
+gc_trace$params <- gsub('[a-z]', '', gc_trace$params)
+gc_trace$params <- gsub('^_'   , '', gc_trace$params)
+gc_trace$params <- gsub('\\.\\)'   , '', gc_trace$params)
+
+# Separate parameters into individual columns
+gc_trace <- 
+  gc_trace %>%
+  separate(col = params, into = c('mut', 'rec', 'seqn', 'dualInf', 'rep'), 
+           sep = '_', remove = T) %>%
+  select(c('mut', 'rec', 'seqn', 'dualInf', 'rep')) %>%
+  # IDGAF
+  mutate(mut = as.numeric(mut),
+         rec = as.numeric(rec),
+         seqn = as.integer(seqn),
+         dualInf = as.integer(dualInf),
+         rep = as.numeric(rep))
+
+# Get non-fails
+pass <- 
+  gc_conditions %>%
+  anti_join(gc_trace, by = c('mut', 'rec', 'rep'))
+
+# Get fails
+fail <- 
+  gc_trace %>%
+  left_join(gc_conditions, by = c('mut', 'rec', 'rep', 'seqn', 'dualInf'))
+
+# Replace conditions with NAs
+fail[7:ncol(fail)] <- NA
+
+# Merge all traces
+gc_merged <- rbind(pass, fail) %>%
+  mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN"))) %>%
+  mutate(rec = scientific(rec))
+
+# Calculate evaluation metrics
+gc_power <- 
+  gc_merged %>%
+  select(mut, rec, rep, seq_name, RC_seq) %>%
+  group_by(mut, rec, RC_seq, rep) %>%
+  tally() %>%
+  pivot_wider(names_from = RC_seq, values_from = n)
+
+gc_power[is.na(gc_power)] <- 0
+
+# Subset failed runs and rejoin later
+gc_power_nas <- 
+  gc_power %>%
+  filter(`NA` == 100)
+
+# Calculate evaluation metrics
+gc_power <- 
+  gc_power %>%
+  filter(`NA` == 0) %>%
+  select(-`NA`) %>%
+  # True condition
+  mutate(TPR = TP / (TP + FN)) %>%
+  mutate(FPR = FP / (FP + TN)) %>%
+  mutate(TNR = TN / (TN + FP)) %>%
+  mutate(FNR = FN / (TP + FN)) %>%
+  # Predicted condition positive
+  mutate(PPV = TP / (TP + FP)) %>%
+  mutate(FDR = FP / (TP + FP)) %>%
+  # Predicted condition negative
+  mutate(FOR = FN / (TN + FN)) %>%
+  mutate(NPV = TN / (TN + FN)) %>%
+  # Total population
+  mutate(Pre = (TP + FN) / (TP + FP + TN + FN)) %>%
+  mutate(ACC = (TP + TN) / (TP + FP + TN + FN)) %>%
+  mutate(Fscore = 2 * ((PPV * TPR) / (PPV + TPR))) %>%
+  mutate(MCC = ((TP*TN) - (FP*FN)) / sqrt((TP+FP) * (TP+FN) * (TN+FP) * (TN+FN))) %>%
+  
+  pivot_longer(cols = TN:Fscore, names_to = 'metric', values_to = 'score') %>%
+  mutate(metric = factor(metric, levels = c('TPR', 'FPR', 'TNR', 'FNR', 'PPV',
+                                            'FDR', 'FOR', 'NPV', 'Pre', 'MCC', 'ACC',
+                                            'Fscore', 'TP', 'FP', 'TN', 'FN'))) %>%
+  # Augment NaNs
+  mutate(score = gsub('NaN', 1, score)) %>%
+  mutate(score = as.numeric(score))
+
+#### MCC
+gc_mcc <- 
+  gc_merged %>%
+  select(mut, rec, rep, RC_seq) %>%
+  group_by(mut, rec, RC_seq, rep) %>%
+  tally() %>%
+  pivot_wider(names_from = RC_seq, values_from = n)
+
+gc_mcc[is.na(gc_mcc)] <- 0
+
+# Subset failed runs to rejoin later
+gc_mcc_nas <- 
+  gc_mcc %>%
+  filter(`NA` == 100)
+
+# Add MCC
+gc_mcc <- 
+  gc_mcc %>%
+  filter(`NA` == 0) %>%
+  select(-`NA`) %>%
+  mutate(MCC = ((TP*TN) - (FP*FN)) / sqrt((TP+FP) * (TP+FN) * (TN+FP) * (TN+FN)))
+
+## Correct for NaNs
+# Count the number of zero-cases per row
+gc_mcc$zero_cases <- 
+  apply(gc_mcc[4:7], MARGIN = 1, function(x) length(which(x == 0)))
+
+# Subset rows where there are three zero-cases and correct
+gc_mcc_onecase <-
+  gc_mcc %>%
+  filter(MCC == 'NaN' & zero_cases == 3) %>%
+  mutate(MCC = case_when(TP != 0 | TN != 0 ~ 1,
+                         FP != 0 | FN != 0 ~ -1))
+# Subset rows where there are two zero-cases and correct 
+gc_mcc_twocase <- 
+  gc_mcc %>%
+  filter(MCC == 'NaN' & zero_cases == 2) %>%
+  mutate(MCC = 0)
+
+# Remove all rows that were subset for correction and re-join corrected
+gc_mcc <- 
+  gc_mcc %>%
+  filter(MCC != 'NaN') %>%
+  rbind(gc_mcc_onecase, gc_mcc_twocase) %>%
+  select(-zero_cases)
+
+rm(gc_mcc_onecase, gc_mcc_twocase)
+
+# add normalised MCC
+gc_mcc <- 
+  gc_mcc %>%
+  mutate(normMCC = (MCC +1) / 2) %>%
+  mutate(Method = "GENECONV")
+```
+
+```{r uchime_prep}
+# Read uchime conditions
+uchime <- 
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/F4_uchime.csv") %>%
+  mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN"))) %>%
+  mutate(rec = scientific(rec))
+
+# Calculate evaluation metrics
+uchime_power <- 
+  uchime %>%
+  select(mut, rec, rep, seq_name, RC_seq) %>%
+  group_by(mut, rec, RC_seq, rep) %>%
+  tally() %>%
+  pivot_wider(names_from = RC_seq, values_from = n) %>%
+  mutate(FP = 0) %>%
+  mutate(TP = 0)
+
+uchime_power[is.na(uchime_power)] <- 0
+
+uchime_power <- 
+  uchime_power %>%
+  # True condition
+  mutate(TPR = TP / (TP + FN)) %>%
+  mutate(FPR = FP / (FP + TN)) %>%
+  mutate(TNR = TN / (TN + FP)) %>%
+  mutate(FNR = FN / (TP + FN)) %>%
+  # Predicted condition positive
+  mutate(PPV = TP / (TP + FP)) %>%
+  mutate(FDR = FP / (TP + FP)) %>%
+  # Predicted condition negative
+  mutate(FOR = FN / (TN + FN)) %>%
+  mutate(NPV = TN / (TN + FN)) %>%
+  # Total population
+  mutate(Pre = (TP + FN) / (TP + FP + TN + FN)) %>%
+  mutate(ACC = (TP + TN) / (TP + FP + TN + FN)) %>%
+  mutate(Fscore = 2 * ((PPV * TPR) / (PPV + TPR))) %>%
+  mutate(MCC = ((TP*TN) - (FP*FN)) / sqrt((TP+FP) * (TP+FN) * (TN+FP) * (TN+FN))) %>%
+  pivot_longer(cols = TN:MCC, names_to = 'metric', values_to = 'score') %>%
+  mutate(metric = factor(metric, levels = c('TPR', 'FPR', 'TNR', 'FNR', 'PPV',
+                                            'FDR', 'FOR', 'NPV', 'Pre', 'MCC', 'ACC',
+                                            'Fscore', 'TP', 'FP', 'TN', 'FN'))) %>%
+  mutate(score = gsub('NaN', 1, score)) %>%
+  mutate(score = as.numeric(score))
+
+## MCC
+uchime_mcc <- 
+  uchime %>%
+  select(mut, rec, rep, RC_seq) %>%
+  group_by(mut, rec, RC_seq, rep) %>%
+  tally() %>%
+  pivot_wider(names_from = RC_seq, values_from = n) %>%
+  mutate(FP = 0) %>%
+  mutate(TP = 0)
+
+uchime_mcc[is.na(uchime_mcc)] <- 0
+
+# Add MCC
+uchime_mcc <- 
+  uchime_mcc %>%
+  mutate(MCC = ((TP*TN) - (FP*FN)) / sqrt((TP+FP) * (TP+FN) * (TN+FP) * (TN+FN)))
+
+## Correct for NaNs
+# Count the number of zero-cases per row
+uchime_mcc$zero_cases <- 
+  apply(uchime_mcc[4:7], MARGIN = 1, function(x) length(which(x == 0)))
+
+# Subset rows where there are three zero-cases and correct
+uchime_mcc_onecase <-
+  uchime_mcc %>%
+  filter(MCC == 'NaN' & zero_cases == 3) %>%
+  mutate(MCC = case_when(TP != 0 | TN != 0 ~ 1,
+                         FP != 0 | FN != 0 ~ -1))
+# Subset rows where there are two zero-cases and correct 
+uchime_mcc_twocase <- 
+  uchime_mcc %>%
+  filter(MCC == 'NaN' & zero_cases == 2) %>%
+  mutate(MCC = 0)
+
+# Remove all rows that were subset for correction and re-join corrected
+uchime_mcc <- 
+  uchime_mcc %>%
+  filter(MCC != 'NaN') %>%
+  rbind(uchime_mcc_onecase, uchime_mcc_twocase) %>%
+  select(-zero_cases)
+
+rm(uchime_mcc_onecase, uchime_mcc_twocase)
+
+# add normalised MCC
+uchime_mcc <- 
+  uchime_mcc %>%
+  mutate(normMCC = (MCC +1) / 2) %>%
+  mutate(Method = "UCHIME")
+```
+
+```{r big_prep}
+# PHI
+phi_big <- 
+  phi %>%
+  select(mut, rec, rep, dualInf, condition) %>%
+  group_by(mut, rec, condition, dualInf, rep) %>%
+  tally() %>%
+  pivot_wider(names_from = condition, values_from = n) %>%
+  mutate(Method = 'PhiPack (Profile)') %>%
+  mutate(`NA` = NA)
+
+# 3SEQ
+tseq_big <- 
+  tseq %>%
+  select(mut, rec, dualInf, rep, seq_name, RC_seq) %>%
+  group_by(mut, rec, RC_seq, rep, dualInf) %>%
+  tally() %>%
+  pivot_wider(names_from = RC_seq, values_from = n) %>%
+  mutate(TP = 0) %>%
+  mutate(Method = '3SEQ')
+
+# GENECONV
+gc_big <- 
+  gc_merged %>%
+  select(mut, rec, rep, dualInf, seq_name,  RC_seq) %>%
+  group_by(mut, rec, dualInf, RC_seq, rep) %>%
+  tally() %>%
+  pivot_wider(names_from = RC_seq, values_from = n) %>%
+  mutate(Method = 'GENECONV')
+
+# UCHIME
+uchime_big <- 
+  uchime %>%
+  select(mut, rec, rep, dualInf, seq_name, RC_seq) %>%
+  group_by(mut, rec, dualInf, RC_seq, rep) %>%
+  tally() %>%
+  pivot_wider(names_from = RC_seq, values_from = n) %>%
+  mutate(FP = 0) %>%
+  mutate(TP = 0) %>%
+  mutate(Method = 'UCHIME') %>%
+  mutate(`NA` = NA)
+
+# Merge
+big <- 
+  phi_big %>%
+  rbind(tseq_big, gc_big, uchime_big) %>%
+  select(mut, rec, dualInf, rep, Method,`NA`, TP, FP, TN, FN)
+
+#rm(phi_big, tseq_big, gc_big, uchime_big)
+big[is.na(big)] <- 0
+
+# Evaluation metrics
+big <- 
+  big %>%
+  # Remove failed 3SEQ and GENECONV runs
+  filter(`NA` == 0) %>%
+  select(-`NA`) %>%
+  # True condition
+  mutate(TPR = TP / (TP + FN)) %>%
+  mutate(FPR = FP / (FP + TN)) %>%
+  mutate(TNR = TN / (TN + FP)) %>%
+  mutate(FNR = FN / (TP + FN)) %>%
+  # Predicted condition positive
+  mutate(PPV = TP / (TP + FP)) %>%
+  mutate(FDR = FP / (TP + FP)) %>%
+  # Predicted condition negative
+  mutate(FOR = FN / (TN + FN)) %>%
+  mutate(NPV = TN / (TN + FN)) %>%
+  # Total population
+  mutate(Pre = (TP + FN) / (TP + FP + TN + FN)) %>%
+  mutate(ACC = (TP + TN) / (TP + FP + TN + FN)) %>%
+  mutate(Fscore = 2 * ((PPV * TPR) / (PPV + TPR))) %>%
+  mutate(MCC = ((TP*TN) - (FP*FN)) / sqrt((TP+FP) * (TP+FN) * (TN+FP) * (TN+FN)))
+
+## Correct for MCC NaNs ##
+
+# Count the number of zero-cases per row
+big$zero_cases <- 
+  apply(big[6:9], MARGIN = 1, function(x) length(which(x == 0)))
+
+# Subset rows where there are three zero-cases and correct
+big_onecase <-
+  big %>%
+  filter(MCC == 'NaN' & zero_cases == 3) %>%
+  mutate(MCC = case_when(TP != 0 | TN != 0 ~ 1,
+                         FP != 0 | FN != 0 ~ -1))
+# Subset rows where there are two zero-cases and correct 
+big_twocase <- 
+  big %>%
+  filter(MCC == 'NaN' & zero_cases == 2) %>%
+  mutate(MCC = 0)
+
+# Remove all rows that were subset for correction and re-join corrected
+big <- 
+  big %>%
+  filter(MCC != 'NaN') %>%
+  rbind(big_onecase, big_twocase) %>%
+  select(-zero_cases)
+
+rm(big_onecase, big_twocase)
+
+# add normalised MCC
+big <- 
+  big %>%
+  mutate(normMCC = (MCC +1) / 2)
+
+## Augment non-MCC scores ##
+big <- 
+  big %>%
+  mutate_all(funs(str_replace_all(., 'NaN', '1')))
+
+# Fix classes
+big[,1:4] <- lapply(big[,1:4], as.numeric)
+big[,5] <- lapply(big[,5], as.factor)
+big[,6:ncol(big)] <- lapply(big[,6:ncol(big)], as.numeric)
+
+big_long <- 
+  big %>%
+  pivot_longer(cols = TN:normMCC, names_to = 'metric', values_to = 'score')
+
+big_long_plot <- 
+  big_long %>%
+    mutate(Method = gsub('UCHIME', 'VSEARCH (UCHIME)', Method)) %>%
+         filter(metric == 'TPR' | metric == 'TNR' | 
+                  metric == 'PPV' | metric == 'NPV' |
+                  metric == 'normMCC') %>% 
+         mutate(metric = gsub('TPR', 'Power/Recall (TPR)', metric)) %>%
+         mutate(metric = gsub('TNR', 'Specificity (TNR)', metric)) %>%
+         mutate(metric = gsub('PPV', 'Precision (PPV)', metric)) %>%
+         mutate(metric = gsub('NPV', 'Negative Predictive Value (NPV)', metric)) %>%
+         mutate(metric = gsub('normMCC', 'Matthews Correlation Coefficient (nMCC)', metric)) %>%
+         mutate(metric = factor(metric,
+           levels = c('Matthews Correlation Coefficient (nMCC)',
+                      'Power/Recall (TPR)', 'Precision (PPV)',
+                      'Specificity (TNR)', 'Negative Predictive Value (NPV)')))
+```
+
+## Plot prep  
+
+```{r w_nmcc, fig.width=9.5, fig.height=4}
+w_nmcc <- 
+  big_long_plot %>%
+  filter(Method == "PhiPack (Profile)") %>%
+  filter(metric == 'Matthews Correlation Coefficient (nMCC)') %>%
+  mutate(rec = gsub('^', 'r = ', rec)) %>%
+  ggplot(aes(x = as.factor(mut), y = score, col = Method, group = Method)) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
+  stat_summary(geom = 'line', fun = mean, size = 0.75) +
+  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3) +
+  facet_wrap(vars(rec), nrow = 2) +
+  scale_y_continuous(limits = c(0,1)) +
+  scale_colour_manual(values = c('#D95F02')) +
+  labs(col = "Method",
+       x = "Mutation rate",
+       y = "Normalised Matthews\nCorrelation Coefficient (nMCC)") +
+  theme_fj +
+  theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1))
+
+w_nmcc
+```
+
+```{r w_power, fig.width=9.5, fig.height=4}
+w_power <- 
+  big_long_plot %>%
+  mutate(rec = gsub('^', 'r = ', rec)) %>%
+  filter(Method == "PhiPack (Profile)") %>%
+  filter(metric == 'Power/Recall (TPR)') %>%
+  ggplot(aes(x = as.factor(mut), y = score, col = Method, group = Method)) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
+  stat_summary(geom = 'line', fun = mean, size = 0.75) +
+  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3) +
+  facet_wrap(vars(rec), nrow = 2) +
+  scale_y_continuous(limits = c(0,1)) +
+  scale_colour_manual(values = c("#D95F02")) +
+  labs(col = "Method",
+       x = "Mutation rate",
+       y = "Power") +
+  theme_fj +
+  theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1))
+```
+
+```{r w_precision, fig.width=9.5, fig.height=4}
+w_precision <- 
+  big_long_plot %>%
+  mutate(rec = gsub('^', 'r = ', rec)) %>%
+  filter(Method == "PhiPack (Profile)") %>%
+  filter(metric == 'Precision (PPV)') %>%
+  ggplot(aes(x = as.factor(mut), y = score, col = Method, group = Method)) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
+  stat_summary(geom = 'line', fun = mean, size = 0.75) +
+  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3) +
+  facet_wrap(vars(rec), nrow = 2) +
+  scale_y_continuous(limits = c(0,1)) +
+  scale_colour_manual(values = c("#D95F02")) +
+  labs(col = "Method",
+       x = "Mutation rate",
+       y = "Precision") +
+  theme_fj +
+  theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1))
+```
+
+```{r s_nmcc, fig.width=9.5, fig.height=4}
+s_nmcc <- 
+  big_long_plot %>%
+  mutate(rec = gsub('^', 'r = ', rec)) %>%
+  filter(Method != "PhiPack (Profile)") %>%
+  filter(metric == 'Matthews Correlation Coefficient (nMCC)') %>%
+mutate(Method = factor(Method, levels = c('VSEARCH (UCHIME)', 'GENECONV', '3SEQ'))) %>%
+  ggplot(aes(x = as.factor(mut), y = score, col = Method, group = Method)) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
+  stat_summary(geom = 'line', fun = mean, size = 0.75, alpha = 0.8) +
+  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3, alpha = 0.8) +
+  facet_wrap(vars(rec), nrow = 2) +
+  scale_y_continuous(limits = c(0,1)) +
+  scale_colour_manual(values = c('#E78AC3', '#66C2A5', '#8DA0CB')) +
+  labs(col = "Method",
+       x = "Mutation rate",
+       y = "Normalised Matthews\nCorrelation Coefficient (nMCC)") +
+  theme_fj +
+  theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1))
+```
+
+```{r s_power, fig.width=9.5, fig.height=4}
+s_power <- 
+  big_long_plot %>%
+  mutate(rec = gsub('^', 'r = ', rec)) %>%
+  filter(Method != "PhiPack (Profile)") %>%
+  filter(metric == 'Power/Recall (TPR)') %>%
+  mutate(Method = factor(Method, c('VSEARCH (UCHIME)', 'GENECONV', '3SEQ'))) %>%
+  ggplot(aes(x = as.factor(mut), y = score, col = Method, group = Method)) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
+  stat_summary(geom = 'line', fun = mean, size = 0.75, alpha = 0.8) +
+  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3, alpha = 0.8) +
+  facet_wrap(vars(rec), nrow = 2) +
+  scale_y_continuous(limits = c(0,1)) +
+  scale_colour_manual(values = c('#E78AC3', '#66C2A5', '#8DA0CB')) +
+  labs(col = "Method",
+       x = "Mutation rate",
+       y = "Power") +
+  theme_fj +
+  theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1))
+```
+
+```{r s_precision, fig.width=9.5, fig.height=4}
+s_precision <- 
+  big_long_plot %>%
+  mutate(rec = gsub('^', 'r = ', rec)) %>%
+  filter(Method != "PhiPack (Profile)") %>%
+  filter(metric == 'Precision (PPV)') %>%
+  mutate(Method = factor(Method, levels = c('VSEARCH (UCHIME)', 'GENECONV', '3SEQ'))) %>%
+  ggplot(aes(x = as.factor(mut), y = score, col = Method, group = Method)) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
+  stat_summary(geom = 'line', fun = mean, size = 0.75, alpha = 0.8) +
+  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3, alpha = 0.8) +
+  facet_wrap(vars(rec), nrow = 2) +
+  scale_y_continuous(limits = c(0,1)) +
+  scale_colour_manual(values = c('#E78AC3', '#66C2A5', '#8DA0CB')) +
+  labs(col = "Method",
+       x = "Mutation rate",
+       y = "Precision") +
+  theme_fj +
+  theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1))
+```
+
+## Main  
+
+```{r fig3, fig.width=9, fig.height=11}
+plot_grid(w_nmcc + theme(legend.position = 'none'), 
+          w_power + theme(legend.position = 'none'), 
+          w_precision + theme(legend.position = 'bottom'), 
+          nrow = 3,
+          labels = c("a) nMCC", "b) Power", "c) Precision"),
+          label_size = 10)
+```
+
+```{r fig4, fig.width=9, fig.height=11}
+plot_grid(s_nmcc + theme(legend.position = 'none'), 
+          s_power + theme(legend.position = 'none'), 
+          s_precision + theme(legend.position = 'bottom'), 
+          nrow = 3,
+          labels = c("a) nMCC", "b) Power", "c) Precision"),
+          label_size = 10)
+```
