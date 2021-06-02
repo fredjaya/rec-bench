@@ -38,7 +38,7 @@ else if (params.mode == 'scalability') {
     mutrate = Channel.from(0, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1)
     recrate = Channel.from(0, 0.1)
     dualinf = Channel.from(1)
-    seqnum = Channel.from(100, 1000, 5000, 10000, 50000, 100000)
+    seqnum = Channel.from(50000)
 }
 
 else {
@@ -147,7 +147,7 @@ process S4_santa {
     executor 'pbs'
     cpus 2
     memory { 8.GB * task.attempt }
-    time '30m'
+    time '24h'
     errorStrategy 'retry'
 
     conda 'bioconda::java-jdk=8.0.92'
@@ -181,7 +181,6 @@ process B1_phi_profile {
     publishDir "${params.out}/B1_phi_profile",
         saveAs: { filename -> "${seq}_$filename" }
     conda 'bioconda::phipack=1.1'
-   // errorStrategy 'ignore'
 
     input:
         path seq from phi_fa
@@ -220,13 +219,12 @@ process B2_3seq {
     """
     
 }
-
+/*
 process B3_geneconv {
 
     label "sim_benchmark"                           
     tag "$seq"                                      
     publishDir "${params.out}/B3_geneconv"
-    errorStrategy 'ignore'
 
     input:
         path seq from gc_fa
@@ -241,7 +239,7 @@ process B3_geneconv {
     """
 
 }
-
+*/
 process B4_uchime_derep {
 
     label "sim_benchmark"                               

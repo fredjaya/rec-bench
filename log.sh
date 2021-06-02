@@ -74,3 +74,11 @@ nextflow run ${NF}/sim.nf \
 	--seq ${NF}/data/FP7_patient_037_allseqs.fasta \
 	--xml ${NF}/data/neutral.xml \
 	--out ${OUT}
+
+# Been manually changing seqnum = Channel.from(n) with n and running each n
+# separately.
+
+# At n = 10000, no GENECONV runs finished. 60 = timed out, 10 = too similar
+# Not re-run after n = 50000.
+
+# At n = 50000, all gmos runs so far are seg faulting 
