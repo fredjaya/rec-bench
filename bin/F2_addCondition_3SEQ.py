@@ -13,12 +13,6 @@ import os
 import csv
 from math import isnan
 
-# Arguments -----
-parser = argparse.ArgumentParser()
-parser.add_argument("sim_bp", help = "simulated breakpoint file (individual seqs. e.g. V3_3seq_sim_bp.csv")
-parser.add_argument("rec_path", help = "path to 3SEQ output files (*.rec)")
-args = parser.parse_args()
-
 # Functions -----
 def convert_bps(bp):
     if type(bp) is str:
@@ -77,6 +71,18 @@ def iterate_rec_files(previous_param, current_param, seq, rec_path):
     elif current_param == previous_param:
         None 
 
+def remove_bps(predicted_rec):
+    """
+    Remove breakpoints from C_ACCNUM for matching with sim_bp
+    """
+    if predicted_rec is None:
+        return predicted_rec 
+    if predicted_rec.empty:
+        return predicted_rec
+    else:
+        predicted_rec['C_ACCNUM'] = predicted_rec['C_ACCNUM'].replace(':.*$', '', regex = True)
+        return predicted_rec
+
 def match_seq(sim_row, predicted_rec):
     """
     Check if sim seq is present in 3SEQ output 
@@ -97,7 +103,7 @@ def predicted_bp_to_set(sim_row, predicted_rec):
     """
     breakpoints = set()
     rec_row = match_seq(sim_row, predicted_rec)
-    
+
     s = str(list(rec_row.iloc[0, 12:]))
     pattern = re.compile(r'\d+-\d+')
     matches = re.findall(pattern, s)
@@ -281,7 +287,76 @@ def prep_sim_file():
     sim_bp['bps'] = bp_to_set(sim_bp)
     return sim_bp
 
-def count_conditions(sim_bp, rec_path):
+def condition_per_sequence(sim_row, previous_param, rec_path, seq_length):
+    out_row = []
+            
+    """
+    Read in 3SEQ file 
+    """
+    current_param = sim_row['params']
+    predicted_rec = iterate_rec_files(previous_param, current_param, sim_row, rec_path)
+    predicted_rec = remove_bps(predicted_rec)
+    
+    """
+    Parse parameters 
+    """
+    out_row.extend(parse_params(sim_row.params))
+    out_row.extend([sim_row['seq']])
+    
+    if predicted_rec is None:
+        """
+        Sequences too similar for 3SEQ analysis - return NaNs 
+        """
+        out_row.extend(['nan'] * 19)
+        
+    elif predicted_rec.empty:
+        """
+        3SEQ detected no recombination at this param 
+        """
+        rc_seq = rcseq_no_pred_rec(sim_row['bps'])
+        out_row.append(rc_seq)
+        calc_no_pred_rec(sim_row, seq_length, out_row)
+        binary_measures(out_row)
+            
+    elif sim_seq_in_pred_rec(sim_row, predicted_rec):
+        """
+        Recombination detected at this param; check if bps match
+        """
+        bp_3seq = predicted_bp_to_set(sim_row, predicted_rec)
+        #print("Param: {}\n{}\nSim BP: {}\nSim Type: {}" \
+        #      .format(current_param, sim_row.seq, sim_row.bps, type(sim_row.bps)))
+        
+        
+        if type(sim_row['bps']) is set:
+            """
+            Breakpoints simulated 
+            """
+            rc_seq = 'TP'
+            out_row.append(rc_seq)
+            calc_yes_pred_rec_yes_sim(sim_row, bp_3seq, seq_length, out_row)
+            binary_measures(out_row)
+                
+        elif type(sim_row['bps']) is float:
+            """
+            No breakpoints simulated 
+            """
+            rc_seq = 'FP'
+            out_row.append(rc_seq)
+            calc_yes_pred_rec_no_sim(bp_3seq, seq_length, out_row)
+            binary_measures(out_row)
+            
+    else:
+        """
+        No breakpoints detected at this param 
+        """
+        rc_seq = rcseq_no_pred_rec(sim_row['bps'])
+        out_row.append(rc_seq)
+        calc_no_pred_rec(sim_row, seq_length, out_row)
+        binary_measures(out_row)
+        
+    return(out_row)
+            
+def write_conditions(sim_bp, rec_path):
     """
     Prep output .csv 
     """
@@ -297,79 +372,17 @@ def count_conditions(sim_bp, rec_path):
         previous_param = None
         
         for index, sim_row in sim_bp.iterrows():
-            out_row = []
-            
-            """
-            Read in 3SEQ file 
-            """
-            current_param = sim_row['params']
-            predicted_rec = iterate_rec_files(previous_param, 
-                                              current_param, 
-                                              sim_row, 
-                                              rec_path)
-            
-            """
-            Parse parameters 
-            """
-            out_row.extend(parse_params(sim_row.params))
-            out_row.extend([sim_row['seq']])
-            
-            if predicted_rec is None:
-                """
-                Sequences too similar for 3SEQ analysis - return NaNs 
-                """
-                out_row.extend(['nan'] * 19)
-
-            elif predicted_rec.empty:
-                """
-                3SEQ detected no recombination at this param 
-                """
-                rc_seq = rcseq_no_pred_rec(sim_row['bps'])
-                out_row.append(rc_seq)
-                calc_no_pred_rec(sim_row, seq_length, out_row)
-                binary_measures(out_row)
-            
-            elif sim_seq_in_pred_rec(sim_row, predicted_rec):
-                """
-                Recombination detected at this param; check if bps match
-                """
-                bp_3seq = predicted_bp_to_set(sim_row, predicted_rec)
-                print("Param: {}\n{}\nSim BP: {}\nSim Type: {}" \
-                      .format(current_param, sim_row.seq, sim_row.bps, type(sim_row.bps)))
-
-                if type(sim_row['bps']) is set:
-                    """
-                    Breakpoints simulated 
-                    """
-                    rc_seq = 'TP'
-                    out_row.append(rc_seq)
-                    calc_yes_pred_rec_yes_sim(
-                            sim_row, bp_3seq, seq_length, out_row)
-                    binary_measures(out_row)
-                    
-                elif type(sim_row['bps']) is float:
-                    """
-                    No breakpoints simulated 
-                    """
-                    rc_seq = 'FP'
-                    out_row.append(rc_seq)
-                    calc_yes_pred_rec_no_sim(bp_3seq, seq_length, out_row)
-                    binary_measures(out_row)
-
-            else:
-                """
-                No breakpoints detected at this param 
-                """
-                rc_seq = rcseq_no_pred_rec(sim_row['bps'])
-                out_row.append(rc_seq)
-                calc_no_pred_rec(sim_row, seq_length, out_row)
-                binary_measures(out_row)
-                
+            out_row = condition_per_sequence(sim_row, previous_param, rec_path, seq_length)
             #print(out_row)
             writer.writerow(out_row)
     return
 
-# Main -----
-rec_path = args.rec_path
-sim_bp = prep_sim_file()
-count_conditions(sim_bp, rec_path)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("sim_bp", help = "simulated breakpoint file (individual seqs. e.g. V3_3seq_sim_bp.csv")
+    parser.add_argument("rec_path", help = "path to 3SEQ output files (*.rec)")
+    args = parser.parse_args()
+    
+    rec_path = args.rec_path
+    sim_bp = prep_sim_file()
+    write_conditions(sim_bp, rec_path)
