@@ -44,17 +44,6 @@ conda activate fredjaya-rec-bench-0.1.0
 # Generate simulation statistics
 ${NF}/src/1_sim_stats.sh
 
-##################
-### Conditions ###
-##################
-
-# Calculate conditions
-${NF}/src/2_conditions.sh
-
-# UCHIME - no detections (all false or true negatives), use 3SEQ as template
-
-# gmos - identical sequences are recombinant, not assessed further
-
 ###################
 ### Scalability ###
 ###################
@@ -70,3 +59,27 @@ nextflow run ${NF}/sim.nf \
 	--seq ${NF}/data/FP7_patient_037_allseqs.fasta \
 	--xml ${NF}/data/neutral.xml \
 	--out ${OUT}
+
+##################
+### Conditions ###
+##################
+
+# Git: 74b9c7c5ff7d841dddbadaa6810684fa399b9d6b
+
+# Calculate conditions
+${NF}/src/2_conditions.sh
+
+# UCHIME - no detections (all false or true negatives)
+# F4_uchime.csv created manually in src/2_conditions.Rmd
+
+# gmos - identical sequences are recombinant, not assessed further
+
+#################
+### Empirical ###
+#################
+
+# Git:
+
+# Make maximum likelihood phylogenies
+iqtree2 -s data/bcov.fasta -alrt 1000 -B 1000
+iqtree2 -s data/bvdv.fasta -alrt 1000 -B 1000
