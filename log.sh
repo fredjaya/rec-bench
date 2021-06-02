@@ -1,6 +1,6 @@
 # Making a note of all scripts required:
 #V1_santa_stats.py 
-#V2_santa_bp.py 
+#V2_santa_bp.py
 #V3_sim_bp.R 
 #F1_addCondition_phiProfile.py
 #F2_addCondition_3SEQ.py
@@ -8,11 +8,11 @@
 #F3_separate_seq_pairs.R
 #F3_addCondition_geneconv2.py
 
-# Git: e43781f756f9fc6d576c296228c0b9c4e40e057f
-
 ###################
 ### Simulations ###
 ###################
+
+# Git: e43781f756f9fc6d576c296228c0b9c4e40e057f
 
 ### Generate new simulated dataset where:
 # 1. 99 generations of mutation only (m = 0, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3)
@@ -37,6 +37,8 @@ nextflow run ${NF}/sim.nf \
 ### Simulation stats ###
 ########################
 
+# Git: e43781f756f9fc6d576c296228c0b9c4e40e057f
+
 # Activate conda environment 
 # conda env create --file ${NF}/environment.yml
 conda activate fredjaya-rec-bench-0.1.0
@@ -47,6 +49,8 @@ ${NF}/src/1_sim_stats.sh
 ###################
 ### Scalability ###
 ###################
+
+# Git: 43d8c5202de5517375a476420c4f744b4d38c9ad
 
 # Set env variables (UTS HPCC)
 mkdir -p /shared/homes/13444841/2104_scale
@@ -59,6 +63,14 @@ nextflow run ${NF}/sim.nf \
 	--seq ${NF}/data/FP7_patient_037_allseqs.fasta \
 	--xml ${NF}/data/neutral.xml \
 	--out ${OUT}
+
+# Been manually changing seqnum = Channel.from(n) with n and running each n
+# separately.
+
+# At n = 10000, no GENECONV runs finished. 60 = timed out, 10 = too similar
+# Not re-run after n = 50000.
+
+# At n = 50000, all gmos runs so far are seg faulting 
 
 ##################
 ### Conditions ###
@@ -78,7 +90,7 @@ ${NF}/src/2_conditions.sh
 ### Empirical ###
 #################
 
-# Git:
+# Git: bd30dda72e389bb422698a02c9d760acb68bbfbb
 
 # Make maximum likelihood phylogenies
 iqtree2 -s data/bcov.fasta -alrt 1000 -B 1000
