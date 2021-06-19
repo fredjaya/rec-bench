@@ -1,16 +1,9 @@
 #!/usr/local/bin nextflow
 
+
 /*
  * INPUT OPTIONS AND PARAMETERS
  */
-
-// Define paths
-params.out = "${baseDir}/out"
-params.bin = "${baseDir}/bin"
-params.trace = "${params.out}/tracing"
-params.mode = 'none'
-params.seq = 'none'
-params.xml = 'none'
 
 // Print parameters
 log.info """
@@ -219,7 +212,7 @@ process B2_3seq {
     """
     
 }
-/*
+
 process B3_geneconv {
 
     label "sim_benchmark"                           
@@ -239,7 +232,7 @@ process B3_geneconv {
     """
 
 }
-*/
+
 process B4_uchime_derep {
 
     label "sim_benchmark"                               

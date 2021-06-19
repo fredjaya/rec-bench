@@ -95,3 +95,8 @@ ${NF}/src/2_conditions.sh
 # Make maximum likelihood phylogenies
 iqtree2 -s data/bcov.fasta -alrt 1000 -B 1000
 iqtree2 -s data/bvdv.fasta -alrt 1000 -B 1000
+
+# Git: 
+
+# Detect recombination in empirical data
+nextflow run ~/rec-bench/empirical.nf --out /shared/homes/13444841/2105_empirical

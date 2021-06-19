@@ -6,6 +6,6 @@ work
 p700
 conda
 *.swp
-*.csv
+*.swo
 bin/__pycache__*
 tests/__pycache__*
