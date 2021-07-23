@@ -281,6 +281,24 @@ gc_merged <- rbind(pass, fail) %>%
   mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN"))) %>%
   mutate(rec = scientific(rec))
 
+### FIX INCORRECT FALSE POSITIVES ###
+tf <- 
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/F3_geneconv_unpaired_bps_tf.csv") %>%
+  distinct() %>%
+  select(mut, rec, seqn = seqLen, dualInf, rep, seq_name, RC_seq) %>%
+  mutate(seq_name = gsub(':\\d+.*', '', seq_name)) %>%
+  mutate(rec = scientific(rec))
+
+gc_amended <- 
+  gc_merged %>% 
+  left_join(tf, by = c('mut', 'rec', 'seqn', 'dualInf', 'rep', 'seq_name')) %>%
+  mutate(RC_seq = coalesce(RC_seq.y, RC_seq.x)) %>%
+  select(-RC_seq.x, -RC_seq.y)
+
+table(gc_merged$RC_seq)
+table(tf$RC_seq)
+table(gc_amended$RC_seq)
+
 # Calculate evaluation metrics
 gc_power <- 
   gc_merged %>%
@@ -617,58 +635,63 @@ big_long_plot <-
 ```{r w_nmcc, fig.width=9.5, fig.height=4}
 w_nmcc <- 
   big_long_plot %>%
+  filter(mut != 1) %>%
   filter(Method == "PhiPack (Profile)") %>%
   filter(metric == 'Matthews Correlation Coefficient (nMCC)') %>%
   mutate(rec = gsub('^', 'r = ', rec)) %>%
   ggplot(aes(x = as.factor(mut), y = score, col = Method, group = Method)) +
-  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1.5, height = 0) +
   stat_summary(geom = 'line', fun = mean, size = 0.75) +
   stat_summary(geom = 'point', fun = mean, shape = 18, size = 3) +
   facet_wrap(vars(rec), nrow = 2) +
   scale_y_continuous(limits = c(0,1)) +
-  scale_colour_manual(values = c('#D95F02')) +
+  scale_colour_manual(values = c('#FC8D62')) +
   labs(col = "Method",
        x = "Mutation rate",
        y = "Normalised Matthews\nCorrelation Coefficient (nMCC)") +
   theme_fj +
   theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1))
 
-w_nmcc
+#w_nmcc
 ```
 
 ```{r w_power, fig.width=9.5, fig.height=4}
 w_power <- 
   big_long_plot %>%
+  filter(mut != 1) %>%
   mutate(rec = gsub('^', 'r = ', rec)) %>%
   filter(Method == "PhiPack (Profile)") %>%
   filter(metric == 'Power/Recall (TPR)') %>%
   ggplot(aes(x = as.factor(mut), y = score, col = Method, group = Method)) +
-  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1.5, height = 0) +
   stat_summary(geom = 'line', fun = mean, size = 0.75) +
   stat_summary(geom = 'point', fun = mean, shape = 18, size = 3) +
   facet_wrap(vars(rec), nrow = 2) +
   scale_y_continuous(limits = c(0,1)) +
-  scale_colour_manual(values = c("#D95F02")) +
+  scale_colour_manual(values = c("#FC8D62")) +
   labs(col = "Method",
        x = "Mutation rate",
        y = "Power") +
   theme_fj +
   theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1))
+
+#w_power
 ```
 
 ```{r w_precision, fig.width=9.5, fig.height=4}
 w_precision <- 
   big_long_plot %>%
+  filter(mut != 1) %>%
   mutate(rec = gsub('^', 'r = ', rec)) %>%
   filter(Method == "PhiPack (Profile)") %>%
   filter(metric == 'Precision (PPV)') %>%
   ggplot(aes(x = as.factor(mut), y = score, col = Method, group = Method)) +
-  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1.5, height = 0) +
   stat_summary(geom = 'line', fun = mean, size = 0.75) +
   stat_summary(geom = 'point', fun = mean, shape = 18, size = 3) +
   facet_wrap(vars(rec), nrow = 2) +
   scale_y_continuous(limits = c(0,1)) +
-  scale_colour_manual(values = c("#D95F02")) +
+  scale_colour_manual(values = c("#FC8D62")) +
   labs(col = "Method",
        x = "Mutation rate",
        y = "Precision") +
@@ -679,14 +702,15 @@ w_precision <-
 ```{r s_nmcc, fig.width=9.5, fig.height=4}
 s_nmcc <- 
   big_long_plot %>%
+  filter(mut != 1) %>%
   mutate(rec = gsub('^', 'r = ', rec)) %>%
   filter(Method != "PhiPack (Profile)") %>%
   filter(metric == 'Matthews Correlation Coefficient (nMCC)') %>%
 mutate(Method = factor(Method, levels = c('VSEARCH (UCHIME)', 'GENECONV', '3SEQ'))) %>%
   ggplot(aes(x = as.factor(mut), y = score, col = Method, group = Method)) +
-  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
-  stat_summary(geom = 'line', fun = mean, size = 0.75, alpha = 0.8) +
-  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3, alpha = 0.8) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1.5, height = 0) +
+  stat_summary(geom = 'line', fun = mean, size = 0.75, alpha = 1) +
+  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3, alpha = 1) +
   facet_wrap(vars(rec), nrow = 2) +
   scale_y_continuous(limits = c(0,1)) +
   scale_colour_manual(values = c('#E78AC3', '#66C2A5', '#8DA0CB')) +
@@ -700,14 +724,15 @@ mutate(Method = factor(Method, levels = c('VSEARCH (UCHIME)', 'GENECONV', '3SEQ'
 ```{r s_power, fig.width=9.5, fig.height=4}
 s_power <- 
   big_long_plot %>%
+  filter(mut != 1) %>%
   mutate(rec = gsub('^', 'r = ', rec)) %>%
   filter(Method != "PhiPack (Profile)") %>%
   filter(metric == 'Power/Recall (TPR)') %>%
   mutate(Method = factor(Method, c('VSEARCH (UCHIME)', 'GENECONV', '3SEQ'))) %>%
   ggplot(aes(x = as.factor(mut), y = score, col = Method, group = Method)) +
-  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
-  stat_summary(geom = 'line', fun = mean, size = 0.75, alpha = 0.8) +
-  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3, alpha = 0.8) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1.5, height = 0) +
+  stat_summary(geom = 'line', fun = mean, size = 0.75, alpha = 1) +
+  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3, alpha = 1) +
   facet_wrap(vars(rec), nrow = 2) +
   scale_y_continuous(limits = c(0,1)) +
   scale_colour_manual(values = c('#E78AC3', '#66C2A5', '#8DA0CB')) +
@@ -721,14 +746,15 @@ s_power <-
 ```{r s_precision, fig.width=9.5, fig.height=4}
 s_precision <- 
   big_long_plot %>%
+  filter(mut != 1) %>%
   mutate(rec = gsub('^', 'r = ', rec)) %>%
   filter(Method != "PhiPack (Profile)") %>%
   filter(metric == 'Precision (PPV)') %>%
   mutate(Method = factor(Method, levels = c('VSEARCH (UCHIME)', 'GENECONV', '3SEQ'))) %>%
   ggplot(aes(x = as.factor(mut), y = score, col = Method, group = Method)) +
-  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
-  stat_summary(geom = 'line', fun = mean, size = 0.75, alpha = 0.8) +
-  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3, alpha = 0.8) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1.5, height = 0) +
+  stat_summary(geom = 'line', fun = mean, size = 0.75, alpha = 1) +
+  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3, alpha = 1) +
   facet_wrap(vars(rec), nrow = 2) +
   scale_y_continuous(limits = c(0,1)) +
   scale_colour_manual(values = c('#E78AC3', '#66C2A5', '#8DA0CB')) +

@@ -90,9 +90,10 @@ num_rec <-
 ```{r diversity_density, fig.width=8, fig.height=2.5}
 a <- 
   sqrt_dist %>%
+  filter(mut != 1) %>%
   ggplot(aes(sqrt_pair_dist, ..scaled.., col = as.factor(mut), fill = as.factor(mut))) +
   geom_density(alpha = 0.1) +
-  geom_vline(data = dist_medians, aes(xintercept = median, color = as.factor(mut)), linetype = 'dashed') +
+  geom_vline(data = dist_medians %>% filter(mut != 1), aes(xintercept = median, color = as.factor(mut)), linetype = 'dashed') +
   scale_x_continuous(breaks = seq(0, 1, 0.1)) +
   scale_fill_viridis(discrete = T) +
   scale_color_viridis(discrete = T) +
@@ -103,6 +104,7 @@ a <-
 ```{r bp_per_seq, fig.width=3.5, fig.height=3}
 b <- 
   num_bp %>%
+  filter(mut != 1) %>%
   ggplot(aes(x = as.factor(rec), y = num_bp)) +
   geom_boxplot(position = position_dodge2(preserve = 'single'), alpha = 0.6, shape = 16) +
   theme_fj +
@@ -112,6 +114,7 @@ b <-
 ```{r rc_per_pop, fig.width=3.5, fig.height=3}
 c <- 
   num_rec %>%
+  filter(mut != 1) %>%
   ggplot(aes(x = as.factor(rec), y = n)) +
   geom_boxplot(position = position_dodge2(preserve = 'single'), alpha = 0.6, shape = 16) +
   theme_fj +
@@ -155,5 +158,19 @@ ggplot(num_rec,
        fill = "Mutation rate")
 ```
 
+```{r bp_densities, fig.height=8}
+bp_densities <- 
+  bp_pivot %>%
+  ggplot(aes(bp_position)) +
+  geom_density(adjust = 1/2, fill = 'black', alpha = 0.4) +
+  theme_fj +
+  facet_grid(cols = vars(rec), rows = vars(mut)) + 
+  theme(axis.title = element_blank())
 
+plot_grid(bp_densities, scale = 0.95) +
+  draw_label("Sequence position", x = 0.5, y = 0.01) +
+  draw_label("Breakpoint density", x = 0.015, y = 0.5, angle = 90) +
+  draw_label("Recombination rate", x = 0.5, y = 0.99) +
+  draw_label("Mutation rate", x = 0.975, y = 0.5, angle = 270)
+```
 

@@ -29,6 +29,6 @@ gc_out <- rbind(seq1, seq2)
 gc_out <- gc_out %>%
   select(-frag_type, -num_dif, -mismatch_penalty)
 
-gc_out$seq_name <- gsub(":\\d+", "", gc_out$seq_name)
-write.csv(gc_out, "F3_geneconv_unpaired.csv", row.names = F)
+#gc_out$seq_name <- gsub(":\\d+", "", gc_out$seq_name)
+write.csv(gc_out, "F3_geneconv_unpaired_bps.csv", row.names = F)
 

@@ -10,54 +10,424 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = T,
-  warning = F,
+  warning = F, 
+  dev = 'svg',
   fig.width = 8,
   fig.path = "/Users/13444841/GitHub/rec-bench/figs/")
 
 library(dplyr)
 library(tidyr)
+library(tibble)
 library(ggplot2)
 library(viridis)
 library(seqinr)
+library(cowplot)
+
+# Function for reverse log transformation
+# https://stackoverflow.com/questions/11053899/how-to-get-a-reversed-log10-scale-in-ggplot2
+reverse_log_trans <- function(base = exp(1)) {
+  scales::trans_new(name      = paste0("reverselog-", format(base)),
+                    transform = function(x) -log(x, base),
+                    inverse   = function(x) base^(-x),
+                    breaks    = scales::log_breaks(base = base),
+                    domain    = c(1e-100, Inf))
+}
 
 theme_fj <- theme_minimal() +
   theme(panel.grid = element_blank(),
         panel.border = element_rect(fill = NA, colour = "darkgrey"),
         axis.title = element_text(size = 10))
+
+seq_pal <- c('#FC8D62', '#8DA0CB', '#66C2A5', '#FFD92F')
+
+path <- "/Users/13444841/Dropbox/Masters/02_working/2105_empirical/"
 ```
 
-```{r}
-hcv <- read.alignment("../data/FP7_patient_037_allseqs.fasta", format = "fasta")
-hcv <- 
-  as.vector(dist.alignment(hcv, matrix = 'identity')) %>%
-  as.data.frame() %>%
-  mutate(virus = "HCV")
+## Data prep  
 
-bcov <- read.alignment("../data/bcov.fasta", format = "fasta")
-bcov <- 
-  as.vector(dist.alignment(bcov, matrix = 'identity')) %>%
-  as.data.frame() %>%
-  mutate(virus = "BCoV")
+```{r prep_gc}
+gc <- read.csv(paste(path, "F3_geneconv_summarised.csv", sep = ''))
 
-bvdv <- read.alignment("../data/bvdv.fasta", format = "fasta")
-bvdv <- 
-  as.vector(dist.alignment(bvdv, matrix = 'identity')) %>%
-  as.data.frame() %>%
-  mutate(virus = "BVDV")
+# Transform inner sequence frags
+gc <- gc %>%
+  separate(seq_names, c('seq1', 'seq2'), sep = ';')
 
-emp <- rbind(hcv, bcov, bvdv) %>% rename(distance = ".")
+# Clean and separate sequence pairs
+seq1 <- gc %>%
+  select(-seq2, -seq2_begin, -seq2_end, -seq2_length) %>%
+  rename(seq_name = seq1, start_bp = seq1_begin, end_bp = seq1_end, bp_length = seq1_length)
+
+seq2 <- gc %>%
+  select(-seq1, -seq1_begin, -seq1_end, -seq1_length) %>%
+  rename(seq_name = seq2, start_bp = seq2_begin, end_bp = seq2_end, bp_length = seq2_length)
+
+# Merge
+gc <- rbind(seq1, seq2)
+rm(seq1, seq2)
+
+# Pivot all bps in one columns
+gc <- gc %>%
+  select(virus, seq_name, start_bp, end_bp) %>%
+  pivot_longer(cols = c('start_bp', 'end_bp')) %>%
+  mutate(Method = "GENECONV") %>%
+  rename(seq = seq_name, breakpoints = value)
 ```
 
-```{r, fig.height=2}
-emp %>%
-  ggplot(aes(distance, ..scaled.., fill = as.factor(virus), col = as.factor(virus))) +
-  geom_density(alpha = 0.4) + 
+```{r prep_gmos}
+gmos <- 
+  read.csv(paste(path, "F5_gmos_summarised.csv", sep = '')) %>%
+  select(-end_bp2, -strand_dir) %>%
+  rowwise() %>%
+  mutate(match_self = q_seq %in% s_full)
+
+# Separate sequence pairs
+seq1 <- 
+  gmos %>%
+  select(virus, 
+         seq = q_seq, 
+         start_bp = q_start_bp, 
+         end_bp = q_end_bp,
+         match_self)
+
+seq2 <- 
+  gmos %>%
+  select(virus,
+         seq = s_full, 
+         start_bp = s_start_bp, 
+         end_bp = s_end_bp,
+         match_self)
+
+gmos <- 
+  rbind(seq1, seq2) %>%
+  pivot_longer(cols = c('start_bp', 'end_bp')) %>%
+  mutate(Method = "gmos") %>%
+  rename(breakpoints = value) %>%
+  filter(match_self == F)
+
+rm(seq1, seq2)
+```
+
+```{r prep_hcv}
+hcv_gr <- c(58, 615, 689)
+
+## Phi
+hcv_profile <- 
+  read.csv(paste(path, "FP7_patient_037_allseqs.fasta_Profile.csv", sep = ''),
+           col.names = c("position", "pval"))
+
+## Sequence-based methods
+hcv_seq <- 
+  read.csv(paste(path, "FP7_patient_037_allseqs.fasta.3s.rec_bp_parsed.csv", sep = '')) %>%
+  # Gather breakpoints in one row
+  # Remove { }
+  mutate(breakpoints = gsub("[{}]", "", breakpoints)) %>%
+  # Pivot breakpoints
+  mutate(breakpoints = strsplit(breakpoints, ',')) %>%
+  unnest(breakpoints) %>%
+  mutate(breakpoints = as.numeric(breakpoints)) %>%
+  select(P_ACCNUM, Q_ACCNUM, seq = C_ACCNUM, breakpoints) %>%
+  mutate(Method = "3SEQ") %>%
+  bind_rows(gc %>% filter(virus == "HCV")) %>%
+  bind_rows(gmos %>% filter(virus == "HCV"))
+```
+
+```{r prep_bcov}
+#seq_length = 17088
+# Gene regions...
+bcov_gr <- c(13317, 13296)
+
+## Phi
+bcov_profile <- 
+  read.csv(paste(path, "bcov.fasta_Profile.csv", sep = ''), 
+           col.names = c("position", "pval"))
+
+## Sequence-based methods
+bcov_seq <- 
+  read.csv(paste(path, "bcov.fasta.3s.rec_bp_parsed.csv", sep = '')) %>% 
+  # Gather breakpoints in one row
+  # Remove { }
+  mutate(breakpoints = gsub("[{}]", "", breakpoints)) %>%
+  # Pivot breakpoints
+  mutate(breakpoints = strsplit(breakpoints, ',')) %>%
+  unnest(breakpoints) %>%
+  mutate(breakpoints = as.numeric(breakpoints)) %>%
+  select(P_ACCNUM, Q_ACCNUM, seq = C_ACCNUM, breakpoints) %>%
+  mutate(Method = "3SEQ") %>%
+  bind_rows(gc %>% filter(virus == "BCoV")) %>%
+  bind_rows(gmos %>% filter(virus == "BCoV"))
+```
+
+```{r prep_bvdv}
+#seq_length = 11767
+# Gene regions...
+#bvdv_gr <- c(13317, 13296)
+
+## Phi
+bvdv_profile <- 
+  read.csv(paste(path, "bvdv.fasta_Profile.csv", sep = ''), 
+           col.names = c("position", "pval"))
+
+## Sequence-based methods
+bvdv_seq <- 
+  read.csv(paste(path, "bvdv.fasta.3s.rec_bp_parsed.csv", sep = '')) %>% 
+  # Gather breakpoints in one row
+  # Remove { }
+  mutate(breakpoints = gsub("[{}]", "", breakpoints)) %>%
+  # Pivot breakpoints
+  mutate(breakpoints = strsplit(breakpoints, ',')) %>%
+  unnest(breakpoints) %>%
+  mutate(breakpoints = as.numeric(breakpoints)) %>%
+  select(P_ACCNUM, Q_ACCNUM, seq = C_ACCNUM, breakpoints) %>%
+  mutate(Method = "3SEQ") %>%
+  bind_rows(gc %>% filter(virus == "BVDV")) %>%
+  bind_rows(gmos %>% filter(virus == "BVDV"))
+```
+
+## Plot prep
+
+```{r hcv_profile, fig.height=1}
+# Plot
+a1 <- 
+  hcv_profile %>%
+  ggplot(aes(x = position, y = pval)) +
+  geom_line(color = "#FC8D62") +
+  #geom_vline(xintercept = bcov_gr, linetype = 'longdash', col = 'grey') + 
+  geom_hline(yintercept = 0.05, colour = 'darkgrey', linetype = 'dashed') +
+  labs(x = "Sequence position", y = "p-value") +
+  scale_y_continuous(trans = reverse_log_trans(10)) +
   theme_fj +
-  labs(x = "Pairwise sequence distance",
-       y = "Density",
-       fill = "Virus",
-       col = "Virus")
+  xlim(0, 1680) +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank())
+```
 
-# Todo - add medians
+```{r hcv_seq, fig.height=1.25}
+a2 <- 
+  hcv_seq %>%
+  ggplot(aes(x = breakpoints, fill = Method, col = Method)) +
+  geom_vline(xintercept = hcv_gr, linetype = 'longdash', col = 'grey') + 
+  theme_fj +
+  geom_density(adjust = 0.25, alpha = 0.3) +
+  geom_rug(alpha = 0.3) +
+  scale_color_manual(values = c('#8DA0CB', '#66C2A5', '#FFD92F')) +
+  scale_fill_manual(values = c('#8DA0CB', '#66C2A5', '#FFD92F')) +
+  labs(x = 'Sequence position',
+       y = 'Density') +
+  theme(legend.position = 'none') +
+  xlim(0, 1680)
+```
+
+```{r bcov_profile, fig.height=1}
+# Plot
+b1 <- 
+  bcov_profile %>%
+  ggplot(aes(x = position, y = pval)) +
+  geom_line(color = "#FC8D62") +
+  #geom_vline(xintercept = bcov_gr, linetype = 'longdash', col = 'grey') + 
+  geom_hline(yintercept = 0.05, colour = 'darkgrey', linetype = 'dashed') +
+  labs(x = "Sequence position", y = "p-value") +
+  scale_y_continuous(trans = reverse_log_trans(10)) +
+  theme_fj +
+  xlim(0, 17088) +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank())
+```
+
+```{r bcov_seq, fig.height=1.25}
+b2 <- 
+  bcov_seq %>%
+  ggplot(aes(x = breakpoints, fill = Method, col = Method)) +
+  #geom_vline(xintercept = bcov_gr, linetype = 'longdash', col = 'grey') + 
+  theme_fj +
+  geom_density(adjust = 0.25, alpha = 0.3) +
+  geom_rug(alpha = 0.3) +
+  scale_color_manual(values = c('#8DA0CB', '#66C2A5', '#FFD92F')) +
+  scale_fill_manual(values = c('#8DA0CB', '#66C2A5', '#FFD92F')) +
+  labs(x = 'Sequence position',
+       y = 'Density') +
+  theme(legend.position = 'none') +
+  xlim(0, 17088)
+```
+
+```{r bvdv_profile, fig.height=1}
+# Plot
+c1 <- 
+  bvdv_profile %>%
+  ggplot(aes(x = position, y = pval)) +
+  geom_line(color = "#FC8D62") +
+  geom_hline(yintercept = 0.05, colour = 'darkgrey', linetype = 'dashed') +
+  labs(x = "Sequence position", y = "p-value") +
+  scale_y_continuous(trans = reverse_log_trans(10)) +
+  theme_fj +
+  xlim(0, 11767) +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank())
+```
+
+```{r bvdv_seq, fig.height=2}
+# Coloured density
+c2 <- 
+  bvdv_seq %>%
+  add_row(Method = "PhiPack (Profile)") %>%
+  ggplot(aes(x = breakpoints, fill = Method, col = Method)) +
+  theme_fj +
+  geom_density(adjust = 0.25, alpha = 0.3) +
+  geom_rug(alpha = 0.3) +
+  scale_color_manual(values = seq_pal, breaks = c("PhiPack (Profile)", "3SEQ", "GENECONV", "gmos")) +
+  scale_fill_manual(values = seq_pal, breaks = c("PhiPack (Profile)", "3SEQ", "GENECONV", "gmos")) +
+  labs(x = 'Sequence position', y = 'Density') +
+  theme(legend.position = "bottom")
+  xlim(0, 11767)
+```
+
+## Distance prep
+
+```{r distance, include = F, fig.height = 5}
+### HCV ###
+#####
+# Read sequences
+#hcv_seq <- read.alignment("/Users/13444841/GitHub/rec-bench/data/FP7_patient_037_allseqs.fasta", format = 'fasta')
+
+# Calculate pairwise distances
+#m <- as.matrix(dist.alignment(hcv_seq, matrix = "identity" ))
+#saveRDS(m, "hcv_matrix.rds")
+#####
+
+# Calculate HCV pairwise distance matrix
+mhcv <- readRDS("~/Dropbox/Masters/02_working/2005_empirical2/hcv_matrix.rds")
+
+# Transform to 1D vector for sum stats
+mvhcv <- as.vector(mhcv[!mhcv == 0])
+summary(mvhcv)
+
+mvhcv <- 
+  mvhcv %>%
+  as.data.frame() %>%
+  mutate(virus = "HCV") %>%
+  rename(dist = '.')
+
+### BCOV ###
+# Read sequences
+bcov_seq <- read.alignment("/Users/13444841/GitHub/rec-bench/data/bcov.fasta", format = 'fasta')
+
+# Calculate pairwise distances
+mbcov <- as.matrix(dist.alignment(bcov_seq, matrix = "identity" ))
+
+# Transform to 1D vector for sum stats
+mvbcov <- as.vector(mbcov[!mbcov == 0])
+summary(mvbcov)
+
+mvbcov <- 
+  mvbcov %>%
+  as.data.frame() %>%
+  mutate(virus = "BCoV-1") %>%
+  rename(dist = '.')
+
+### PESTI ###
+pesti_seq <- read.alignment("/Users/13444841/GitHub/rec-bench/data/bvdv.fasta", format = 'fasta')
+
+# Calculate pairwise distances
+mpesti <- as.matrix(dist.alignment(pesti_seq, matrix = "identity" ))
+
+# Transform to 1D vector for sum stats
+mvpesti <- as.vector(mpesti[!mpesti == 0])
+summary(mvpesti)
+
+mvpesti <- 
+  mvpesti %>%
+  as.data.frame() %>%
+  mutate(virus = "BVDV-1") %>%
+  rename(dist = '.')
+
+# Merge all distances for plotting
+m <- 
+  mvhcv %>%
+  rbind(mvbcov) %>%
+  rbind(mvpesti)
+```
+
+```{r subset_dist, include=F}
+# Pivot distance matrices
+mhcv_pivot <- 
+  mhcv %>%
+  as.data.frame() %>%
+  rownames_to_column("seq1") %>%
+  pivot_longer(cols = -seq1, names_to = "seq2", values_to = "distance")
+
+mbcov_pivot <- 
+  mbcov %>%
+  as.data.frame() %>%
+  rownames_to_column("seq1") %>%
+  pivot_longer(cols = -seq1, names_to = "seq2", values_to = "distance")
+
+mpesti_pivot <- 
+  mpesti %>%
+  as.data.frame() %>%
+  rownames_to_column("seq1") %>%
+  pivot_longer(cols = -seq1, names_to = "seq2", values_to = "distance")
+
+# Add distances to detected recombinants
+rc <- 
+  read.csv("/Users/13444841/Dropbox/Masters/02_working/2105_empirical/pairwise_detections.csv") %>%
+  left_join(mbcov_pivot, by = c('seq1', 'seq2')) %>%
+  left_join(mpesti_pivot, by = c('seq1', 'seq2')) %>%
+  left_join(mhcv_pivot, by = c('seq1', 'seq2')) %>%
+  unite("distance", distance.x:distance, na.rm = T, remove = T)
+```
+
+## Main plots
+
+```{r main_plot, fig.height=8}
+a <- plot_grid(a1, a2, nrow = 2, align = "v", rel_heights = c(1, 1.25))
+b <- plot_grid(b1, b2, nrow = 2, align = "v", rel_heights = c(1, 1.25))
+c <- plot_grid(c1, c2, nrow = 2, align = "v", rel_heights = c(1, 1.9))
+
+plot_grid(NULL, a, NULL, b, NULL, c, ncol = 1, align = 'v',
+          rel_heights = c(0.25, 2.25, 0.25, 2.25, 0.25, 2.75),
+          labels = c("a) Hepatitis C virus                  ",  "",
+                     "b) Betacoronavirus-1                ", "",
+                     "c) Bovine viral diarrhea virus-1", ""),
+          label_size = 10, label_x = -0.1)
+```
+
+## Supplementary
+```{r dist_densities, fig.height=1}
+vpal <- c("#7570B3", "#1B9E77", "#D95F02")
+
+d1 <- 
+  m %>%
+  ggplot(aes(dist, col = virus, fill = virus)) +
+  geom_density(alpha = 0.4) +
+  scale_color_manual(values = vpal) +
+  scale_fill_manual(values = vpal) +
+  xlim(c(0, 0.5)) +
+  theme_fj +
+  labs(x = "Pairwise sequence distances between all sequences", y = "Density") +
+  theme(legend.position = 'none')
+```
+
+```{r distance_boxplots, fig.height=3.5, fig.width=8}
+d2 <- 
+  rc %>%
+  mutate(distance = as.numeric(distance)) %>%
+  mutate(Virus = gsub("BCoV", "Beta-CoV-1", Virus)) %>%
+  mutate(Virus = gsub("BVDV", "BVDV-1", Virus)) %>%
+  ggplot(aes(x = distance, fill = Virus, color = Virus)) +
+  facet_wrap(facets = vars(Method), ncol = 1, strip.position = 'left') +
+  geom_boxplot(alpha = 0.5, position = position_dodge2(preserve = 'single')) +
+  #geom_jitter(width = 0.1, alpha = 0.6) +
+  #geom_point(alpha = 0.2, position = position_jitterdodge(), size = 1) +
+  scale_fill_manual(values = vpal) +
+  scale_color_manual(values = vpal) +
+  xlim(c(0, 0.5)) +
+  theme_fj +
+  labs(x = 'Pairwise sequence distances between identified recombinants', y = '') +
+  theme(legend.title = element_blank(), legend.position = 'bottom',
+        axis.text.y = element_blank())
+```
+
+```{r distance_plot}
+plot_grid(d1, d2, align = 'v', ncol = 1,
+          rel_heights = c(1, 3))
 ```
 

@@ -100,3 +100,9 @@ iqtree2 -s data/bvdv.fasta -alrt 1000 -B 1000
 
 # Detect recombination in empirical data
 nextflow run ~/rec-bench/empirical.nf --out /shared/homes/13444841/2105_empirical
+
+# Parse empirical outputs for plotting
+ls /Users/13444841/Dropbox/Masters/02_working/2105_empirical/*.rec | xargs -I {} -n 1 python3 bin/parse_3seq_empirical.py {}
+python3 bin/F3_concat_gc_outputs.py /Users/13444841/Dropbox/Masters/02_working/2105_empirical/
+# F3_geneconv_summarised.csv manually formatted
+python3 bin/F5_parse_gmos.py /Users/13444841/Dropbox/Masters/02_working/2105_empirical/

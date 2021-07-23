@@ -22,7 +22,7 @@ Sys.setenv(RETICULATE_PYTHON = "/usr/local/bin/python3")
 library(reticulate)
 library(stringr)
 
-use_condaenv("trace_parse", required = T)
+#use_condaenv("trace_parse", required = T)
 
 theme_fj <- theme_minimal() +
   theme(panel.grid = element_blank())
@@ -91,7 +91,8 @@ traces2 <-
 traces2 %>%
   mutate(seq_n = gsub('^', 'n = ', seq_n)) %>%
   mutate(seq_n = factor(seq_n, levels = c('n = 1000', 'n = 5000', 'n = 10000', 'n = 50000'))) %>%
-  filter(exit == 0) %>%
+  filter(exit == 0 | exit == 1) %>%
+  filter(mut != 1) %>%
   mutate(name = gsub('B1_phi_profile', 'PhiPack (Profile)', name)) %>%
   mutate(name = gsub('B2_3seq', '3SEQ', name)) %>%
   mutate(name = gsub('B3_geneconv', 'GENECONV', name)) %>%
@@ -99,7 +100,7 @@ traces2 %>%
   mutate(name = gsub('B5_gmos', 'gmos', name)) %>%
   mutate(name = factor(name, levels = c('PhiPack (Profile)', '3SEQ', 'GENECONV', 'VSEARCH (UCHIME)', 'gmos'))) %>%
   ggplot(aes(x = as.factor(mut), y = duration_hours, col = name, group = name)) +
-  geom_jitter(alpha = 0.25, shape = 16, size = 1.5) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
   stat_summary(geom = 'line', fun = mean, size = 0.75) +
   stat_summary(geom = 'point', fun = mean, shape = 18, size = 3) +
   facet_wrap(vars(seq_n), nrow = 2) +
@@ -114,7 +115,32 @@ traces2 %>%
 ```
 
 ### Supplementary
-
+```{r completed}
+traces2 %>%
+  filter(exit == 0 | exit == 1) %>%
+  filter(mut != 1) %>%
+  group_by(name, mut, seq_n) %>%
+  tally() %>%
+  mutate(seq_n = gsub('^', 'n = ', seq_n)) %>%
+  mutate(seq_n = factor(seq_n, levels = c('n = 1000', 'n = 5000', 'n = 10000', 'n = 50000'))) %>%
+  mutate(name = gsub('B1_phi_profile', 'PhiPack (Profile)', name)) %>%
+  mutate(name = gsub('B2_3seq', '3SEQ', name)) %>%
+  mutate(name = gsub('B3_geneconv', 'GENECONV', name)) %>%
+  mutate(name = gsub('B4_uchime', 'VSEARCH (UCHIME)', name)) %>%
+  mutate(name = gsub('B5_gmos', 'gmos', name)) %>%
+  mutate(name = factor(name, levels = c('PhiPack (Profile)', '3SEQ', 'GENECONV', 'VSEARCH (UCHIME)', 'gmos'))) %>%
+  ggplot(aes(x = as.factor(mut), y = n, fill = name)) +
+  geom_col(position = position_dodge2(preserve = 'single')) +
+  facet_wrap(vars(seq_n), nrow = 2) +
+  theme_fj +
+  scale_y_continuous(breaks = seq(0, 10, 2)) +
+  scale_fill_manual(values = rdm_pal) +
+  labs(fill = "Method",
+       x = "Mutation rate",
+       y = "Analyses completed") +
+  theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1))
+```
+ 
 ```{r scale_rc, fig.width=7, fig.height=4}
 traces2 %>%
   mutate(seq_n = gsub('^', 'n = ', seq_n)) %>%
