@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
   warning = F,
   fig.width = 8,
   dev = 'png',
-  fig.path = "/Users/13444841/GitHub/rec-bench/figs/")
+  fig.path = "/home/fredjaya/GitHub/rec-bench/figs/")
 
 library(dplyr)
 library(tidyr)
@@ -76,13 +76,15 @@ num_bp <-
   bp_counts %>%
   select(mut, rec, rep, seq, dualInf, num_bp) %>%
   mutate(rec = scientific(rec)) %>%
-  add_row(rec = '0') %>%
+  add_row(mut = 0, rec = '0') %>%
   mutate(rec = factor(rec, levels = c('0', '1e-03', '5e-03', '1e-02', '5e-02', '1e-01')))
 
 num_rec <-
   num_bp %>%
   group_by(mut, rec, rep) %>%
-  tally()
+  tally() %>%
+  # This is so no boxplots are visualised when no recombination occurs
+  mutate(n = if_else(rec == "0", as.integer(NA), n))
 ```
 
 ## Plots prep  
@@ -117,13 +119,14 @@ c <-
   filter(mut != 1) %>%
   ggplot(aes(x = as.factor(rec), y = n)) +
   geom_boxplot(position = position_dodge2(preserve = 'single'), alpha = 0.6, shape = 16) +
+  scale_y_continuous(breaks = c(0, 5, 10, 15), limits = c(0, 17)) +
   theme_fj +
   labs(x = "Recombination rate", y = "Number of recombinant\nsequences per population")
 ```
 
 ## Figures  
 
-```{r fig2}
+```{r fig2, fig.height=4.5}
 top <- plot_grid(a, labels = 'a)', label_size = 10)
 bot <- plot_grid(b, c, nrow = 1, labels = c('b)', 'c)'), label_size = 10)
 plot_grid(top, bot, nrow = 2)
