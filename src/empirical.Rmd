@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
   warning = F, 
   dev = 'svg',
   fig.width = 8,
-  fig.path = "/Users/13444841/GitHub/rec-bench/figs/")
+  fig.path = "/home/fredjaya/GitHub/rec-bench/figs/")
 
 library(dplyr)
 library(tidyr)
@@ -40,7 +40,7 @@ theme_fj <- theme_minimal() +
 
 seq_pal <- c('#FC8D62', '#8DA0CB', '#66C2A5', '#FFD92F')
 
-path <- "/Users/13444841/Dropbox/Masters/02_working/2105_empirical/"
+path <- "/home/fredjaya/Dropbox/Masters/02_working/2105_empirical/"
 ```
 
 ## Data prep  
@@ -191,7 +191,6 @@ a1 <-
   hcv_profile %>%
   ggplot(aes(x = position, y = pval)) +
   geom_line(color = "#FC8D62") +
-  #geom_vline(xintercept = bcov_gr, linetype = 'longdash', col = 'grey') + 
   geom_hline(yintercept = 0.05, colour = 'darkgrey', linetype = 'dashed') +
   labs(x = "Sequence position", y = "p-value") +
   scale_y_continuous(trans = reverse_log_trans(10)) +
@@ -205,7 +204,6 @@ a1 <-
 a2 <- 
   hcv_seq %>%
   ggplot(aes(x = breakpoints, fill = Method, col = Method)) +
-  geom_vline(xintercept = hcv_gr, linetype = 'longdash', col = 'grey') + 
   theme_fj +
   geom_density(adjust = 0.25, alpha = 0.3) +
   geom_rug(alpha = 0.3) +
@@ -308,7 +306,7 @@ mvhcv <-
 
 ### BCOV ###
 # Read sequences
-bcov_seq <- read.alignment("/Users/13444841/GitHub/rec-bench/data/bcov.fasta", format = 'fasta')
+bcov_seq <- read.alignment("/home/fredjaya/GitHub/rec-bench/data/bcov.fasta", format = 'fasta')
 
 # Calculate pairwise distances
 mbcov <- as.matrix(dist.alignment(bcov_seq, matrix = "identity" ))
@@ -324,7 +322,7 @@ mvbcov <-
   rename(dist = '.')
 
 ### PESTI ###
-pesti_seq <- read.alignment("/Users/13444841/GitHub/rec-bench/data/bvdv.fasta", format = 'fasta')
+pesti_seq <- read.alignment("/home/fredjaya/GitHub/rec-bench/data/bvdv.fasta", format = 'fasta')
 
 # Calculate pairwise distances
 mpesti <- as.matrix(dist.alignment(pesti_seq, matrix = "identity" ))
@@ -368,7 +366,7 @@ mpesti_pivot <-
 
 # Add distances to detected recombinants
 rc <- 
-  read.csv("/Users/13444841/Dropbox/Masters/02_working/2105_empirical/pairwise_detections.csv") %>%
+  read.csv("/home/fredjaya/Dropbox/Masters/02_working/2105_empirical/pairwise_detections.csv") %>%
   left_join(mbcov_pivot, by = c('seq1', 'seq2')) %>%
   left_join(mpesti_pivot, by = c('seq1', 'seq2')) %>%
   left_join(mhcv_pivot, by = c('seq1', 'seq2')) %>%
