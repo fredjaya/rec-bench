@@ -12,7 +12,7 @@ knitr::opts_chunk$set(
   echo = T,
   warning = F,
   fig.width = 8,
-  fig.path = "/Users/13444841/GitHub/rec-bench/figs/")
+  fig.path = "/home/frederickjaya/GitHub/rec-bench/figs/")
 
 library(dplyr)
 library(tidyr)
@@ -28,7 +28,7 @@ theme_fj <- theme_minimal() +
         legend.title = element_text(size = 10))
 
 # Set colour pallete
-pal <- c(TP = '#054A91', FP = '#6BA3DB', TN = '#BB342F', FN = '#DE6C68')
+pal <- c(TP = '#054A91', FP = '#6BA3DB', TN = '#BB342F', FN = '#DE6C68', Failed = '#F0F0F0')
 ```
 
 ## Data prep  
@@ -47,18 +47,54 @@ table(phi$condition)
 # Read in condition data from rec-bench --class
 tseq <-
   read.csv("~/Dropbox/Masters/02_working/2105_pub/F2_3seq_conditions.csv") %>%
-  mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN"))) %>%
-  mutate(rec = scientific(rec))
-
+  mutate(RC_seq = if_else(RC_seq == "nan", "Failed", RC_seq)) %>%
+  mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN", "Failed")))
+    
 # Frequency of each condition per sequence
 table(tseq$RC_seq, useNA = "ifany") 
+```
+
+```{r}
+# Create table of all parameter combinations, per-sequence n = 42000
+# As GENECONV and UCHIME do not have complete records
+
+# Unique simulation parameter values
+mut <- c(0, 1e-05, 1e-04, 1e-03, 1e-02, 1e-01, 1)
+rec <- c(0e+00, 1e-03, 5e-03, 1e-02, 5e-02, 1e-01)
+dualInf <- c(0, 1)
+rep <- 1:5
+seq_name <- paste("seq", 1:100, sep = "_")
+
+# Make df
+params <- crossing(mut, rec, dualInf, rep, seq_name)
+rm(mut, rec, dualInf, rep, seq_name)
+```
+
+```{r uchime_table}
+# From `sim_stats.Rmd` read in simulated breakpoint file to identify conditions
+# for UCHIME run. Possible as UCHIME detected no recombination == either TN/FN
+bp_counts <- 
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/V5_bp_stats.csv", header = T) %>%
+  select(mut, rec, dualInf, rep, seq_name = seq) %>%
+  # All sequences with simulated recombination == FN
+  mutate(RC_seq = as.factor("FN"))
+
+# Merge with the rest of simulated sequences with no breakpoints (TN)
+uchime <- 
+  params %>%
+  left_join(bp_counts, by = c("mut", "rec", "dualInf", "rep", "seq_name")) %>%
+  mutate(RC_seq = if_else(is.na(RC_seq), "TN", "FN"))
+
+
+#write.csv(uchime, "~/Dropbox/Masters/02_working/2105_pub/F4_uchime.csv", row.names = F)
+
+table(uchime$RC_seq, useNA = 'ifany')
 ```
 
 ```{r gc_table}
 # Read gc conditions
 gc <- 
-  read.csv("~/Dropbox/Masters/02_working/2105_pub/F3_geneconv_conditions.csv") %>%
-  mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN")))
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/F3_geneconv_conditions.csv")
 
 # Read in traces to identify GENECONV runs that were not successful (too few polymorphisms)
 gc_trace <-
@@ -95,46 +131,35 @@ fail <-
   gc_trace %>%
   left_join(gc, by = c('mut', 'rec', 'rep', 'seqn', 'dualInf'))
 
-fail2 <- fail
-
 # Replace conditions with NAs
 fail[7:ncol(fail)] <- NA
 
 # Merge all traces
-gc_merged <- rbind(pass, fail) %>%
-  mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN"))) %>%
-  mutate(rec = scientific(rec))
+gc_merged <- rbind(pass, fail)
+
+# combine with the rest of the simulated sequences where GENECONV did not
+# detect any recombination. GENECONV only outputs positive results.
+gc_merged2 <- 
+  params %>%
+  left_join(gc_merged %>% select(mut:RC_seq)) %>%
+  mutate(RC_seq = if_else(mut == 0, "Failed", RC_seq)) %>%
+  mutate(RC_seq = if_else(is.na(RC_seq), "TN", RC_seq))
 
 rm(gc, gc_trace, pass)
-table(gc_merged$RC_seq, useNA = 'ifany')
-```
+table(gc_merged2$RC_seq, useNA = 'ifany')
 
-```{r uchime_table}
-# Modify geneconv conditions to reflect UCHIMEs, where no recombination was detected
-uchime <- 
-  gc_merged %>%
-  mutate(RC_seq = gsub('TP', 'FN', RC_seq)) %>%
-  mutate(RC_seq = gsub('FP', 'TN', RC_seq)) %>%
-  filter(!is.na(RC_seq))
 
-uchime2 <- 
-  fail2 %>%
-  mutate(rec = scientific(rec)) %>%
-  rbind(uchime)
-
-write.csv(uchime2, "~/Dropbox/Masters/02_working/2105_pub/F4_uchime.csv",
-          row.names = F)
-
-table(uchime2$RC_seq, useNA = 'ifany')
+#write.csv(gc_merged2, "~/Dropbox/Masters/02_working/2105_pub/F3_geneconv_conditions_allseqs.csv", row.names = F)
 ```
 
 ## Plot prep  
 
-```{r phi_pies, fig.height=6, fig.width=5}
+```{r phi_pies, fig.height=5.2, fig.width=5}
 phi_pies <- 
   phi %>%
   mutate(mut = factor(mut, levels = c(1, 0.1, 0.01, 0.001, 1e-04, 1e-05, 0))) %>%
   mutate(rec = factor(rec, levels = c('0e+00', '1e-03', '5e-03', '1e-02', '5e-02', '1e-01'))) %>%
+  filter(mut != 1) %>%
   ggplot(aes(x = factor(1), fill = condition)) +
   theme_fj +
   geom_bar(stat = 'count') +
@@ -154,18 +179,18 @@ phi_pies <-
 
 plot_grid(phi_pies, labels = "PhiPack (Profile)", label_size = 10)
 ```
-
 ```{r 3seq_pie, fig.height=6, fig.width=5}
 tseq_pies <- 
   tseq %>%
   mutate(mut = factor(mut, levels = c(1, 0.1, 0.01, 0.001, 1e-04, 1e-05, 0))) %>%
-  mutate(rec = factor(rec, levels = c('0e+00', '1e-03', '5e-03', '1e-02', '5e-02', '1e-01'))) %>%
+  mutate(rec = factor(rec, levels = c(0e+00, 1e-03, 5e-03, 1e-02, 5e-02, 1e-01))) %>%
+  filter(mut != 1) %>%
   ggplot(aes(x = factor(1), fill = RC_seq)) +
   theme_fj +
   geom_bar(stat = 'count') +
   facet_grid(cols = vars(rec), rows = vars(mut), switch = 'both') +
   coord_polar(theta = 'y') +
-  scale_fill_manual(na.value = "#F0F0F0", values = pal) +
+  scale_fill_manual(values = pal) +
   theme(axis.text = element_blank(),
         legend.position = 'right',
         axis.title.x = element_blank(),
@@ -181,15 +206,16 @@ tseq_pies <-
 
 ```{r gc_pie, fig.height=6, fig.width=5}
 gc_pies <- 
-  gc_merged %>%
+  gc_merged2 %>%
   mutate(mut = factor(mut, levels = c(1, 0.1, 0.01, 0.001, 1e-04, 1e-05, 0))) %>%
-  mutate(rec = factor(rec, levels = c('0e+00', '1e-03', '5e-03', '1e-02', '5e-02', '1e-01'))) %>%
+  mutate(rec = factor(rec, levels = c(0, 1e-03, 5e-03, 1e-02, 5e-02, 1e-01))) %>%
+  filter(mut != 1) %>%
   ggplot(aes(x = factor(1), fill = RC_seq)) +
   theme_fj +
   geom_bar(stat = 'count') +
   facet_grid(cols = vars(rec), rows = vars(mut), switch = 'both') +
   coord_polar(theta = 'y') +
-  scale_fill_manual(na.value = "#F0F0F0", values = pal) +
+  scale_fill_manual(values = pal) +
   theme(axis.text = element_blank(),
         legend.position = 'bottom',
         axis.title.x = element_blank(),
@@ -204,9 +230,9 @@ gc_pies <-
 
 ```{r uc_pie, fig.height=6, fig.width=5}
 uc_pies <- 
-  uchime2 %>%
+  uchime %>%
   mutate(mut = factor(mut, levels = c(1, 0.1, 0.01, 0.001, 1e-04, 1e-05, 0))) %>%
-  mutate(rec = factor(rec, levels = c('0e+00', '1e-03', '5e-03', '1e-02', '5e-02', '1e-01'))) %>%
+  filter(mut != 1) %>%
   ggplot(aes(x = factor(1), fill = RC_seq)) +
   theme_fj +
   geom_bar(stat = 'count') +
