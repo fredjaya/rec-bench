@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
   warning = F,
   fig.width = 8,
   dev = 'png',
-  fig.path = "/home/fredjaya/GitHub/rec-bench/figs/")
+  fig.path = "/home/frederickjaya/GitHub/rec-bench/figs/")
 
 library(dplyr)
 library(tidyr)
@@ -133,7 +133,7 @@ plot_grid(top, bot, nrow = 2)
 ```
 
 ## Supplementary  
-```{r diversity_per_rec, fig.width=8, fig.height=3}
+```{r diversity_per_rec, fig.width=8, fig.height=3, eval=F}
 sqrt_dist %>%
   ggplot(aes(x = as.factor(mut), y = sqrt_pair_dist, fill = as.factor(rec))) +
   geom_boxplot(position = position_dodge2(preserve = 'single'), alpha = 0.6, shape = 16) +
@@ -142,7 +142,7 @@ sqrt_dist %>%
   labs(x = "Mutation rate", y = "Number of breakpoints\nper sequence", fill = "Recombination rate")
 ```
 
-```{r bp_per_seq_mut, fig.width=8, fig.height=3}
+```{r bp_per_seq_mut, fig.width=8, fig.height=3, eval=F}
 num_bp %>%
   ggplot(aes(x = as.factor(rec), y = num_bp, fill = as.factor(mut))) +
   geom_boxplot(position = position_dodge2(preserve = 'single'), alpha = 0.6, shape = 16) +
@@ -151,7 +151,7 @@ num_bp %>%
   labs(x = "Recombination rate", y = "Pairwise sequence\ndistance per population", fill = "Mutation rate")
 ```
 
-```{r rc_per_pop_mut, fig.width=8, fig.height=3}
+```{r rc_per_pop_mut, fig.width=8, fig.height=3, eval=F}
 ggplot(num_rec, 
        aes(x = as.factor(rec), y = n, fill = as.factor(mut))) +
   geom_boxplot(position = position_dodge2(preserve = 'single'), alpha = 0.6) +
@@ -164,6 +164,9 @@ ggplot(num_rec,
 ```{r bp_densities, fig.height=8}
 bp_densities <- 
   bp_pivot %>%
+  bind_rows(data.frame(rec = 0, mut = unique(bp_pivot$mut))) %>%
+  filter(mut != 1) %>%
+  mutate(mut = factor(levels = c(1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 0), mut)) %>%
   ggplot(aes(bp_position)) +
   geom_density(adjust = 1/2, fill = 'black', alpha = 0.4) +
   theme_fj +
