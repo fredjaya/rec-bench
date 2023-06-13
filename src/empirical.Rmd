@@ -11,7 +11,7 @@ output:
 knitr::opts_chunk$set(
   echo = T,
   warning = F, 
-  dev = 'svg',
+  dev = 'png',
   fig.width = 8,
   fig.path = "/home/fredjaya/GitHub/rec-bench/figs/")
 
