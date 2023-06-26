@@ -1,10 +1,10 @@
 # rec-bench
 Automated benchmarking of recombination detection methods
 
-Eternally a WIP - many things are hardcoded
+(Note: many things are hardcoded)  
 
 ## Dependencies  
-Nextflow  
+Nextflow 22.10 (DSL1-compatible)  
 conda  
 
 ## Installation  
@@ -16,6 +16,7 @@ git clone https://github.com/fredjaya/rec-bench.git
 bin/3seq_elf -gen-p bin/p700 700
 ```
 
+Install openrdp according to 
 If Nextflow doesn't appear to create the conda environment properly. Create manually.
 
 ```
@@ -23,10 +24,14 @@ conda env create -f environment.yml
 conda activate fredjaya-rec-bench-0.1.0
 ```
 
-## To-do
-- [ ] Add to bioconda:  
-	- [ ] 3SEQ  
-	- [ ] GENECONV  
-	- [ ] SANTA-SIM  
-- [ ] Create docker/singularity containers
-- [ ] Update readme
+## Usage  
+
+### Scalability  
+
+```
+nextflow run sim.nf \
+	--mode scalability \
+	--seq data/FP7_patient_037_allseqs.fasta \
+	--xml data/neutral.xml \
+	--out `pwd` 
+```

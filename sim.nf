@@ -28,10 +28,11 @@ if (params.mode == 'performance') {
 }
 
 else if (params.mode == 'scalability') {
-    mutrate = Channel.from(0, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1)
-    recrate = Channel.from(0, 0.1)
+    //mutrate = Channel.from(0, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1)
+    mutrate = Channel.from(1e-4)
+    recrate = Channel.from(1)
     dualinf = Channel.from(1)
-    seqnum = Channel.from(50000)
+    seqnum = Channel.from(1000)
 }
 
 else {
@@ -137,7 +138,7 @@ process S4_santa {
 
     // Simulate sequences over time, based on .xml files generated
     
-    executor 'pbs'
+    executor 'slurm'
     cpus 2
     memory { 8.GB * task.attempt }
     time '24h'
@@ -165,8 +166,9 @@ process S4_santa {
 
 fasta_ch
     .flatten()
-    .into { phi_fa; tseq_fa; gc_fa; uchime_fa; gmos_fa }
+    .into { phi_fa; tseq_fa; gc_fa; uchime_fa; gmos_fa; rdp_fa; maxchi_fa; chimaera_fa }
 
+/*
 process B1_phi_profile {
 
     label "sim_benchmark"
@@ -298,6 +300,62 @@ process B5_gmos {
     script:
     """
     gmos -i ${seq} -j ${seq} -o gmos.txt -t
+    """
+*/
+
+process rdp {
+
+    label "slurm"                             
+    tag "$seq"                                        
+    publishDir "${params.out}/rdp"
+
+    input:
+        path seq from rdp_fa
+
+    output:
+        path "$seq.baseName"
+
+    script:
+    """
+    openrdp $seq -o $seq.baseName -m rdp
+    """
+
+}
+
+process maxchi {
+
+    label "slurm"                             
+    tag "$seq"                                        
+    publishDir "${params.out}/maxchi"
+
+    input:
+        path seq from maxchi_fa
+
+    output:
+        path "$seq.baseName"
+
+    script:
+    """
+    openrdp $seq -o $seq.baseName -m maxchi
+    """
+
+}
+
+process chimaera {
+
+    label "slurm"                             
+    tag "$seq"                                        
+    publishDir "${params.out}/chimaera"
+
+    input:
+        path seq from chimaera_fa
+
+    output:
+        path "$seq.baseName"
+
+    script:
+    """
+    openrdp $seq -o $seq.baseName -m chimaera
     """
 
 }
