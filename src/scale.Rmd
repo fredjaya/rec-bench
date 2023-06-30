@@ -12,34 +12,31 @@ knitr::opts_chunk$set(
   echo = T,
   warning = F,
   fig.width = 8,
-  fig.path = "/Users/13444841/GitHub/rec-bench/figs/")
+  fig.path = "/home/frederickjaya/GitHub/rec-bench/figs/")
 
 library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(viridis)
-Sys.setenv(RETICULATE_PYTHON = "/usr/local/bin/python3")
-library(reticulate)
 library(stringr)
-
-#use_condaenv("trace_parse", required = T)
+library(lubridate)
 
 theme_fj <- theme_minimal() +
-  theme(panel.grid = element_blank())
-
-rdm_pal <- c("#FC8D62", '#8DA0CB', '#66C2A5',  '#E78AC3', '#FFD92F')
+  theme(panel.grid = element_blank(),
+        text = element_text(size = 12))
 ```
 
-```{r read_data}
+```{r read_data, eval=F}
 #n100 <- read.csv("n100.csv")
 n1000 <- read.csv("~/Dropbox/Masters/02_working/2105_scale/n1000.csv")
 n5000 <- read.csv("~/Dropbox/Masters/02_working/2105_scale/n5000.csv")
 n10000 <- read.csv("~/Dropbox/Masters/02_working/2105_scale/n10000.csv")
 n50000 <- read.csv("~/Dropbox/Masters/02_working/2105_scale/n50000.csv")
+n1000b <- read.csv("~/Dropbox/Masters/02_working/2306_scale/n1000/trace-20230626-51685901.txt")
 
 traces <- 
-  rbind(n1000, n5000, n10000, n50000) %>%
-  select(name, status, exit, duration, realtime, X.cpu, peak_rss, peak_vmem) %>%
+  rbind(n1000, n5000, n10000, n50000, n1000b) %>%
+  select(name, status, exit, duration) %>%
   filter(str_detect(name, "santa|sweep|filter", negate = T)) %>%
   separate(col = name, into = c('name', 'params'), sep = ' \\(') %>%
   mutate(params = gsub('[a-z]', '', params)) %>%
@@ -47,16 +44,25 @@ traces <-
   mutate(params = gsub('^_', '', params)) %>%
   mutate(params = gsub('\\.)$', '', params)) %>%
   separate(col = params, into = c('mut', 'rc', 'seq_n', 'dual_inf', 'rep'), 
-           sep = '_', remove = T) %>%
-  mutate(mut = as.numeric(mut), rc = as.numeric(rc), seq_n = as.numeric(seq_n), 
-         dual_inf = as.numeric(dual_inf), rep = as.numeric(rep))
+           sep = '_', remove = T)
 
-rm(n1000, n5000, n10000, n50000)
-
+# Output and format time manually
+write.csv(traces, "~/Dropbox/Masters/02_working/2306_scale/trace_manual.csv")
+rm(n1000, n5000, n10000, n50000, n1000b)
 # Convert duration and realtime to hours
-source_python("~/GitHub/rec-bench/bin/convert_time.py")
-traces$duration_hours <- sapply(traces$duration, nf_hours) # dplyr::mutate doesn't like this for some reason
-traces$realtime_hours <- sapply(traces$realtime, nf_hours)
+#source_python("~/GitHub/rec-bench/bin/convert_time.py")
+#traces$duration_hours <- sapply(traces$duration, nf_hours) # dplyr::mutate doesn't like this for some reason
+#traces$realtime_hours <- sapply(traces$realtime, nf_hours)
+```
+
+```{r}
+traces = 
+  read.csv("~/Dropbox/Masters/02_working/2306_scale/trace_manual_edit.csv") %>%
+  mutate(hours = if_else(hours == "", "0h", hours)) %>%
+  mutate(minutes = if_else(minutes == "", "0m", minutes)) %>%
+  mutate(seconds = if_else(seconds == "", "0s", seconds)) %>%
+  mutate(across(c(hours, minutes, seconds), ~as.numeric(gsub("h|m|s", "", .)))) %>%
+  mutate(duration = hours(hours) + minutes(minutes) + seconds(seconds))
 
 # Combine UCHIME and UCHIME_DEREP times
 uchime <- 
@@ -66,104 +72,45 @@ uchime <-
 derep <- traces %>%
   filter(name == 'B4_uchime_derep')
 
-joined_uchime <- full_join(uchime, derep, 
-                  by = c('mut', 'rc', 'seq_n', 'dual_inf', 'rep'))
-
-rm(uchime, derep)
-
 joined_uchime <- 
-  joined_uchime %>%
-  mutate(name = "B4_uchime_joined", realtime_hours = realtime_hours.x + realtime_hours.y,
-         duration_hours = duration_hours.x + duration_hours.y) %>%
-  select(name = name.x, mut, rc, seq_n, dual_inf, rep, status = status.x, 
-         exit = exit.x, duration = duration.x, realtime = realtime.x, 
-         X.cpu = X.cpu.x, peak_rss = peak_rss.x, peak_vmem = peak_vmem.x, 
-         duration_hours, realtime_hours)
+  full_join(uchime, derep, by = c('mut', 'rc', 'seq_n', 'dual_inf', 'rep')) %>%
+  mutate(duration = duration.x + duration.y) %>%
+  select(name = name.x, mut, rc, seq_n, dual_inf, rep, duration) 
 
-traces2 <- 
+traces2 <-
   traces %>%
   filter(name != "B4_uchime") %>%
   filter(name != "B4_uchime_derep") %>%
-  bind_rows(joined_uchime)
+  select(name, mut, rc, seq_n, dual_inf, rep, duration) %>%
+  rbind(joined_uchime) %>%
+  filter(mut < 1) %>%
+  mutate(hours = as.numeric(duration/hours(1))) %>%
+  mutate(seq_n = gsub("^", "n = ", seq_n)) %>%
+  mutate(seq_n = gsub("0000", "0,000", seq_n)) %>%
+  mutate(seq_n = factor(seq_n, levels = c('n = 1000', 'n = 5000', 'n = 10,000', 'n = 50,000'))) %>%
+  mutate(name = gsub('B1_phi_profile', 'PhiPack (Profile)', name)) %>%
+  mutate(name = gsub('B2_3seq', '3SEQ', name)) %>%
+  mutate(name = gsub('B3_geneconv', 'GENECONV', name)) %>%
+  mutate(name = gsub('B5_gmos', 'gmos', name)) %>%
+  mutate(name = gsub('rdp', 'RDP (openrdp)', name)) %>%
+  mutate(name = gsub('maxchi', 'MaxChi (openrdp)', name)) %>%
+  mutate(name = gsub('chimaera', 'Chimaera (openrdp)', name)) %>%
+  mutate(name = gsub('B4_uchime', 'UCHIME (VSEARCH)', name)) %>%
+  mutate(name = factor(name, levels = c('PhiPack (Profile)', '3SEQ', 'GENECONV', 'UCHIME (VSEARCH)', 'gmos', 'MaxChi (openrdp)', 'Chimaera (openrdp)', 'RDP (openrdp)')))
+
+rm(uchime, derep, joined_uchime, traces)
 ```
 
-```{r scale_main, fig.width=8, fig.height=5}
+```{r scale_main, fig.width=8, fig.height=6}
 traces2 %>%
-  mutate(seq_n = gsub('^', 'n = ', seq_n)) %>%
-  mutate(seq_n = factor(seq_n, levels = c('n = 1000', 'n = 5000', 'n = 10000', 'n = 50000'))) %>%
-  filter(exit == 0 | exit == 1) %>%
-  filter(mut != 1) %>%
-  mutate(name = gsub('B1_phi_profile', 'PhiPack (Profile)', name)) %>%
-  mutate(name = gsub('B2_3seq', '3SEQ', name)) %>%
-  mutate(name = gsub('B3_geneconv', 'GENECONV', name)) %>%
-  mutate(name = gsub('B4_uchime', 'VSEARCH (UCHIME)', name)) %>%
-  mutate(name = gsub('B5_gmos', 'gmos', name)) %>%
-  mutate(name = factor(name, levels = c('PhiPack (Profile)', '3SEQ', 'GENECONV', 'VSEARCH (UCHIME)', 'gmos'))) %>%
-  ggplot(aes(x = as.factor(mut), y = duration_hours, col = name, group = name)) +
-  geom_jitter(alpha = 0.5, shape = 16, size = 1.5) +
-  stat_summary(geom = 'line', fun = mean, size = 0.75) +
-  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3) +
-  facet_wrap(vars(seq_n), nrow = 2) +
-  scale_colour_manual(values = rdm_pal) +
-  labs(col = "Method",
-       x = "Mutation rate",
-       y = "CPU hours") +
-  scale_y_log10() +
+  ggplot(aes(x = as.factor(mut), y = hours, col = name, group = name)) +
+  geom_jitter(alpha = 0.25, shape = 16, size = 2, width = 0.2) +
+  facet_wrap(vars(seq_n), ncol = 2) +
+  stat_summary(geom = 'line', fun = mean, size = 1, alpha = 0.9) +
+  stat_summary(geom = 'point', fun = mean, shape = 18, size = 4) +
+  labs(col = "Method", x = "Mutation rate", y = "CPU time") +
   theme_fj +
-  theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1)) +
-  annotation_logticks(sides = "l", colour = "darkgrey")
-```
-
-### Supplementary
-```{r completed}
-traces2 %>%
-  filter(exit == 0 | exit == 1) %>%
-  filter(mut != 1) %>%
-  group_by(name, mut, seq_n) %>%
-  tally() %>%
-  mutate(seq_n = gsub('^', 'n = ', seq_n)) %>%
-  mutate(seq_n = factor(seq_n, levels = c('n = 1000', 'n = 5000', 'n = 10000', 'n = 50000'))) %>%
-  mutate(name = gsub('B1_phi_profile', 'PhiPack (Profile)', name)) %>%
-  mutate(name = gsub('B2_3seq', '3SEQ', name)) %>%
-  mutate(name = gsub('B3_geneconv', 'GENECONV', name)) %>%
-  mutate(name = gsub('B4_uchime', 'VSEARCH (UCHIME)', name)) %>%
-  mutate(name = gsub('B5_gmos', 'gmos', name)) %>%
-  mutate(name = factor(name, levels = c('PhiPack (Profile)', '3SEQ', 'GENECONV', 'VSEARCH (UCHIME)', 'gmos'))) %>%
-  ggplot(aes(x = as.factor(mut), y = n, fill = name)) +
-  geom_col(position = position_dodge2(preserve = 'single')) +
-  facet_wrap(vars(seq_n), nrow = 2) +
-  theme_fj +
-  scale_y_continuous(breaks = seq(0, 10, 2)) +
-  scale_fill_manual(values = rdm_pal) +
-  labs(fill = "Method",
-       x = "Mutation rate",
-       y = "Analyses completed") +
-  theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1))
-```
- 
-```{r scale_rc, fig.width=7, fig.height=4}
-traces2 %>%
-  mutate(seq_n = gsub('^', 'n = ', seq_n)) %>%
-  mutate(seq_n = factor(seq_n, levels = c('n = 1000', 'n = 5000', 'n = 10000', 'n = 50000'))) %>%
-  filter(exit == 0) %>%
-  mutate(name = gsub('B1_phi_profile', 'PhiPack (Profile)', name)) %>%
-  mutate(name = gsub('B2_3seq', '3SEQ', name)) %>%
-  mutate(name = gsub('B3_geneconv', 'GENECONV', name)) %>%
-  mutate(name = gsub('B4_uchime', 'VSEARCH (UCHIME)', name)) %>%
-  mutate(name = gsub('B5_gmos', 'gmos', name)) %>%
-  mutate(name = factor(name, levels = c('PhiPack (Profile)', '3SEQ', 'GENECONV', 'VSEARCH (UCHIME)', 'gmos'))) %>%
-  ggplot(aes(x = as.factor(rc), y = duration_hours, col = name, group = name)) +
-  geom_jitter(alpha = 0.25, shape = 16, size = 1.5) +
-  stat_summary(geom = 'line', fun = mean, size = 0.75) +
-  stat_summary(geom = 'point', fun = mean, shape = 18, size = 3) +
-  facet_wrap(vars(seq_n), nrow = 1) +
-  scale_colour_manual(values = rdm_pal) +
-  labs(col = "Method",
-       x = "Recombination rate",
-       y = "CPU hours") +
-  scale_y_log10() +
-  theme_fj +
-  theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1),
-        legend.position = 'bottom') +
-  annotation_logticks(sides = "l", colour = "darkgrey")
+  theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1), legend.position = "bottom") +
+  scale_y_log10(breaks = c(10, 1, 0.1, 0.01, 0.001), labels = c("10h", "1h", "6m", "36s", "3.6s")) +
+  annotation_logticks(sides = "l", colour = "grey")
 ```
