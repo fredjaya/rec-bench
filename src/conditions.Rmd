@@ -186,6 +186,9 @@ openrdp_conditions <- function(path, method) {
 
 rdp <- openrdp_conditions("~/Dropbox/Masters/02_working/2307_conditions/rdp.pos", "rdp")
 chimaera <- openrdp_conditions("~/Dropbox/Masters/02_working/2307_conditions/chimaera.pos", "chimaera")
+
+#write.csv(rdp, "~/Dropbox/Masters/02_working/2307_conditions/rdp.csv", row.names = F, quote = F)
+#write.csv(chimaera, "~/Dropbox/Masters/02_working/2307_conditions/chimaera.csv", row.names = F, quote = F)
 ```
 
 ## Plot prep  
