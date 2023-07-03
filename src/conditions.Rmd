@@ -152,6 +152,42 @@ table(gc_merged2$RC_seq, useNA = 'ifany')
 #write.csv(gc_merged2, "~/Dropbox/Masters/02_working/2105_pub/F3_geneconv_conditions_allseqs.csv", row.names = F)
 ```
 
+
+```{r openrdp_prep}
+sim_bp <- 
+  read.csv("~/Dropbox/Masters/02_working/2307_conditions/sim_bp.txt", header =F, sep = " ") %>%
+  mutate(file = gsub(".fasta", "", V1)) %>%
+  select(file, seq_name = V2) %>%
+  mutate(simulated = if_else(grepl(':', seq_name), T, F))
+
+openrdp_conditions <- function(path, method) {
+  read.csv(path, header = F, sep = " ") %>%
+    select(file = V1, seq_name = V2) %>%
+    mutate(detected = T) %>%
+    right_join(sim_bp, by = c('file', 'seq_name')) %>%
+    replace_na(list(detected = F)) %>%
+    mutate(
+      RC_seq = if_else(simulated == T & detected == T, "TP",
+                       if_else(simulated == T & detected == F, "FN",
+                               if_else(simulated == F & detected == T, "FP",
+                                       if_else(simulated == F & detected == F, "TN", "ERROR"))))) %>%
+    mutate(Method = method) %>%
+    mutate(file = gsub('[a-z]', '', file)) %>%
+    mutate(file = gsub('^_', '', file)) %>%
+    separate(col = file, into = c('mut', 'rec', 'seqn', 'dualInf', 'rep'), sep = '_', remove = T) %>%
+    mutate(mut = as.numeric(mut),
+           rec = as.numeric(rec),
+           seqn = as.integer(seqn),
+           dualInf = as.integer(dualInf),
+           rep = as.numeric(rep))
+    
+    
+}
+
+rdp <- openrdp_conditions("~/Dropbox/Masters/02_working/2307_conditions/rdp.pos", "rdp")
+chimaera <- openrdp_conditions("~/Dropbox/Masters/02_working/2307_conditions/chimaera.pos", "chimaera")
+```
+
 ## Plot prep  
 
 ```{r phi_pies, fig.height=5.2, fig.width=5}
@@ -178,7 +214,9 @@ phi_pies <-
        tag = "Recombination rate")
 
 plot_grid(phi_pies, labels = "PhiPack (Profile)", label_size = 10)
+rm(phi, phi_pies)
 ```
+
 ```{r 3seq_pie, fig.height=6, fig.width=5}
 tseq_pies <- 
   tseq %>%
@@ -251,14 +289,67 @@ uc_pies <-
        tag = "Recombination rate")
 ```
 
+```{r rdp_pie, fig.height=6, fig.width=5}
+rdp_pies <- 
+  rdp %>%
+  mutate(mut = factor(mut, levels = c(0.1, 0.01, 0.001, 1e-04, 1e-05, 0))) %>%
+  mutate(rec = factor(rec, levels = c(0e+00, 1e-03, 5e-03, 1e-02, 5e-02, 1e-01))) %>%
+  ggplot(aes(x = factor(1), fill = RC_seq)) +
+  theme_fj +
+  geom_bar(stat = 'count') +
+  facet_grid(cols = vars(rec), rows = vars(mut), switch = 'both') +
+  coord_polar(theta = 'y') +
+  scale_fill_manual(values = pal) +
+  theme(axis.text = element_blank(),
+        legend.position = 'right',
+        axis.title.x = element_blank(),
+        strip.text.y.left = element_text(angle = 0),
+        plot.tag.position = c(0.57, 0),
+        plot.tag = element_text(size = 10),
+        plot.margin = unit(c(5.5, 20, 5.5, 5.5), 'pt')) +
+  guides(fill = guide_legend(title.position = "top")) +
+  labs(x = "Mutation rate", 
+       fill = "Per-sequence\nconditions",
+       tag = "Recombination rate")
+```
+
+
+```{r chimaera_pie, fig.height=6, fig.width=5}
+chimaera_pies <- 
+  chimaera %>%
+  mutate(mut = factor(mut, levels = c(0.1, 0.01, 0.001, 1e-04, 1e-05, 0))) %>%
+  mutate(rec = factor(rec, levels = c(0e+00, 1e-03, 5e-03, 1e-02, 5e-02, 1e-01))) %>%
+  ggplot(aes(x = factor(1), fill = RC_seq)) +
+  theme_fj +
+  geom_bar(stat = 'count') +
+  facet_grid(cols = vars(rec), rows = vars(mut), switch = 'both') +
+  coord_polar(theta = 'y') +
+  scale_fill_manual(values = pal) +
+  theme(axis.text = element_blank(),
+        legend.position = 'right',
+        axis.title.x = element_blank(),
+        strip.text.y.left = element_text(angle = 0),
+        plot.tag.position = c(0.57, 0),
+        plot.tag = element_text(size = 10),
+        plot.margin = unit(c(5.5, 20, 5.5, 5.5), 'pt')) +
+  guides(fill = guide_legend(title.position = "top")) +
+  labs(x = "Mutation rate", 
+       fill = "Per-sequence\nconditions",
+       tag = "Recombination rate")
+```
+
 ```{r main_pies, fig.width=10, fig.height=11}
 leg <- plot_grid(get_legend(tseq_pies), NULL, NULL, NULL, rel_widths = c(1, 2), rel_heights = c(1, 2))
 
 plot_grid(tseq_pies + theme(legend.position = 'none'),
           gc_pies + theme(legend.position = 'none'),
           uc_pies + theme(legend.position = 'none'),
+          rdp_pies + theme(legend.position = 'none'),
+          chimaera_pies + theme(legend.position = 'none'),
           leg,
-          labels = c("a) 3SEQ", "b) GENECONV", "c) VSEARCH (UCHIME)"), 
-          label_size = 10)
+          labels = c("a) 3SEQ", "b) GENECONV", "c) UCHIME (VSEARCH)", "d) RDP (openrdp)", "e) Chimaera (openrdp)"), 
+          label_size = 10, ncol = 2)
+
+rm(tseq, uchime, gc_merged, gc_merged2, fail, bp_counts, params)
 ```
 
