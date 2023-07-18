@@ -91,7 +91,7 @@ uchime <-
 table(uchime$RC_seq, useNA = 'ifany')
 ```
 
-```{r gc_table}
+```{r gc_table, eval=F}
 # Read gc conditions
 gc <- 
   read.csv("~/Dropbox/Masters/02_working/2105_pub/F3_geneconv_conditions.csv")
@@ -150,6 +150,57 @@ table(gc_merged2$RC_seq, useNA = 'ifany')
 
 
 #write.csv(gc_merged2, "~/Dropbox/Masters/02_working/2105_pub/F3_geneconv_conditions_allseqs.csv", row.names = F)
+```
+
+`sim_bp$bps` contains the positions of all simulated breakpoints per sequence. As we are comparing the conditions on the sequence level, convert this column to P/A of recombination. `sim_bp$bps == ""`  indicate no recombination was simulated (similar to `params`).  
+
+```{r}
+sim_bp <- read.csv("~/Dropbox/Masters/02_working/2105_pub/V2_santa_bp.csv")
+
+sim_bp <- 
+  sim_bp %>%
+  mutate(bps = if_else(bps == "", F, T)) %>%
+  rename(simulated = bps)
+
+table(sim_bp$simulated)
+```
+
+```{r gc_table2}
+# This includes both paired and unpaired runs
+gc <- 
+  read.csv("~/Dropbox/Masters/02_working/2105_pub/F3_geneconv_summarised.csv") %>%
+  # Wrangle file name/paths into separate parameters
+  mutate(file = gsub("(/shared/homes/13444841/2104_performance/B3_geneconv/msa_)|(.tab)", "", file)) %>%
+  mutate(file = gsub("[a-zA-Z]", "", file)) %>%
+  separate(col = file, into = c('mut', 'rec', 'seqnum', 'dualInf', 'rep'), sep = "_") %>%
+  select(mut, rec, seqnum, dualInf, rep, seq_names) %>%
+  # Next, sequence == 1 row
+  separate(col = seq_names, into = c("seq_1", "seq_2"), sep = ";") %>%
+  pivot_longer(cols = seq_1:seq_2, values_to = "seq_name") %>%
+  mutate(seq = gsub(":.+", "", seq_name)) %>%
+  select(-name, -seq_name) %>%
+  # Drop duplicates
+  distinct() %>%
+  # Add observation
+  mutate(geneconv = T) %>%
+  # Change class
+  mutate(across(mut:rep, as.numeric))
+
+# Next, add to whole list of simulated sequences and calculate conditions for each
+gc2 <- 
+  sim_bp %>%
+  left_join(gc) %>%
+  # Fill in GENECONV with no detections
+  mutate(geneconv = if_else(is.na(geneconv), F, T)) %>%
+  # Calculate condition per sequence
+   mutate(Condition = 
+           if_else(simulated == T & geneconv == T, "TP",
+                   if_else(simulated == F & geneconv == T, "FP",
+                           if_else(simulated == T & geneconv == F, "FN", "TN")))) %>%
+  mutate(Method = "GENECONV") %>%
+  # As none ran on m=0
+  mutate(Condition = if_else(mut == 0, "Failed", Condition))
+  
 ```
 
 
@@ -247,11 +298,11 @@ tseq_pies <-
 
 ```{r gc_pie, fig.height=6, fig.width=5}
 gc_pies <- 
-  gc_merged2 %>%
+  gc2 %>%
   mutate(mut = factor(mut, levels = c(1, 0.1, 0.01, 0.001, 1e-04, 1e-05, 0))) %>%
   mutate(rec = factor(rec, levels = c(0, 1e-03, 5e-03, 1e-02, 5e-02, 1e-01))) %>%
   filter(mut != 1) %>%
-  ggplot(aes(x = factor(1), fill = RC_seq)) +
+  ggplot(aes(x = factor(1), fill = Condition)) +
   theme_fj +
   geom_bar(stat = 'count') +
   facet_grid(cols = vars(rec), rows = vars(mut), switch = 'both') +
