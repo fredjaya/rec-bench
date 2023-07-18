@@ -200,7 +200,8 @@ gc2 <-
   mutate(Method = "GENECONV") %>%
   # As none ran on m=0
   mutate(Condition = if_else(mut == 0, "Failed", Condition))
-  
+
+#write.csv(gc2, "geneconv_conditions_2023.csv")
 ```
 
 

@@ -23,12 +23,16 @@ library(cowplot)
 library(scales)
 #library(plotly)
 library(stringr)
+library(RColorBrewer)
 
 theme_fj <- theme_minimal() +
   theme(panel.border = element_rect(fill = NA, color = 'grey'),
         panel.grid = element_blank(), 
         axis.title = element_text(size = 10),
         legend.title = element_text(size = 10))
+
+#display.brewer.pal(n = 8, name= "Dark2")
+seq_pal = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 ```
 
 ## Data preparation
@@ -60,170 +64,15 @@ tseq <-
 ```
 
 ```{r gc_prep}
-# Read gc conditions
-gc_conditions <- 
-  read.csv("~/Dropbox/Masters/02_working/2105_pub/F3_geneconv_conditions.csv") %>%
-  mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN")))
-
-# Read in traces to identify GENECONV runs that were not successful (too few polymorphisms)
-gc_trace <-
-  read.csv("~/Dropbox/Masters/02_working/2105_pub/tracing/trace.csv") %>%
-  filter(status == "FAILED") %>%
-  # Separate method and parameters into individual columns
-  separate(col = name, into = c('name', 'params'), sep = ' \\(')
-
-# Clean parameters for plotting
-gc_trace$params <- gsub('[a-z]', '', gc_trace$params)
-gc_trace$params <- gsub('^_'   , '', gc_trace$params)
-gc_trace$params <- gsub('\\.\\)'   , '', gc_trace$params)
-
-# Separate parameters into individual columns
-gc_trace <- 
-  gc_trace %>%
-  separate(col = params, into = c('mut', 'rec', 'seqn', 'dualInf', 'rep'), 
-           sep = '_', remove = T) %>%
-  select(c('mut', 'rec', 'seqn', 'dualInf', 'rep')) %>%
-  # IDGAF
-  mutate(mut = as.numeric(mut),
-         rec = as.numeric(rec),
-         seqn = as.integer(seqn),
-         dualInf = as.integer(dualInf),
-         rep = as.numeric(rep))
-
-# Get non-fails
-pass <- 
-  gc_conditions %>%
-  anti_join(gc_trace, by = c('mut', 'rec', 'rep'))
-
-# Get fails
-fail <- 
-  gc_trace %>%
-  left_join(gc_conditions, by = c('mut', 'rec', 'rep', 'seqn', 'dualInf'))
-
-# Replace conditions with NAs
-fail[7:ncol(fail)] <- NA
-
-# Merge all traces
-gc_merged <- rbind(pass, fail) %>%
-  mutate(RC_seq = factor(RC_seq, levels = c("TP", "FP", "TN", "FN"))) %>%
-  mutate(rec = scientific(rec))
-
-### FIX INCORRECT FALSE POSITIVES ###
-tf <- 
-  read.csv("~/Dropbox/Masters/02_working/2105_pub/F3_geneconv_unpaired_bps_tf.csv") %>%
-  distinct() %>%
-  select(mut, rec, seqn = seqLen, dualInf, rep, seq_name, RC_seq) %>%
-  mutate(seq_name = gsub(':\\d+.*', '', seq_name)) %>%
-  mutate(rec = scientific(rec))
-
-gc_amended <- 
-  gc_merged %>% 
-  left_join(tf, by = c('mut', 'rec', 'seqn', 'dualInf', 'rep', 'seq_name')) %>%
-  mutate(RC_seq = coalesce(RC_seq.y, RC_seq.x)) %>%
-  select(-RC_seq.x, -RC_seq.y)
-
-table(gc_merged$RC_seq)
-table(tf$RC_seq)
-table(gc_amended$RC_seq)
-
-# Calculate evaluation metrics
-gc_power <- 
-  gc_merged %>%
-  select(mut, rec, rep, seq_name, RC_seq) %>%
-  group_by(mut, rec, RC_seq, rep) %>%
+gc <- 
+  read.csv("~/GitHub/rec-bench/src/geneconv_conditions_2023.csv") %>%
+  select(mut:seq, RC_seq = Condition) %>%
+  mutate(rec = scientific(rec)) %>%
+  group_by(mut, rec, RC_seq, dualInf, rep) %>%
   tally() %>%
-  pivot_wider(names_from = RC_seq, values_from = n)
-
-gc_power[is.na(gc_power)] <- 0
-
-# Subset failed runs and rejoin later
-gc_power_nas <- 
-  gc_power %>%
-  filter(`NA` == 100)
-
-# Calculate evaluation metrics
-gc_power <- 
-  gc_power %>%
-  filter(`NA` == 0) %>%
-  select(-`NA`) %>%
-  # True condition
-  mutate(TPR = TP / (TP + FN)) %>%
-  mutate(FPR = FP / (FP + TN)) %>%
-  mutate(TNR = TN / (TN + FP)) %>%
-  mutate(FNR = FN / (TP + FN)) %>%
-  # Predicted condition positive
-  mutate(PPV = TP / (TP + FP)) %>%
-  mutate(FDR = FP / (TP + FP)) %>%
-  # Predicted condition negative
-  mutate(FOR = FN / (TN + FN)) %>%
-  mutate(NPV = TN / (TN + FN)) %>%
-  # Total population
-  mutate(Pre = (TP + FN) / (TP + FP + TN + FN)) %>%
-  mutate(ACC = (TP + TN) / (TP + FP + TN + FN)) %>%
-  mutate(Fscore = 2 * ((PPV * TPR) / (PPV + TPR))) %>%
-  mutate(MCC = ((TP*TN) - (FP*FN)) / sqrt((TP+FP) * (TP+FN) * (TN+FP) * (TN+FN))) %>%
-  
-  pivot_longer(cols = TN:Fscore, names_to = 'metric', values_to = 'score') %>%
-  mutate(metric = factor(metric, levels = c('TPR', 'FPR', 'TNR', 'FNR', 'PPV',
-                                            'FDR', 'FOR', 'NPV', 'Pre', 'MCC', 'ACC',
-                                            'Fscore', 'TP', 'FP', 'TN', 'FN'))) %>%
-  # Augment NaNs
-  mutate(score = gsub('NaN', 1, score)) %>%
-  mutate(score = as.numeric(score))
-
-#### MCC
-gc_mcc <- 
-  gc_merged %>%
-  select(mut, rec, rep, RC_seq) %>%
-  group_by(mut, rec, RC_seq, rep) %>%
-  tally() %>%
-  pivot_wider(names_from = RC_seq, values_from = n)
-
-gc_mcc[is.na(gc_mcc)] <- 0
-
-# Subset failed runs to rejoin later
-gc_mcc_nas <- 
-  gc_mcc %>%
-  filter(`NA` == 100)
-
-# Add MCC
-gc_mcc <- 
-  gc_mcc %>%
-  filter(`NA` == 0) %>%
-  select(-`NA`) %>%
-  mutate(MCC = ((TP*TN) - (FP*FN)) / sqrt((TP+FP) * (TP+FN) * (TN+FP) * (TN+FN)))
-
-## Correct for NaNs
-# Count the number of zero-cases per row
-gc_mcc$zero_cases <- 
-  apply(gc_mcc[4:7], MARGIN = 1, function(x) length(which(x == 0)))
-
-# Subset rows where there are three zero-cases and correct
-gc_mcc_onecase <-
-  gc_mcc %>%
-  filter(MCC == 'NaN' & zero_cases == 3) %>%
-  mutate(MCC = case_when(TP != 0 | TN != 0 ~ 1,
-                         FP != 0 | FN != 0 ~ -1))
-# Subset rows where there are two zero-cases and correct 
-gc_mcc_twocase <- 
-  gc_mcc %>%
-  filter(MCC == 'NaN' & zero_cases == 2) %>%
-  mutate(MCC = 0)
-
-# Remove all rows that were subset for correction and re-join corrected
-gc_mcc <- 
-  gc_mcc %>%
-  filter(MCC != 'NaN') %>%
-  rbind(gc_mcc_onecase, gc_mcc_twocase) %>%
-  select(-zero_cases)
-
-rm(gc_mcc_onecase, gc_mcc_twocase)
-
-# add normalised MCC
-gc_mcc <- 
-  gc_mcc %>%
-  mutate(normMCC = (MCC +1) / 2) %>%
-  mutate(Method = "GENECONV")
+  pivot_wider(names_from = RC_seq, values_from = n) %>%
+  mutate(Method = 'GENECONV') %>%
+  filter(mut != 1)  
 ```
 
 ```{r uchime_prep}
@@ -255,6 +104,16 @@ rdp <-
   mutate(`NA` = 0) %>%
   mutate(Method = "RDP (openrdp)")
 
+maxchi <- 
+  read.csv("~/Dropbox/Masters/02_working/2307_conditions/maxchi.csv") %>%
+  mutate(rec = scientific(rec)) %>%
+  group_by(mut, rec, dualInf, rep, RC_seq) %>%
+  tally() %>%
+  pivot_wider(names_from = RC_seq, values_from = n) %>%
+  # No failed runs
+  mutate(`NA` = 0) %>%
+  mutate(Method = "MaxChi (openrdp)")
+
 chimaera <- 
   read.csv("~/Dropbox/Masters/02_working/2307_conditions/chimaera.csv") %>%
   mutate(rec = scientific(rec)) %>%
@@ -269,7 +128,7 @@ chimaera <-
 ```{r seq_prep}
 seq_based <-
   tseq %>%
-  rbind(uchime, rdp, chimaera) %>%
+  rbind(uchime, rdp, chimaera, gc, maxchi) %>%
   replace_na(list(`NA` = 0, TP = 0, FP = 0, TN = 0, FN = 0)) %>%
   # Remove failed 3SEQ and GENECONV runs
   filter(`NA` != 100) %>%
@@ -308,25 +167,19 @@ seq_based <-
 
 seq_based_long <- 
   seq_based %>%
-  pivot_longer(cols = c(TP, TN, FP, FN, Power, Precision, MCC, nMCC), names_to = 'Metric', values_to = 'Score')
+  pivot_longer(cols = c(TP, TN, FP, FN, Power, Precision, MCC, nMCC), names_to = 'Metric', values_to = 'Score') %>%
+  mutate(rec = as.numeric(rec)) %>%
+  mutate(rec = gsub('^', 'r = ', rec)) %>%
+  mutate(Method = factor(Method, levels = c('3SEQ', 'GENECONV', 'RDP (openrdp)', 'MaxChi (openrdp)', 'Chimaera (openrdp)', 'UCHIME (VSEARCH)')))
 
 rm(onecase, twocase)
 ```
 
 ```{r big_prep}
-# GENECONV
-gc_big <- 
-  gc_merged %>%
-  select(mut, rec, rep, dualInf, seq_name,  RC_seq) %>%
-  group_by(mut, rec, dualInf, RC_seq, rep) %>%
-  tally() %>%
-  pivot_wider(names_from = RC_seq, values_from = n) %>%
-  mutate(Method = 'GENECONV')
-
 # Merge
 big <- 
   phi %>%
-  rbind(tseq, gc_big, uchime, rdp) %>%
+  rbind(tseq, gc, uchime, rdp) %>%
   select(mut, rec, dualInf, rep, Method,`NA`, TP, FP, TN, FN) %>%
   filter(mut != 1) %>%
   replace_na(list(`NA` = 0, TP = 0, FP = 0, TN = 0, FN = 0))
@@ -334,6 +187,7 @@ big <-
 #rm(phi_big, tseq_big, gc_big, uchime_big)
 
 # Evaluation metrics
+# Most of this code is redundant but used for the phi plots
 big <- 
   big %>%
   # Remove failed 3SEQ and GENECONV runs
@@ -434,7 +288,7 @@ w_nmcc <-
   stat_summary(geom = 'point', fun = mean, shape = 18, size = 3) +
   facet_wrap(vars(rec), nrow = 2) +
   scale_y_continuous(limits = c(0,1)) +
-  scale_colour_manual(values = c('#FC8D62')) +
+  scale_colour_manual(values = "black") +
   labs(col = "Method",
        x = "Mutation rate",
        y = "Normalised Matthews\nCorrelation Coefficient (nMCC)") +
@@ -457,7 +311,7 @@ w_power <-
   stat_summary(geom = 'point', fun = mean, shape = 18, size = 3) +
   facet_wrap(vars(rec), nrow = 2) +
   scale_y_continuous(limits = c(0,1)) +
-  scale_colour_manual(values = c("#FC8D62")) +
+  scale_colour_manual(values = "black") +
   labs(col = "Method",
        x = "Mutation rate",
        y = "Power") +
@@ -475,12 +329,12 @@ w_precision <-
   filter(Method == "PhiPack (Profile)") %>%
   filter(metric == 'Precision (PPV)') %>%
   ggplot(aes(x = as.factor(mut), y = score, col = Method, group = Method)) +
-  geom_jitter(alpha = 0.5, shape = 16, size = 1.5, height = 0) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 1, height = 0) +
   stat_summary(geom = 'line', fun = mean, size = 0.75) +
   stat_summary(geom = 'point', fun = mean, shape = 18, size = 3) +
   facet_wrap(vars(rec), nrow = 2) +
   scale_y_continuous(limits = c(0,1)) +
-  scale_colour_manual(values = c("#FC8D62")) +
+  scale_colour_manual(values = "black") +
   labs(col = "Method",
        x = "Mutation rate",
        y = "Precision") +
@@ -491,18 +345,14 @@ w_precision <-
 ```{r s_nmcc, fig.width=9.5, fig.height=4}
 s_nmcc <- 
   seq_based_long %>%
-  #filter(mut != 1) %>%
-  #mutate(rec = gsub('^', 'r = ', rec)) %>%
-  #filter(Method != "PhiPack (Profile)") %>%
   filter(Metric == "nMCC") %>%
-  #mutate(Method = factor(Method, levels = c('VSEARCH (UCHIME)', 'GENECONV', '3SEQ'))) %>%
   ggplot(aes(x = as.factor(mut), y = Score, col = Method, group = Method)) +
-  geom_jitter(alpha = 0.5, shape = 16, size = 1.5, height = 0) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 0.8, height = 0) +
   stat_summary(geom = 'line', fun = mean, size = 0.75, alpha = 1) +
   stat_summary(geom = 'point', fun = mean, shape = 18, size = 3, alpha = 1) +
   facet_wrap(vars(rec), nrow = 2) +
   scale_y_continuous(limits = c(0,1)) +
-  #scale_colour_manual(values = c('#E78AC3', '#66C2A5', '#8DA0CB')) +
+  scale_color_manual(values = seq_pal) +
   labs(col = "Method",
        x = "Mutation rate",
        y = "Normalised Matthews\nCorrelation Coefficient (nMCC)") +
@@ -513,17 +363,14 @@ s_nmcc <-
 ```{r s_power, fig.width=9.5, fig.height=4}
 s_power <- 
   seq_based_long %>%
-  #filter(mut != 1) %>%
-  mutate(rec = gsub('^', 'r = ', rec)) %>%
-  #filter(Method != "PhiPack (Profile)") %>%
   filter(Metric == "Power") %>%
-  #mutate(Method = factor(Method, c('VSEARCH (UCHIME)', 'GENECONV', '3SEQ'))) %>%
   ggplot(aes(x = as.factor(mut), y = Score, col = Method, group = Method)) +
-  geom_jitter(alpha = 0.5, shape = 16, size = 1.5, height = 0) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 0.8, height = 0) +
   stat_summary(geom = 'line', fun = mean, size = 0.75, alpha = 1) +
   stat_summary(geom = 'point', fun = mean, shape = 18, size = 3, alpha = 1) +
   facet_wrap(vars(rec), nrow = 2) +
   scale_y_continuous(limits = c(0,1)) +
+  scale_color_manual(values = seq_pal) +
   #scale_colour_manual(values = c('#E78AC3', '#66C2A5', '#8DA0CB')) +
   labs(col = "Method",
        x = "Mutation rate",
@@ -539,12 +386,12 @@ s_precision <-
   filter(Metric == "Precision") %>%
   #mutate(Method = factor(Method, levels = c('VSEARCH (UCHIME)', 'GENECONV', '3SEQ'))) %>%
   ggplot(aes(x = as.factor(mut), y = Score, col = Method, group = Method)) +
-  geom_jitter(alpha = 0.5, shape = 16, size = 1.5, height = 0) +
+  geom_jitter(alpha = 0.5, shape = 16, size = 0.8, height = 0) +
   stat_summary(geom = 'line', fun = mean, size = 0.75, alpha = 1) +
   stat_summary(geom = 'point', fun = mean, shape = 18, size = 3, alpha = 1) +
   facet_wrap(vars(rec), nrow = 2) +
   scale_y_continuous(limits = c(0,1)) +
-  #scale_colour_manual(values = c('#E78AC3', '#66C2A5', '#8DA0CB')) +
+  scale_color_manual(values = seq_pal) +
   labs(col = "Method",
        x = "Mutation rate",
        y = "Precision") +
@@ -569,5 +416,6 @@ plot_grid(s_nmcc + theme(legend.position = 'none'),
           s_precision + theme(legend.position = 'bottom'), 
           nrow = 3,
           labels = c("a) nMCC", "b) Power", "c) Precision"),
-          label_size = 10)
+          label_size = 10,
+          rel_heights = c(1,1,1.2))
 ```
