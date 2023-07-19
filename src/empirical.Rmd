@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
   warning = F, 
   dev = 'png',
   fig.width = 8,
-  fig.path = "/home/fredjaya/GitHub/rec-bench/figs/")
+  fig.path = "/home/frederickjaya/GitHub/rec-bench/figs/")
 
 library(dplyr)
 library(tidyr)
@@ -38,9 +38,9 @@ theme_fj <- theme_minimal() +
         panel.border = element_rect(fill = NA, colour = "darkgrey"),
         axis.title = element_text(size = 10))
 
-seq_pal <- c('#FC8D62', '#8DA0CB', '#66C2A5', '#FFD92F')
+seq_pal = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-path <- "/home/fredjaya/Dropbox/Masters/02_working/2105_empirical/"
+path <- "/home/frederickjaya/Dropbox/Masters/02_working/2105_empirical/"
 ```
 
 ## Data prep  
@@ -107,6 +107,37 @@ gmos <-
 rm(seq1, seq2)
 ```
 
+```{r openrdp}
+openrdp_bvdv <- read.table("~/Dropbox/Masters/02_working/2307_empirical_openrdp/bvdv/bvdv.openrdp", header=T) %>%
+  mutate(virus = "BVDV") %>%
+  mutate(Method = gsub("$", " (OpenRDP)", Method)) %>%
+  # Some parsing to match original format
+  rename(seq = Recombinant, start = Start, end = End) %>%
+  pivot_longer(cols = start:end, values_to = "breakpoints")
+
+# How many unique recombinant sequences detected per method?
+openrdp_bvdv %>%
+  select(Method, seq) %>%
+  distinct() %>%
+  group_by(Method) %>%
+  tally()
+
+### BcOV ###
+openrdp_bcov <- read.table("~/Dropbox/Masters/02_working/2307_empirical_openrdp/bcov/bcov.openrdp", header=T) %>%
+  mutate(virus = "BCoV") %>%
+  mutate(Method = gsub("$", " (OpenRDP)", Method)) %>%
+  # Some parsing to match original format
+  rename(seq = Recombinant, start = Start, end = End) %>%
+  pivot_longer(cols = start:end, values_to = "breakpoints")
+
+# How many unique recombinant sequences detected per method?
+openrdp_bcov %>%
+  select(Method, seq) %>%
+  distinct() %>%
+  group_by(Method) %>%
+  tally()
+```
+
 ```{r prep_hcv}
 hcv_gr <- c(58, 615, 689)
 
@@ -154,7 +185,9 @@ bcov_seq <-
   select(P_ACCNUM, Q_ACCNUM, seq = C_ACCNUM, breakpoints) %>%
   mutate(Method = "3SEQ") %>%
   bind_rows(gc %>% filter(virus == "BCoV")) %>%
-  bind_rows(gmos %>% filter(virus == "BCoV"))
+  bind_rows(gmos %>% filter(virus == "BCoV")) %>%
+  bind_rows(openrdp_bcov %>% filter(virus == "BCoV"))
+  
 ```
 
 ```{r prep_bvdv}
@@ -180,7 +213,8 @@ bvdv_seq <-
   select(P_ACCNUM, Q_ACCNUM, seq = C_ACCNUM, breakpoints) %>%
   mutate(Method = "3SEQ") %>%
   bind_rows(gc %>% filter(virus == "BVDV")) %>%
-  bind_rows(gmos %>% filter(virus == "BVDV"))
+  bind_rows(gmos %>% filter(virus == "BVDV")) %>%
+  bind_rows(openrdp_bvdv %>% filter(virus == "BVDV"))
 ```
 
 ## Plot prep
@@ -190,7 +224,7 @@ bvdv_seq <-
 a1 <- 
   hcv_profile %>%
   ggplot(aes(x = position, y = pval)) +
-  geom_line(color = "#FC8D62") +
+  geom_line(color = "black") +
   geom_hline(yintercept = 0.05, colour = 'darkgrey', linetype = 'dashed') +
   labs(x = "Sequence position", y = "p-value") +
   scale_y_continuous(trans = reverse_log_trans(10)) +
@@ -207,8 +241,8 @@ a2 <-
   theme_fj +
   geom_density(adjust = 0.25, alpha = 0.3) +
   geom_rug(alpha = 0.3) +
-  scale_color_manual(values = c('#8DA0CB', '#66C2A5', '#FFD92F')) +
-  scale_fill_manual(values = c('#8DA0CB', '#66C2A5', '#FFD92F')) +
+  scale_color_manual(values = seq_pal[1:2]) +
+  scale_fill_manual(values = seq_pal[1:2]) +
   labs(x = 'Sequence position',
        y = 'Density') +
   theme(legend.position = 'none') +
@@ -220,7 +254,7 @@ a2 <-
 b1 <- 
   bcov_profile %>%
   ggplot(aes(x = position, y = pval)) +
-  geom_line(color = "#FC8D62") +
+  geom_line(color = "black") +
   #geom_vline(xintercept = bcov_gr, linetype = 'longdash', col = 'grey') + 
   geom_hline(yintercept = 0.05, colour = 'darkgrey', linetype = 'dashed') +
   labs(x = "Sequence position", y = "p-value") +
@@ -238,9 +272,9 @@ b2 <-
   #geom_vline(xintercept = bcov_gr, linetype = 'longdash', col = 'grey') + 
   theme_fj +
   geom_density(adjust = 0.25, alpha = 0.3) +
-  geom_rug(alpha = 0.3) +
-  scale_color_manual(values = c('#8DA0CB', '#66C2A5', '#FFD92F')) +
-  scale_fill_manual(values = c('#8DA0CB', '#66C2A5', '#FFD92F')) +
+  geom_rug(alpha = 0.3, size = 0.1) +
+  scale_color_manual(values = seq_pal) +
+  scale_fill_manual(values = seq_pal) +
   labs(x = 'Sequence position',
        y = 'Density') +
   theme(legend.position = 'none') +
@@ -252,7 +286,7 @@ b2 <-
 c1 <- 
   bvdv_profile %>%
   ggplot(aes(x = position, y = pval)) +
-  geom_line(color = "#FC8D62") +
+  geom_line(color = "black") +
   geom_hline(yintercept = 0.05, colour = 'darkgrey', linetype = 'dashed') +
   labs(x = "Sequence position", y = "p-value") +
   scale_y_continuous(trans = reverse_log_trans(10)) +
@@ -266,15 +300,15 @@ c1 <-
 # Coloured density
 c2 <- 
   bvdv_seq %>%
-  add_row(Method = "PhiPack (Profile)") %>%
   ggplot(aes(x = breakpoints, fill = Method, col = Method)) +
   theme_fj +
   geom_density(adjust = 0.25, alpha = 0.3) +
-  geom_rug(alpha = 0.3) +
-  scale_color_manual(values = seq_pal, breaks = c("PhiPack (Profile)", "3SEQ", "GENECONV", "gmos")) +
-  scale_fill_manual(values = seq_pal, breaks = c("PhiPack (Profile)", "3SEQ", "GENECONV", "gmos")) +
-  labs(x = 'Sequence position', y = 'Density') +
-  theme(legend.position = "bottom")
+  geom_rug(alpha = 0.1, size = 0.02) +
+  scale_color_manual(values = seq_pal) +
+  scale_fill_manual(values = seq_pal) +
+  labs(x = 'Sequence position',
+       y = 'Density') +
+  theme(legend.position = 'bottom') +
   xlim(0, 11767)
 ```
 
@@ -306,7 +340,7 @@ mvhcv <-
 
 ### BCOV ###
 # Read sequences
-bcov_seq <- read.alignment("/home/fredjaya/GitHub/rec-bench/data/bcov.fasta", format = 'fasta')
+bcov_seq <- read.alignment("/home/frederickjaya/GitHub/rec-bench/data/bcov.fasta", format = 'fasta')
 
 # Calculate pairwise distances
 mbcov <- as.matrix(dist.alignment(bcov_seq, matrix = "identity" ))
@@ -322,7 +356,7 @@ mvbcov <-
   rename(dist = '.')
 
 ### PESTI ###
-pesti_seq <- read.alignment("/home/fredjaya/GitHub/rec-bench/data/bvdv.fasta", format = 'fasta')
+pesti_seq <- read.alignment("/home/frederickjaya/GitHub/rec-bench/data/bvdv.fasta", format = 'fasta')
 
 # Calculate pairwise distances
 mpesti <- as.matrix(dist.alignment(pesti_seq, matrix = "identity" ))
@@ -366,7 +400,7 @@ mpesti_pivot <-
 
 # Add distances to detected recombinants
 rc <- 
-  read.csv("/home/fredjaya/Dropbox/Masters/02_working/2105_empirical/pairwise_detections.csv") %>%
+  read.csv("/home/frederickjaya/Dropbox/Masters/02_working/2105_empirical/pairwise_detections.csv") %>%
   left_join(mbcov_pivot, by = c('seq1', 'seq2')) %>%
   left_join(mpesti_pivot, by = c('seq1', 'seq2')) %>%
   left_join(mhcv_pivot, by = c('seq1', 'seq2')) %>%

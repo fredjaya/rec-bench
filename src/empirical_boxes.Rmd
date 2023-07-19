@@ -1,0 +1,305 @@
+---
+title: "Empirical analyses"
+author: "Fred Jaya"
+output: 
+   html_document:
+     theme: spacelab
+     code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = T,
+  warning = F, 
+  dev = 'png',
+  fig.width = 8,
+  fig.path = "/home/frederickjaya/GitHub/rec-bench/figs/")
+
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(ggplot2)
+library(viridis)
+library(seqinr)
+library(cowplot)
+
+# Function for reverse log transformation
+# https://stackoverflow.com/questions/11053899/how-to-get-a-reversed-log10-scale-in-ggplot2
+reverse_log_trans <- function(base = exp(1)) {
+  scales::trans_new(name      = paste0("reverselog-", format(base)),
+                    transform = function(x) -log(x, base),
+                    inverse   = function(x) base^(-x),
+                    breaks    = scales::log_breaks(base = base),
+                    domain    = c(1e-100, Inf))
+}
+
+theme_fj <- theme_minimal() +
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(fill = NA, colour = "darkgrey"),
+        axis.title = element_text(size = 10))
+
+seq_pal = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+path <- "/home/frederickjaya/Dropbox/Masters/02_working/2105_empirical/"
+
+methods <- c("PhiPack (Profile)", "3SEQ", "GENECONV", "RDP (OpenRDP)", "MaxChi (OpenRDP)", "Chimaera (OpenRDP)", "UCHIME (VSEARCH)", "gmos")
+```
+
+Dropping Figure 7 densities to better illustrate the recombinant positions of all 8 methods.  
+
+## Data prep  
+
+```{r prep_gc}
+gc <- read.csv(paste(path, "F3_geneconv_summarised.csv", sep = ''))
+
+# Transform inner sequence frags
+gc <- gc %>%
+  separate(seq_names, c('seq1', 'seq2'), sep = ';')
+
+# Clean and separate sequence pairs
+seq1 <- gc %>%
+  select(-seq2, -seq2_begin, -seq2_end, -seq2_length) %>%
+  rename(seq_name = seq1, start_bp = seq1_begin, end_bp = seq1_end, bp_length = seq1_length)
+
+seq2 <- gc %>%
+  select(-seq1, -seq1_begin, -seq1_end, -seq1_length) %>%
+  rename(seq_name = seq2, start_bp = seq2_begin, end_bp = seq2_end, bp_length = seq2_length)
+
+# Merge
+gc <- rbind(seq1, seq2)
+rm(seq1, seq2)
+
+# Pivot all bps in one columns
+gc <- gc %>%
+  select(virus, seq_name, start_bp, end_bp) %>%
+  pivot_longer(cols = c('start_bp', 'end_bp')) %>%
+  mutate(Method = "GENECONV") %>%
+  rename(seq = seq_name, breakpoints = value)
+```
+
+```{r prep_gmos}
+gmos <- 
+  read.csv(paste(path, "F5_gmos_summarised.csv", sep = '')) %>%
+  select(-end_bp2, -strand_dir) %>%
+  rowwise() %>%
+  mutate(match_self = q_seq %in% s_full)
+
+# Separate sequence pairs
+seq1 <- 
+  gmos %>%
+  select(virus, 
+         seq = q_seq, 
+         start_bp = q_start_bp, 
+         end_bp = q_end_bp,
+         match_self)
+
+seq2 <- 
+  gmos %>%
+  select(virus,
+         seq = s_full, 
+         start_bp = s_start_bp, 
+         end_bp = s_end_bp,
+         match_self)
+
+gmos <- 
+  rbind(seq1, seq2) %>%
+  pivot_longer(cols = c('start_bp', 'end_bp')) %>%
+  mutate(Method = "gmos") %>%
+  rename(breakpoints = value) %>%
+  filter(match_self == F)
+
+rm(seq1, seq2)
+```
+
+```{r openrdp}
+openrdp_bvdv <- read.table("~/Dropbox/Masters/02_working/2307_empirical_openrdp/bvdv/bvdv.openrdp", header=T) %>%
+  mutate(virus = "BVDV") %>%
+  mutate(Method = gsub("$", " (OpenRDP)", Method)) %>%
+  # Some parsing to match original format
+  rename(seq = Recombinant, start = Start, end = End) %>%
+  pivot_longer(cols = start:end, values_to = "breakpoints")
+
+openrdp_bvdv_sig <-
+  openrdp_bvdv %>%
+  filter(Pvalue < 0.05)
+
+# How many unique recombinant sequences detected per method?
+openrdp_bvdv_sig %>%
+  select(Method, seq) %>%
+  distinct() %>%
+  group_by(Method) %>%
+  tally()
+
+### BcOV ###
+openrdp_bcov <- read.table("~/Dropbox/Masters/02_working/2307_empirical_openrdp/bcov/bcov.openrdp", header=T) %>%
+  mutate(virus = "BCoV") %>%
+  mutate(Method = gsub("$", " (OpenRDP)", Method)) %>%
+  # Some parsing to match original format
+  rename(seq = Recombinant, start = Start, end = End) %>%
+  pivot_longer(cols = start:end, values_to = "breakpoints")
+
+openrdp_bcov_sig <-
+  openrdp_bcov %>%
+  filter(Pvalue < 0.05)
+
+# How many unique recombinant sequences detected per method?
+openrdp_bcov %>%
+  select(Method, seq) %>%
+  distinct() %>%
+  group_by(Method) %>%
+  tally()
+```
+
+```{r prep_hcv}
+hcv_gr <- c(58, 615, 689)
+
+## Phi
+hcv_profile <- 
+  read.csv(paste(path, "FP7_patient_037_allseqs.fasta_Profile.csv", sep = ''),
+           col.names = c("position", "pval")) %>%
+  filter(pval < 0.05) %>%
+  select(breakpoints = position) %>%
+  mutate(Method = "PhiPack (Profile)")
+
+## Sequence-based methods
+hcv_seq <- 
+  read.csv(paste(path, "FP7_patient_037_allseqs.fasta.3s.rec_bp_parsed.csv", sep = '')) %>%
+  # Gather breakpoints in one row
+  # Remove { }
+  mutate(breakpoints = gsub("[{}]", "", breakpoints)) %>%
+  # Pivot breakpoints
+  mutate(breakpoints = strsplit(breakpoints, ',')) %>%
+  unnest(breakpoints) %>%
+  mutate(breakpoints = as.numeric(breakpoints)) %>%
+  select(P_ACCNUM, Q_ACCNUM, seq = C_ACCNUM, breakpoints) %>%
+  mutate(Method = "3SEQ") %>%
+  bind_rows(gc %>% filter(virus == "HCV")) %>%
+  bind_rows(gmos %>% filter(virus == "HCV")) %>%
+  select(Method, breakpoints) %>%
+  bind_rows(hcv_profile)
+```
+
+```{r prep_bcov}
+#seq_length = 17088
+# Gene regions...
+bcov_gr <- c(13317, 13296)
+
+## Phi
+bcov_profile <- 
+  read.csv(paste(path, "bcov.fasta_Profile.csv", sep = ''), 
+           col.names = c("position", "pval")) %>%
+  filter(pval < 0.05) %>%
+  select(breakpoints = position) %>%
+  mutate(Method = "PhiPack (Profile)")
+
+## Sequence-based methods
+bcov_seq <- 
+  read.csv(paste(path, "bcov.fasta.3s.rec_bp_parsed.csv", sep = '')) %>% 
+  # Gather breakpoints in one row
+  # Remove { }
+  mutate(breakpoints = gsub("[{}]", "", breakpoints)) %>%
+  # Pivot breakpoints
+  mutate(breakpoints = strsplit(breakpoints, ',')) %>%
+  unnest(breakpoints) %>%
+  mutate(breakpoints = as.numeric(breakpoints)) %>%
+  select(P_ACCNUM, Q_ACCNUM, seq = C_ACCNUM, breakpoints) %>%
+  mutate(Method = "3SEQ") %>%
+  bind_rows(gc %>% filter(virus == "BCoV")) %>%
+  bind_rows(gmos %>% filter(virus == "BCoV")) %>%
+  bind_rows(openrdp_bcov_sig %>% filter(virus == "BCoV")) %>%
+  select(Method, breakpoints)
+
+bcov_all <- 
+  bcov_profile %>% 
+  bind_rows(bcov_seq)
+```
+
+```{r prep_bvdv}
+#seq_length = 11767
+# Gene regions...
+#bvdv_gr <- c(13317, 13296)
+
+## Phi
+bvdv_profile <- 
+  read.csv(paste(path, "bvdv.fasta_Profile.csv", sep = ''), 
+           col.names = c("position", "pval")) %>%
+  filter(pval < 0.05) %>%
+  select(breakpoints = position) %>%
+  mutate(Method = "PhiPack (Profile)")
+
+## Sequence-based methods
+bvdv_seq <- 
+  read.csv(paste(path, "bvdv.fasta.3s.rec_bp_parsed.csv", sep = '')) %>% 
+  # Gather breakpoints in one row
+  # Remove { }
+  mutate(breakpoints = gsub("[{}]", "", breakpoints)) %>%
+  # Pivot breakpoints
+  mutate(breakpoints = strsplit(breakpoints, ',')) %>%
+  unnest(breakpoints) %>%
+  mutate(breakpoints = as.numeric(breakpoints)) %>%
+  select(P_ACCNUM, Q_ACCNUM, seq = C_ACCNUM, breakpoints) %>%
+  mutate(Method = "3SEQ") %>%
+  bind_rows(gc %>% filter(virus == "BVDV")) %>%
+  bind_rows(gmos %>% filter(virus == "BVDV")) %>%
+  bind_rows(openrdp_bvdv_sig %>% filter(virus == "BVDV")) %>%
+  select(Method, breakpoints)
+
+bvdv_all <- 
+  bvdv_profile %>% 
+  bind_rows(bvdv_seq)
+```
+
+## Plot prep
+
+```{r hcv_boxes, fig.height=2}
+p1 <- 
+  hcv_seq %>%
+  mutate(Method = factor(Method, levels = methods)) %>%
+  ggplot() +
+  geom_vline(aes(xintercept = breakpoints, color = Method), alpha = 0.3) +
+  facet_wrap(vars(Method), ncol = 1, strip.position = "left") +
+  scale_color_manual(values = c("black", seq_pal)) +
+  theme_fj +
+  labs(x = "Sequence position") +
+  theme(legend.position = "none", 
+        strip.text.y.left = element_text(angle = 0)) 
+```
+
+```{r bcov_boxes, fig.height=2}
+p2 <- 
+  bcov_all %>%
+  mutate(Method = factor(Method, levels = methods)) %>%
+  ggplot() +
+  geom_vline(aes(xintercept = breakpoints, color = Method), alpha = 0.3) +
+  facet_wrap(vars(Method), ncol = 1, strip.position = "left") +
+  scale_color_manual(values = c("black", seq_pal)) +
+  theme_fj +
+  labs(x = "Sequence position") +
+  theme(legend.position = "none", 
+        strip.text.y.left = element_text(angle = 0)) 
+```
+
+```{r bvdv_boxes, fig.height=2}
+p3 <- 
+  bvdv_all %>%
+  mutate(Method = factor(Method, levels = methods)) %>%
+  ggplot() +
+  geom_vline(aes(xintercept = breakpoints, color = Method), alpha = 0.15) +
+  facet_wrap(vars(Method), ncol = 1, strip.position = "left") +
+  scale_color_manual(values = c("black", seq_pal)) +
+  theme_fj +
+  labs(x = "Sequence position") +
+  theme(legend.position = "none", 
+        strip.text.y.left = element_text(angle = 0))
+```
+
+```{r main_empirical, fig.height=6}
+plot_grid(NULL, p1, NULL, p2, NULL, p3, align = 'v',
+          rel_heights = c(0.1, 0.55, 0.1, 1, 0.1, 1.05),
+          ncol = 1,
+          labels = c("    a) Hepatitis C virus", "",
+                     "   b) Betacoronavirus-1", "", 
+                     "c) Bovine viral diarrhea virus-1", ""),
+          label_size = 10, label_x = -0.1)
+```
+

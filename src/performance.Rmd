@@ -382,7 +382,6 @@ s_power <-
 ```{r s_precision, fig.width=9.5, fig.height=4}
 s_precision <- 
   seq_based_long %>%
-  mutate(rec = gsub('^', 'r = ', rec)) %>%
   filter(Metric == "Precision") %>%
   #mutate(Method = factor(Method, levels = c('VSEARCH (UCHIME)', 'GENECONV', '3SEQ'))) %>%
   ggplot(aes(x = as.factor(mut), y = Score, col = Method, group = Method)) +
