@@ -24,6 +24,8 @@ library(lubridate)
 theme_fj <- theme_minimal() +
   theme(panel.grid = element_blank(),
         text = element_text(size = 12))
+
+seq_pal = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 ```
 
 ```{r read_data, eval=F}
@@ -96,7 +98,9 @@ traces2 <-
   mutate(name = gsub('maxchi', 'MaxChi (openrdp)', name)) %>%
   mutate(name = gsub('chimaera', 'Chimaera (openrdp)', name)) %>%
   mutate(name = gsub('B4_uchime', 'UCHIME (VSEARCH)', name)) %>%
-  mutate(name = factor(name, levels = c('PhiPack (Profile)', '3SEQ', 'GENECONV', 'UCHIME (VSEARCH)', 'gmos', 'MaxChi (openrdp)', 'Chimaera (openrdp)', 'RDP (openrdp)')))
+  mutate(name = factor(name, levels = c('PhiPack (Profile)', '3SEQ', 'GENECONV', 'RDP (openrdp)', 'MaxChi (openrdp)', 'Chimaera (openrdp)', 'UCHIME (VSEARCH)', 'gmos'))) %>%   
+  # As 3SEQ m=0 doesn't run
+  filter(!(name == "3SEQ" & mut == 0))
 
 rm(uchime, derep, joined_uchime, traces)
 ```
@@ -104,13 +108,14 @@ rm(uchime, derep, joined_uchime, traces)
 ```{r scale_main, fig.width=8, fig.height=6}
 traces2 %>%
   ggplot(aes(x = as.factor(mut), y = hours, col = name, group = name)) +
-  geom_jitter(alpha = 0.25, shape = 16, size = 2, width = 0.2) +
+  geom_jitter(alpha = 0.25, shape = 16, size = 2, width = 0.3) +
   facet_wrap(vars(seq_n), ncol = 2) +
   stat_summary(geom = 'line', fun = mean, size = 1, alpha = 0.9) +
   stat_summary(geom = 'point', fun = mean, shape = 18, size = 4) +
-  labs(col = "Method", x = "Mutation rate", y = "CPU time") +
+  labs(col = "Method", x = "Mutation rate", y = "CPU hours") +
   theme_fj +
   theme(panel.border = element_rect(colour = "darkgrey", fill=NA, size=1), legend.position = "bottom") +
-  scale_y_log10(breaks = c(10, 1, 0.1, 0.01, 0.001), labels = c("10h", "1h", "6m", "36s", "3.6s")) +
+  scale_colour_manual(values = c("black", seq_pal)) +
+  scale_y_log10(breaks = c(10, 1, 0.1, 0.01, 0.001), labels = c("10", "1", "0.1", "0.01", "0.001")) +
   annotation_logticks(sides = "l", colour = "grey")
 ```

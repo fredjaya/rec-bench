@@ -256,9 +256,8 @@ p1 <-
   hcv_seq %>%
   mutate(Method = factor(Method, levels = methods)) %>%
   ggplot() +
-  geom_vline(aes(xintercept = breakpoints, color = Method), alpha = 0.3) +
+  geom_vline(aes(xintercept = breakpoints), alpha = 0.3) +
   facet_wrap(vars(Method), ncol = 1, strip.position = "left") +
-  scale_color_manual(values = c("black", seq_pal)) +
   theme_fj +
   labs(x = "Sequence position") +
   theme(legend.position = "none", 
@@ -270,9 +269,8 @@ p2 <-
   bcov_all %>%
   mutate(Method = factor(Method, levels = methods)) %>%
   ggplot() +
-  geom_vline(aes(xintercept = breakpoints, color = Method), alpha = 0.3) +
+  geom_vline(aes(xintercept = breakpoints), alpha = 0.3) +
   facet_wrap(vars(Method), ncol = 1, strip.position = "left") +
-  scale_color_manual(values = c("black", seq_pal)) +
   theme_fj +
   labs(x = "Sequence position") +
   theme(legend.position = "none", 
@@ -284,9 +282,8 @@ p3 <-
   bvdv_all %>%
   mutate(Method = factor(Method, levels = methods)) %>%
   ggplot() +
-  geom_vline(aes(xintercept = breakpoints, color = Method), alpha = 0.15) +
+  geom_vline(aes(xintercept = breakpoints), alpha = 0.15) +
   facet_wrap(vars(Method), ncol = 1, strip.position = "left") +
-  scale_color_manual(values = c("black", seq_pal)) +
   theme_fj +
   labs(x = "Sequence position") +
   theme(legend.position = "none", 
