@@ -1,0 +1,79 @@
+<santa xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="santa.xsd">
+	<replicates>3</replicates>
+
+	<simulation>
+		<genome>
+		    <length>1680</length>
+			<sequences file = '/shared/homes/13444841/2012_revised_sims/work/bf/fb8cdfed0cdd740587234914409dc0/msa_m0.010_rc1.0E-7_n100_dual0_rep1.fasta_n_filtered'>
+			</sequences>
+
+			<feature>
+        <!-- Envelope coding sequence from Ho et al. (2017) -->
+				<name>E1E2</name>
+				<type>nucleotide</type>
+				<coordinates>1-1680</coordinates>
+			</feature>
+		</genome>
+
+		<!-- Neutral fitness -->
+		<fitnessFunction>
+		</fitnessFunction>
+
+		<population>
+		    <populationSize>100</populationSize>
+		    <inoculum>random</inoculum>
+		</population>
+
+		<mutator>
+			<nucleotideMutator>
+				<mutationRate>0.001</mutationRate>
+        <!-- 75-fold difference in frequency (Powdrill et al., 2011)-->
+				<transitionBias>75.0</transitionBias>
+			</nucleotideMutator>
+		</mutator>
+
+		<replicator>
+			<recombinantReplicator>
+				<dualInfectionProbability>1</dualInfectionProbability>
+				<recombinationProbability>0.01</recombinationProbability>
+			</recombinantReplicator>
+		</replicator>
+
+		<epoch>
+			<generationCount>1</generationCount>
+		</epoch>
+
+		<samplingSchedule>
+			<sampler>
+				<atFrequency>1</atFrequency>
+				<fileName>msa_m0.001_rc0.01_n100_dual1_rep%r.fasta</fileName>
+				<alignment>
+					<sampleSize>100</sampleSize>
+					<format>FASTA</format>
+					<label>seq_%s</label>
+          <breakpoints>TRUE</breakpoints>
+				</alignment>
+			</sampler>
+
+			<sampler>
+				<atFrequency>1</atFrequency>
+				<fileName>stats_m0.001_rc0.01_n100_dual1_rep%r.csv</fileName>
+				<statistics/>
+			</sampler>
+
+			<sampler>
+				<atFrequency>1</atFrequency>
+				<fileName>tree_m0.001_rc0.01_n100_dual1_rep%r.trees</fileName>
+					<tree>
+						<sampleSize>100</sampleSize>
+						<format>NEWICK</format>
+						<label>seq_%s</label>
+					</tree>
+			</sampler>
+		</samplingSchedule>
+
+
+	</simulation>
+
+</santa>

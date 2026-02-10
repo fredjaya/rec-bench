@@ -167,7 +167,7 @@ fasta_ch
     .flatten()
     .into { phi_fa; tseq_fa; gc_fa; uchime_fa; gmos_fa; rdp_fa; maxchi_fa; chimaera_fa }
 
-/*
+
 process B1_phi_profile {
 
     label "sim_benchmark"
@@ -300,7 +300,7 @@ process B5_gmos {
     """
     gmos -i ${seq} -j ${seq} -o gmos.txt -t
     """
-*/
+}
 
 process rdp {
 
